@@ -34,7 +34,9 @@ DEPENDFLAGS =
 LIB_CXXSRCS =	wrap_liborpg.cpp \
 		wrap_rpg.cpp \
 		wrap_rpg_messages.cpp \
-		wrap_types.cpp
+		wrap_types.cpp \
+		wrap_rpg_rda.cpp \
+		wrap_rda_status.cpp
 
 LIB_TARGET = _rpg
 

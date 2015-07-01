@@ -1,5 +1,9 @@
 #include <boost/python.hpp>
 using boost::python::class_;
+using boost::python::extract;
+using boost::python::len;
+using boost::python::list;
+using boost::python::scope;
 
 #include <boost/shared_ptr.hpp>
 using boost::shared_ptr;
@@ -13,6 +17,29 @@ extern "C"
 
 namespace rpg
 {
+    shared_ptr<VCP_elevation_cut_header_t> wrap_set_vcp_elevation_cut_header_t_data(
+        shared_ptr<VCP_elevation_cut_header_t> self,
+        list data
+    )
+    {
+        for (int i = 0; i < len(data); i++)
+            self->data[i] = extract<VCP_elevation_cut_data_t>(data[i]);
+
+        return self;
+    }
+
+    list wrap_get_vcp_elevation_cut_header_t_data(
+        shared_ptr<VCP_elevation_cut_header_t> self
+    )
+    {
+        list l;
+
+        for (short i = 0; i < self->number_cuts; i++)
+            l.append(self->data[i]);
+
+        return l;
+    }
+
     void wrap_vcp_message_header_t()
     {
         class_<VCP_message_header_t, 
@@ -80,8 +107,11 @@ namespace rpg
                             &VCP_elevation_cut_header_t::doppler_res)
             .def_readwrite("pulse_width", 
                             &VCP_elevation_cut_header_t::pulse_width)
-            //.def_readwrite("data", 
-                            //&VCP_elevation_cut_header_t::data)
+            .add_property(
+                "data", 
+                &wrap_get_vcp_elevation_cut_header_t_data, 
+                &wrap_set_vcp_elevation_cut_header_t_data
+            )
         ;
     }
     
@@ -103,6 +133,13 @@ namespace rpg
     
     void export_rpg_messages()
     {
+        scope in_rpgvcp = class_<rpgvcp_ns>("rpgvcp");
+        in_rpgvcp.attr("MAX_ELEVATION_CUTS") = MAX_ELEVATION_CUTS;
+        in_rpgvcp.attr("VCP_CONST_ELEV_CUT_PT") = VCP_CONST_ELEV_CUT_PT;
+        in_rpgvcp.attr("VCP_HORIZ_RAST_SCAN_PT") = VCP_HORIZ_RAST_SCAN_PT;
+        in_rpgvcp.attr("VCP_VERT_RAST_SCAN_PT") = VCP_VERT_RAST_SCAN_PT;
+        in_rpgvcp.attr("VCP_SEARCHLIGHT_PT") = VCP_SEARCHLIGHT_PT;
+
         export_vcp_messages();
     }
 }

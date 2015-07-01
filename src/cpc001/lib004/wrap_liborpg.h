@@ -6,6 +6,8 @@ using std::vector;
 
 namespace rpg
 {
+    struct liborpg_ns {};      // dummy struct for namespacing
+
     int thinwrap_orpg_send_cmd(
         int cmd, 
         int who_sent_it, 

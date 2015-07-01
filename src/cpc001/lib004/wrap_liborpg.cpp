@@ -1,6 +1,8 @@
 #include <boost/python.hpp>
 using boost::python::args;
+using boost::python::class_;
 using boost::python::def;
+using boost::python::scope;
 
 #include <vector>
 using std::vector;
@@ -9,6 +11,8 @@ extern "C"
 {
     #include "orpgrda.h"
 }
+
+#include "wrap_liborpg.h"
 
 namespace rpg
 {
@@ -40,11 +44,21 @@ namespace rpg
             &thinwrap_orpg_send_cmd,
             args("cmd", "who_sent_it", "param1", "param2", "param3", "param4", "param5", "msg")
         );
+        def("orpgrda_get_wb_status", &ORPGRDA_get_wb_status, args("item"));
+        def("orpgrda_get_status", &ORPGRDA_get_status, args("item"));
     }
 
     void export_liborpg()
     {
+        class_<liborpg_ns> c("liborpg");
+        scope in_liborpg = c;
+
         wrap_orpgrda();
+
+        c.staticmethod("orpgrda_send_cmd")
+            .staticmethod("orpgrda_get_wb_status")
+            .staticmethod("orpgrda_get_status")
+        ;
     }
 }
 
