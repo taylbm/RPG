@@ -88,16 +88,7 @@ def parse_zdr_stats(zdr_split):
                 'volumeBias':   {
                     'last12':       float(twelve_vol_bias),
                     'current':      float(cur_vol_bias)
-                }#,
-                #'binCounts':    {
-                #    'last12':       int(twelve_vol_count),
-                #    'current':      int(cur_vol_count)
-                #},
-                #'stats':        {
-                #    'iqr':          float(cur_vol_iqr),
-                #    'percent90':    float(cur_vol_90)
-                #},
-                #'vcp':              int(cur_vol_vcp)
+                }
             }
         else:
             return None
@@ -125,15 +116,10 @@ def parse_zdr_stats(zdr_split):
             return {
                 'time': time.mktime(stat_date_time.timetuple()),
                 'rain': {
-                    'zdrError':         float(zdr_error_rain)#,
-                    #'measuredZdr':      [float(first_zdr_refl_cat)] + [float(z) for z in rain_raw[1:5]] + [float(last_zdr_refl_cat)],
-                    #'totalBins':        int(total_num_rain_bins),
-                    #'stdDev':           [float(first_std_dev)] + [float(s) for s in rain_raw[6:]]
+                    'zdrError':         float(zdr_error_rain)
                 },
                 'snow':    {
-                    'zdrError':         float(zdr_error_snow),
-                    #'totalBins':        int(total_num_snow_bins),
-                    #'stdDev':           float(stddev_snow)
+                    'zdrError':         float(zdr_error_snow)
                 }
             }
         else:
@@ -151,8 +137,6 @@ class unpack_comps(object):
         
     def single_comp(self):
         code = struct.unpack('>i', self.xdr.unpack_fopaque(4))[0]
-        
-#        print('component code is: %s' %code)
         
         if code == 4:        
             return {
@@ -208,11 +192,13 @@ if __name__ == '__main__':
         stderr = subprocess.PIPE
     )
 
+    print('--> retrieving output')
     (stderr, stdout) = lb_dump_proc.communicate()
 
     at = 96
     total_length = len(stderr)
     
+    print('--> parsing ASP data')
     while at < total_length:
         
         #
@@ -230,15 +216,6 @@ if __name__ == '__main__':
             destination_id,
             number_blocks
         ) = struct.unpack(hdr_fmt, stderr[at:at + hdr_fmt_size])
-        
-#        print('''message_code: %s\n
-#            date: %s\n
-#            time: %s\n
-#            length: %s\n
-#            source: %s\n
-#            destination: %s\n
-#            num blocks: %s''' %(message_code, date_of_message, time_of_message, length_of_message, source_id, destination_id, number_blocks)
-#        )
         
         #
         # description block
@@ -293,99 +270,6 @@ if __name__ == '__main__':
             offset_to_tabular
         ) = struct.unpack(description_fmt, stderr[at + hdr_fmt_size:at + hdr_fmt_size + description_fmt_size])
         
-#        print('description size: %s' %description_fmt_size)
-#        print('''
-#            block_divider: %s\n
-#            latitude_of_radar: %s\n
-#            longitude_of_radar: %s\n
-#            height_of_radar: %s\n
-#            product_code: %s\n
-#            operational_mode: %s\n
-#            vcp: %s\n
-#            sequence_number: %s\n
-#            volume_scan_number: %s\n
-#            volume_scan_date: %s\n
-#            volume_scan_time: %s\n
-#            generation_date: %s\n
-#            generation_time: %s\n
-#            product_dependent_1: %s\n
-#            product_dependent_2: %s\n
-#            elevation_number: %s\n
-#            product_dependent_3: %s\n
-#            data_levels_1: %s\n
-#            data_levels_2: %s\n
-#            data_levels_3: %s\n
-#            data_levels_4: %s\n
-#            data_levels_5: %s\n
-#            data_levels_6: %s\n
-#            data_levels_7: %s\n
-#            data_levels_8: %s\n
-#            data_levels_9: %s\n
-#            data_levels_10: %s\n
-#            data_levels_11: %s\n
-#            data_levels_12: %s\n
-#            data_levels_13: %s\n
-#            data_levels_14: %s\n
-#            data_levels_15: %s\n
-#            data_levels_16: %s\n
-#            product_dependent_4: %s\n
-#            product_dependent_5: %s\n
-#            product_dependent_6: %s\n
-#            product_dependent_7: %s\n
-#            compression_method: %s\n
-#            uncompressed_size: %s\n
-#            version: %s\n
-#            spot_blank: %s\n
-#            offset_to_symbology: %s\n
-#            offset_to_graphic: %s\n
-#            offset_to_tabular: %s\n
-#        ''' %(
-#            block_divider,
-#            latitude_of_radar,
-#            longitude_of_radar,
-#            height_of_radar,
-#            product_code,
-#            operational_mode,
-#            vcp,
-#            sequence_number,
-#            volume_scan_number,
-#            volume_scan_date,
-#            volume_scan_time,
-#            generation_date,
-#            generation_time,
-#            product_dependent_1,
-#            product_dependent_2,
-#            elevation_number,
-#            product_dependent_3,
-#            data_levels_1,
-#            data_levels_2,
-#            data_levels_3,
-#            data_levels_4,
-#            data_levels_5,
-#            data_levels_6,
-#            data_levels_7,
-#            data_levels_8,
-#            data_levels_9,
-#            data_levels_10,
-#            data_levels_11,
-#            data_levels_12,
-#            data_levels_13,
-#            data_levels_14,
-#            data_levels_15,
-#            data_levels_16,
-#            product_dependent_4,
-#            product_dependent_5,
-#            product_dependent_6,
-#            product_dependent_7,
-#            compression_method,
-#            uncompressed_size,
-#            version,
-#            spot_blank,
-#            offset_to_symbology,
-#            offset_to_graphic,
-#            offset_to_tabular
-#        ))
-        
         #
         # symbology block
         #
@@ -409,25 +293,14 @@ if __name__ == '__main__':
             at += length_of_message + 96
             continue
         
-#        print('''block_divider: %s\n
-#            block id: %s\n
-#            length of block: %s\n
-#            number_of_layers: %s\n
-#            layer divider: %s\n
-#            length of data layer: %s
-#        ''' %(block_divider, block_id, length_of_block, number_of_layers, layer_divider, length_of_data_layer)
-#        )
-        
         #
         # packets
         #
         
         packet_code = struct.unpack('>h', symbology_data[symbology_fmt_size:symbology_fmt_size + 2])[0]
-#        print('packet_code: %s' %packet_code)
         
         if packet_code == 28 or packet_code == 29:      # generic data packet, 2 bytes reserved after packet code
             serialized_data_length = struct.unpack('>i', symbology_data[symbology_fmt_size + 2 + 2:symbology_fmt_size + 2 + 2 + 4])[0]
-#            print('serialized_data_length: %s' %serialized_data_length)
             
             #
             # unpack XDR data
@@ -450,25 +323,12 @@ if __name__ == '__main__':
                 elevation_angle = xdr_data.unpack_float()                    
                 volume_scan_number = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
                 
-                #xdr_data.set_position(xdr_data.get_position() + 4)
                 
                 #
                 # b/c the python xdr library (really the xdr spec) assumes 4-bytes is the smallest data chunk, we 
                 # need to deserialize the rest of the data description by unpacking "manually"
                 #
                 
-#                (
-#                    operational_mode,
-#                    vcp,                
-#                    elevation_number,                    
-#                    spare_short,
-#                    spare_int,
-#                    number_of_parameters,
-#                    parameter_list_pointer,
-#                    number_of_components,
-#                    component_list_pointer
-#                ) = struct.unpack('>4h2iIiI', xdr_data.unpack_fopaque(28))
-
                 operational_mode = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
                 vcp = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]                
                 elevation_number = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]                    
@@ -484,49 +344,9 @@ if __name__ == '__main__':
                     }
                 number_of_components = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
                 component_list = xdr_data.unpack_array(unpack_comps(xdr_data))
-                
-#                print('''
-#                    name: %s\n
-#                    desc: %s\n
-#                    code: %s\n
-#                    type: %s\n
-#                    gen time: %s\n
-#                    radar name: %s\n
-#                    radar lat: %s\n
-#                    radar lon: %s\n
-#                    radar height: %s\n
-#                    volume scan start time: %s\n
-#                    volume scan number: %s\n
-#                    operational mode: %s\n
-#                    vcp: %s\n
-#                    elevation number: %s\n
-#                    number of parameters: %s\n
-#                    parameter pointer: %s\n
-#                    number of componenets: %s\n
-#                    components: %s
-#                    ''' %(name, 
-#                        desc, 
-#                        code, 
-#                        type, 
-#                        gen_time, 
-#                        radar_name, 
-#                        radar_latitude, 
-#                        radar_longitude, 
-#                        radar_height,
-#                        volume_scan_start_time,
-#                        volume_scan_number,
-#                        operational_mode,
-#                        vcp,
-#                        elevation_number,
-#                        number_of_parameters,
-#                        parameter_list_pointer,
-#                        number_of_components,
-#                        '\n'.join([c[0]['text'] for c in component_list])
-#                    )
-#                )
+
                 zdr_stats_raw += [c[0]['text'] for c in component_list if 'ZDR Stats' in c[0]['text']]
                 raw_split = [parse_zdr_stats(zdr_stat.split('>>')) for zdr_stat in zdr_stats_raw]
-#                zdr_stats_split += [zdr_stat.split(' >> ') for zdr_stat in zdr_stats_raw]
                 zdr_stats_split += [zdr_stat for zdr_stat in raw_split if zdr_stat is not None]
                 
             else:
@@ -539,25 +359,9 @@ if __name__ == '__main__':
     #
 
     print('--> Finished decoding, now computing (this may take a couple of minutes)')
-#    zdr_processed = (parse_zdr_stats(z) for z in zdr_stats_split)
-#    zdr_processed = (z for z in zdr_processed if z is not None)
     zdr_processed = zdr_stats_split
-
-    #
-    # free some memory
-    #
-
-#    del zdr_stats_split
-
-    print('--> Freed memory and finished parsing, now sorting just in case')
     zdr_processed = sorted((z for z in zdr_processed if z is not None), key = lambda x: x['time'])
     print('--> Found %s zdr stats' %len(zdr_processed))
-    
-#    to_write = json.dumps(zdr_processed)
-#    
-#    f = open('static/output.js', 'w')
-#    f.write('var AllData = %s;' %to_write)
-#    f.close()
     
     times = [datetime.date.fromtimestamp(z['time']) for z in zdr_processed]
     i = 0
