@@ -72,6 +72,8 @@ def parse_zdr_stats(zdr_split):
     if len(zdr_split) != 2:
         return None
         
+    print(zdr_split[1])
+
     if '(Bragg)' in zdr_split[1]:
         if 'Unavailable' in zdr_split[1] or 'Last detection' in zdr_split[1]:
             return None
@@ -148,6 +150,14 @@ class unpack_comps(object):
     def __call__(self):
         return self.xdr.unpack_array(self.single_comp)
 
+class TermHandler(object):
+    def __init__(self, proc):
+        self.proc = proc
+
+    def __call__(self, signum, frame):
+        print('--> terminating process')
+        os.kill(self.proc.pid, signal.SIGTERM)
+
 if __name__ == '__main__':
     #
     # locals
@@ -184,175 +194,23 @@ if __name__ == '__main__':
     # now let's try and open the LB and get header info (the first 18 bytes)
     #
 
-    args = [config['lbInfo']['command']['exec']] + config['lbInfo']['command']['args'] + ['-s', os.path.expanduser(config['lbInfo']['name'])]
+    #args = [config['lbInfo']['command']['exec']] + config['lbInfo']['command']['args'] 
+    args = ['standalone_dsp', '-l', '3029', '-g', '"ZDR Stats"', '-t']
     print('--> running command: %s' %' '.join(args))
     lb_dump_proc = subprocess.Popen(
-        args,
+        [' '.join(args)],
+        shell = True,
         stdout = subprocess.PIPE,
         stderr = subprocess.PIPE
     )
 
     print('--> retrieving output')
-    (stderr, stdout) = lb_dump_proc.communicate()
+    out = lb_dump_proc.communicate()
 
-    at = 96
-    total_length = len(stderr)
-    
     print('--> parsing ASP data')
-    while at < total_length:
-        
-        #
-        # message header
-        #
-        
-        hdr_fmt = '>2h2i3h'
-        hdr_fmt_size = struct.calcsize(hdr_fmt) 
-        (
-            message_code,
-            date_of_message,
-            time_of_message,
-            length_of_message,
-            source_id,
-            destination_id,
-            number_blocks
-        ) = struct.unpack(hdr_fmt, stderr[at:at + hdr_fmt_size])
-        
-        #
-        # description block
-        #
-        
-        description_fmt = '>h2i7hihi25hI2B3I'
-        description_fmt_size = struct.calcsize(description_fmt)
-        (
-            block_divider,
-            latitude_of_radar,
-            longitude_of_radar,
-            height_of_radar,
-            product_code,
-            operational_mode,
-            vcp,
-            sequence_number,
-            volume_scan_number,
-            volume_scan_date,
-            volume_scan_time,
-            generation_date,
-            generation_time,
-            product_dependent_1,
-            product_dependent_2,
-            elevation_number,
-            product_dependent_3,
-            data_levels_1,
-            data_levels_2,
-            data_levels_3,
-            data_levels_4,
-            data_levels_5,
-            data_levels_6,
-            data_levels_7,
-            data_levels_8,
-            data_levels_9,
-            data_levels_10,
-            data_levels_11,
-            data_levels_12,
-            data_levels_13,
-            data_levels_14,
-            data_levels_15,
-            data_levels_16,
-            product_dependent_4,
-            product_dependent_5,
-            product_dependent_6,
-            product_dependent_7,
-            compression_method,
-            uncompressed_size,
-            version,
-            spot_blank,
-            offset_to_symbology,
-            offset_to_graphic,
-            offset_to_tabular
-        ) = struct.unpack(description_fmt, stderr[at + hdr_fmt_size:at + hdr_fmt_size + description_fmt_size])
-        
-        #
-        # symbology block
-        #
-        
-        symbology_fmt = '>2hi2hi'
-        symbology_fmt_size = struct.calcsize(symbology_fmt)
-        start = at + offset_to_symbology * 2
-        end = start + symbology_fmt_size
-        symbology_data = bz2.decompress(stderr[start:start + uncompressed_size])
-        try:
-            (
-                block_divider,
-                block_id,
-                length_of_block,
-                number_of_layers,
-                layer_divider,
-                length_of_data_layer
-            ) = struct.unpack(symbology_fmt, symbology_data[:symbology_fmt_size])
-        except:
-            print('WWW> Symbology size mismatch, skipping')
-            at += length_of_message + 96
-            continue
-        
-        #
-        # packets
-        #
-        
-        packet_code = struct.unpack('>h', symbology_data[symbology_fmt_size:symbology_fmt_size + 2])[0]
-        
-        if packet_code == 28 or packet_code == 29:      # generic data packet, 2 bytes reserved after packet code
-            serialized_data_length = struct.unpack('>i', symbology_data[symbology_fmt_size + 2 + 2:symbology_fmt_size + 2 + 2 + 4])[0]
-            
-            #
-            # unpack XDR data
-            #
-            
-            xdr_data = xdrlib.Unpacker(symbology_data[symbology_fmt_size + 2 + 2 + 4:symbology_fmt_size + 2 + 2 + 4 + serialized_data_length])
-            
-            if packet_code == 28:
-                name = xdr_data.unpack_string()
-                desc = xdr_data.unpack_string()
-                code = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                type = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                gen_time = struct.unpack('>I', xdr_data.unpack_fopaque(4))[0]
-                radar_name = xdr_data.unpack_string()
-                radar_latitude = xdr_data.unpack_float()
-                radar_longitude = xdr_data.unpack_float()                    
-                radar_height = xdr_data.unpack_float()
-                volume_scan_start_time = struct.unpack('>I', xdr_data.unpack_fopaque(4))[0]                
-                elevation_scan_start_time = struct.unpack('>I', xdr_data.unpack_fopaque(4))[0]
-                elevation_angle = xdr_data.unpack_float()                    
-                volume_scan_number = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                
-                
-                #
-                # b/c the python xdr library (really the xdr spec) assumes 4-bytes is the smallest data chunk, we 
-                # need to deserialize the rest of the data description by unpacking "manually"
-                #
-                
-                operational_mode = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                vcp = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]                
-                elevation_number = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]                    
-                spare_short = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                spare_int = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                number_of_parameters = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                parameter_list_pointer = None
-                
-                if number_of_parameters > 0:
-                    parameter_list_pointer = {
-                        'param_id':             xdr_data.unpack_string(),
-                        'param_attributes':     xdr_data.unpack_string()
-                    }
-                number_of_components = struct.unpack('>i', xdr_data.unpack_fopaque(4))[0]
-                component_list = xdr_data.unpack_array(unpack_comps(xdr_data))
-
-                zdr_stats_raw += [c[0]['text'] for c in component_list if 'ZDR Stats' in c[0]['text']]
-                raw_split = [parse_zdr_stats(zdr_stat.split('>>')) for zdr_stat in zdr_stats_raw]
-                zdr_stats_split += [zdr_stat for zdr_stat in raw_split if zdr_stat is not None]
-                
-            else:
-                pass
-        
-        at += length_of_message + 96
+    zdr_stats_raw = out[0].split('\n')
+    raw_split = [parse_zdr_stats(zdr_stat.split('>>')) for zdr_stat in zdr_stats_raw]
+    zdr_stats_split += [zdr_stat for zdr_stat in raw_split if zdr_stat is not None]
         
     #
     # now it's time to do the maths
