@@ -194,8 +194,7 @@ if __name__ == '__main__':
     # now let's try and open the LB and get header info (the first 18 bytes)
     #
 
-    #args = [config['lbInfo']['command']['exec']] + config['lbInfo']['command']['args'] 
-    args = ['standalone_dsp', '-l', '3029', '-g', '"ZDR Stats"', '-t']
+    args = [config['lbInfo']['command']['exec']] + config['lbInfo']['command']['args'] 
     print('--> running command: %s' %' '.join(args))
     lb_dump_proc = subprocess.Popen(
         [' '.join(args)],
