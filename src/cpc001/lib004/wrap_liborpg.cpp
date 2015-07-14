@@ -9,6 +9,7 @@ using std::vector;
 
 extern "C"
 {
+    #include "orpgmisc.h"
     #include "orpgrda.h"
 }
 
@@ -48,16 +49,23 @@ namespace rpg
         def("orpgrda_get_status", &ORPGRDA_get_status, args("item"));
     }
 
+    void wrap_orpgmisc()
+    {
+        def("orpgmisc_is_rpg_status", &ORPGMISC_is_rpg_status, args("check_status"));
+    }
+
     void export_liborpg()
     {
         class_<liborpg_ns> c("liborpg");
         scope in_liborpg = c;
 
         wrap_orpgrda();
+        wrap_orpgmisc();
 
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
             .staticmethod("orpgrda_get_status")
+            .staticmethod("orpgmisc_is_rpg_status")
         ;
     }
 }

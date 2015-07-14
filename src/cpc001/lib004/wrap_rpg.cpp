@@ -1,6 +1,8 @@
 #include <boost/python.hpp>
 
 #include "wrap_liborpg.h"
+#include "wrap_orda_pmd.h"
+#include "wrap_orpg_misc.h"
 #include "wrap_rda_status.h"
 #include "wrap_rpg_messages.h"
 #include "wrap_rpg_rda.h"
@@ -21,11 +23,13 @@ namespace rpg
         //
 
         export_rpg_rda();
+        export_pmd_t();
 
         //
         // RPG stuff
         //
 
+        export_orpg_misc();
         export_rpg_messages();
         export_rda_status();
         export_liborpg();

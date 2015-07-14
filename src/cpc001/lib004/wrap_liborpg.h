@@ -20,6 +20,7 @@ namespace rpg
     );
 
     void wrap_orpgrda();
+    void wrap_orpgmisc();
     void export_liborpg();
 }
 
