@@ -1,0 +1,391 @@
+###
+### index.mako - this is the main page for the dashboard
+###
+
+<%!
+    inherit_layout = True
+    page_id = 'main-page'
+    page_title = 'demo-page'
+    page_classes = ''
+%>
+
+###
+### inheritence chain
+###
+
+<%inherit file="page.mako" />
+
+###
+### namespaces
+###
+
+###
+### blocks
+###
+
+<%block name="extra_header_markup">
+
+
+<script type="text/javascript">
+    tday=new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
+    tmonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+
+    function GetClock(){
+    var d=new Date();
+    var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+    if(nyear<1000) nyear+=1900;
+    var d=new Date();
+    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+    if(nmin<=9) nmin="0"+nmin
+    if(nsec<=9) nsec="0"+nsec;
+
+    document.getElementById('clockbox-date').innerHTML=""+tday[nday]+", "+tmonth[nmonth]+" "+ndate+", "+nyear;
+    document.getElementById('clockbox-time').innerHTML=""+nhour+":"+nmin+":"+nsec+" "+"UT";
+    }
+
+    window.onload=function(){
+    GetClock();
+    setInterval(GetClock,1000);
+    }
+</script>
+
+
+<script>
+
+    function toRadians(deg) {
+        return deg * Math.PI / 180
+    }
+	var checkName = "checkmark.png"
+	var deleteName = "delete.png"
+	$(document).ready(function(){
+		$('.prog').circleProgress({
+		value: 1 ,
+		size: 180.0,
+		startAngle: -Math.PI*(.75),
+		thickness: 'auto',
+		fill: {
+			gradient: ['#F0FFFF','#000000']
+		},
+		emptyFill: 'rgba(0, 0, 0, 0)',
+		lineCap:'round',
+		});
+		$("#currentVCP").css('background-color', '#51FF22','font-size','20px');
+		$("#PRF").css('background-color', '#51FF22');
+		$("#grid1").css('background-color', '#51FF22','border-style','solid','border-color','#51FF22','border-width','3px');
+		$("#grid2").css('background-color', '#51FF22');
+		$("#grid3").css('background-color', '#51FF22');
+		$(".vcp-confirm").css('background-color','#1F497D','color','#FFFFFF');
+		$(".nav-item").css('background-color','#002060');
+		$("#marq1").css('background-color','white')
+		$("#marq2").css('background-color','#4bacc6')
+		$("#marq3").css('background-color','#51FF22')
+
+        var canvas=document.getElementById("radome");
+        var maincircle=canvas.getContext("2d");
+        maincircle.fillStyle="white";
+        maincircle.arc(150,150,135,0,2*Math.PI);
+		maincircle.fill();
+
+        maincircle.beginPath();
+        maincircle.arc(150,150,135,0,2*Math.PI);
+		maincircle.lineWidth=3;
+		maincircle.strokeStyle="black";
+		maincircle.stroke();
+        maincircle.fillStyle="black";
+
+        maincircle.beginPath();
+        maincircle.moveTo(150,150);
+        maincircle.arc(150,150,135,-Math.PI / 2,Math.PI / 4);
+        maincircle.lineTo(150,150);
+        maincircle.closePath();
+        maincircle.fill();
+
+        maincircle.fillStyle="white";
+
+        maincircle.beginPath();
+		maincircle.arc(150,150,120,0,2*Math.PI);
+        maincircle.fill();
+		
+
+        maincircle.fillStyle="#FFFFFF";
+		maincircle.font = "bold 80px Helvetica";
+		maincircle.fillStyle = 'black';
+		maincircle.fillText("0.5",100,120);
+
+
+
+		maincircle.strokeRect(60,290,180,54)
+		maincircle.strokeRect(60,344,180,54)
+		maincircle.beginPath();
+		maincircle.moveTo(60,290)
+		maincircle.lineTo(240,344)
+		maincircle.moveTo(60,344)
+		maincircle.lineTo(240,290)
+		maincircle.moveTo(60,344)
+		maincircle.lineTo(240,398)
+		maincircle.moveTo(60,398)
+		maincircle.lineTo(240,344)
+		maincircle.fillStyle = '#5B575B';
+		maincircle.fillRect(115, 329, 70, 30);
+		maincircle.strokeRect(115, 329, 70, 30);
+		maincircle.fillStyle = 'white';
+		maincircle.font = "bold 18px Helvetica";
+		maincircle.fillText("KOUN",123,350);
+		maincircle.fillStyle = 'black';
+		maincircle.fillText("SAILS:",65,170)
+		maincircle.fillText("AVSET:",60,215)
+		maincircle.stroke();
+		maincircle.beginPath();
+		maincircle.lineWidth = 5;
+		maincircle.moveTo(150,358)
+		maincircle.lineTo(150,400)
+		maincircle.moveTo(150,285)
+		maincircle.lineTo(150,330)
+		maincircle.stroke();
+		document.getElementById("radome").style.zIndex = 1;
+
+
+
+
+
+
+		
+
+
+
+
+
+
+
+	});
+</script>
+<script src="static/handlebars-v3.0.3.js"></script>
+</%block>
+
+###
+### body
+###
+	
+	<div role="banner" class="ui-header ui-bar-a" data-role="header">
+		<h1 aria-level="1" role="heading" class="ui-title">Shift Leader Checklist</h1>
+	</div>
+
+	
+
+    <div id="content">
+		<div class="ui-grid-a">
+            <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
+            	<thead>
+            		<tr>
+                        <th>RDA Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>RDA Alarm Summary:</td>
+                        <td>COM, CTR</td>
+                    </tr>
+            	    <tr>
+                        <td>Operability Status:</td>
+                        <td>On-line</td>
+                    </tr>
+            	    <tr>
+                        <td>Operability Status:</td>
+                        <td>On-line</td>
+                    </tr>
+            	    <tr>
+                        <td>RDA Status:</td>
+                        <td>Operate</td>
+                    </tr>
+            	    <tr>
+                        <td>Control Status:</td>
+                        <td>RDA</td>
+                    </tr>
+            	    <tr>
+                        <td>Transition Power Source (TPS):</td>
+                        <td>OK</td>
+                    </tr>
+            	    <tr>
+                        <td>Aux Power Generator State:</td>
+                        <td>Util Avail</td>
+                    </tr>
+            	    <tr>
+                        <td>Super Resolution (SR):</td>
+                        <td>Enabled</td>
+                    </tr>
+            	    <tr>
+                        <td>Clutter Mitigation Decision:</td>
+                        <td>Enabled</td>
+                    </tr>
+            	    <tr>
+                        <td>Horizontal Delta dBZ0:</td>
+                        <td>-0.09dBZ</td>
+                    </tr>
+            	    <tr>
+                        <td>Vertical Delta dBZ0:</td>
+                        <td>0.12dBZ</td>
+                    </tr>
+            	    <tr>
+                        <td>Avg Transmitter Power:</td>
+                        <td>358kW</td>
+                    </tr>
+            	    <tr>
+                        <td>VCP Number:</td>
+                        <td>212</td>
+                    </tr>
+            	    <tr>
+                        <td>AVSET Status:</td>
+                        <td>Enabled</td>
+                    </tr>
+            	</tbody>
+            </table>
+            <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
+            	<thead>
+            		<tr>
+                        <th>RDA Performance/Maintainence Data:</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Equipment Shelter:</th>
+                    </tr>
+            	    <tr>
+                        <td>Generator Fuel Level:</td>
+                        <td>85%</td>
+                    </tr>
+            	    <tr>
+                        <td>Transmitter Air Temp:</td>
+                        <td>90 Deg F</td>
+                    </tr>
+            	    <tr>
+                        <th>Transmitter:</th>
+                    </tr>
+            	    <tr>
+                        <td>Peak Power:</td>
+                        <td>750kW</td>
+                    </tr>
+            	    <tr>
+                        <th>Device Status:</th>
+                    </tr>
+            	    <tr>
+                        <td>Performance Check Time:</td>
+                        <td>06h 04m 33s</td>
+                    </tr>
+            	    <tr>
+                        <th>RPG Status Information:</th>
+                    </tr>
+            	    <tr>
+                        <td>RPG Alarm Summary:</td>
+                        <td>Task Failure</td>
+                    </tr>
+            	    <tr>
+                        <td>Operability Status:</td>
+                        <td>On-line</td>
+                    </tr>
+            	    <tr>
+                        <td>Wideband Status:</td>
+                        <td>Connected</td>
+                    </tr>
+            	    <tr>
+                        <td>SAILS:</td>
+                        <td>Disabled</td>
+                    </tr>
+            	    <tr>
+                        <td>VCP Number:</td>
+                        <td>212</td>
+                    </tr>
+            	    <tr>
+                        <td>PRF Mode:</td>
+                        <td>Multi-Storm</td>
+                    </tr>
+            	</tbody>
+            </table>
+		</div>
+		<div class="ui-grid-a">
+            <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
+            	<thead>
+            		<tr>
+                        <th>Archive Level II</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Transmit Status:</td>
+                        <td>On</td>
+                    </tr>
+            	    <tr>
+                        <td>Version:</td>
+                        <td>7</td>
+                    </tr>
+            	    <tr>
+                        <th>Mode Selection Function (MSF):</th>
+                    </tr>
+            	    <tr>
+                        <td>Mode Conflict:</td>
+                        <td>Yes</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Switch Clear Air:</td>
+                        <td>Auto</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Switch Precip:</td>
+                        <td>Manual</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Change Thresholds:</td>
+                        <td>(--)dBZ, (--)km^2</td>
+                    </tr>
+            	</tbody>
+            </table>
+            <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
+            	<thead>
+            		<tr>
+                        <th>Environmental Data:</th>
+                    </tr>
+                </thead>
+                <tbody>
+            	    <tr>
+                        <td>VAD Update:</td>
+                        <td>On</td>
+                    </tr>
+            	    <tr>
+                        <td>Model Update:</td>
+                        <td>On</td>
+                    </tr>
+            	    <tr>
+                        <th>Algorithm Status/Data:</th>
+                    </tr>
+            	    <tr>
+                        <td>PPS Precipitation Status:</td>
+                        <td>Accum</td>
+                    </tr>
+            	    <tr>
+                        <th>PPS Z-R Relationship:</th>
+                    </tr>
+            	    <tr>
+                        <td>QPE Precipitation Type:</td>
+                        <td>Exponent</td>
+                    </tr>
+            	    <tr>
+                        <td>Apply RPG Estimated ISDP:</td>
+                        <td>Yes</td>
+                    </tr>
+            	    <tr>
+                        <th>Narrrowband Communications:</th>
+                    </tr>
+            	    <tr>
+                        <td>Dedicated Connected Users:</td>
+                        <td>3</td>
+                    </tr>
+            	</tbody>
+            </table>
+		</div>
+	</div>
+	
+
+
+
+	
+
+
