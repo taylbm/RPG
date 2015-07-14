@@ -9,8 +9,12 @@
 % try:
     % if self.attr.include_layout is True:
         <%inherit file="layout.mako" />
+	% else:	
+        <%inherit file="vcp.mako" />
+			
     % endif
 % except:
+	
     ### just swallow this, we only care if it exists
 % endtry
 

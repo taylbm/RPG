@@ -27,6 +27,11 @@ button,
 	  font-family: sans-serif /*{global-font-family}*/;
 }
 
+td .ui-table-cell-label,
+th .ui-table-cell-label {
+    display:none;
+}
+
 legend,
 .ui-input-text input,
 .ui-input-search input {

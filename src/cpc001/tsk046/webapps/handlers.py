@@ -154,10 +154,10 @@ class VCP_command_control(object):
                 for sector in sector_elements:
             		edge_angle = stripList(re.findall(r'angle(.*?)dop',str(sector),re.DOTALL))
             		dop_prf = stripList(re.findall(r'prf(.*?)\n',str(sector),re.DOTALL))
-            	sector_subdict = {'edge_angle':float(edge_angle),'dop_prf':float(dop_prf)}
-            	temp_dict = {'Sector_'+str(sector_count): sector_subdict}
-            	elev_multi_dict.update(temp_dict)
-            	sector_count+=1
+            	        sector_subdict = {'edge_angle':float(edge_angle),'dop_prf':float(dop_prf)}
+            	        temp_dict = {'Sector_'+str(sector_count): sector_subdict}
+            	        elev_multi_dict.update(temp_dict)
+            	        sector_count+=1
                 text_lines[start] = text_lines[start].replace('{','')
                 elev_sector_label = stripList(text_lines[start])
                 elev_sector_labels[h] = elev_sector_label
@@ -234,7 +234,7 @@ class VCP_command_control(object):
 class Parse_VCPS(object):
     def GET(self):
 	user_data = web.input(VCP=None)
-	fname = vcp_dir+'/KLGX_vcp_%s' %user_data.VCP
+	fname = vcp_dir+'KLGX_vcp_%s' %user_data.VCP
 	try:
 	    f = open(fname,'r')
 	    text = f.read()
@@ -347,6 +347,7 @@ class Parse_VCPS(object):
 		temp_dict = {'Sector_'+str(sector_count): sector_subdict}
 		elev_multi_dict.update(temp_dict)
 		sector_count+=1
+	
 	    text_lines[start] = text_lines[start].replace('{','')
 	    elev_sector_label = stripList(text_lines[start])
 	    elev_sector_labels[h] = elev_sector_label

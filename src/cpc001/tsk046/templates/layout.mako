@@ -20,22 +20,11 @@
         <%block name="extra_header_markup" />
 
     </head>
-    <body id="top_level">
 
+    <body id="top_level">
+  
         ${next.body()}
-        <div data-role="page" id="vcp-def">
-            <div data-role="header">
-                <h2>VCP Definition</h2>
-                <a href="#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
-            </div>
-            <div id ="vcpDef" role="main" class="ui-content">
-	    <div id="radioContain"></div>
-	    <div id="tableContain"></div>
-	    </div>
-	    <div data-role="footer">
-                <h3>NEXRAD Radar Operations Center</h3>
-            </div>
-        </div>
+
     </body>
 </html>
 
