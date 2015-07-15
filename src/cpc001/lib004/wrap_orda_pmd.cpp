@@ -33,6 +33,11 @@ namespace rpg
 
             .def_readwrite("perf_check_time", &Pmd_t::perf_check_time)
         ;
+        
+        class_<orda_pmd_t>("orda_pmd_t")
+            .def_readwrite("msg_hdr", &orda_pmd_t::msg_hdr)
+            .def_readwrite("pmd", &orda_pmd_t::pmd)
+        ;
     }
 }
 

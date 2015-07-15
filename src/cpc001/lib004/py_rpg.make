@@ -16,7 +16,7 @@ LOCAL_INCLUDES = -I/usr/include/python2.4
 
 LOCAL_DEFINES =
 
-SHRDLIBLD_SEARCHLIBS = -lboost_python -lorpg -linfr
+SHRDLIBLD_SEARCHLIBS = -lboost_python -lhci -lorpg -linfr
 
 # You can also include architecture specific defines, if needed, by
 # defining $(ARCH)_DEF and then adding it to the list of ALL_DEFINES.
@@ -38,7 +38,8 @@ LIB_CXXSRCS =	wrap_liborpg.cpp \
 		wrap_rpg_rda.cpp \
 		wrap_rda_status.cpp \
 		wrap_orda_pmd.cpp \
-		wrap_orpg_misc.cpp
+		wrap_orpg_misc.cpp \
+		wrap_libhci.cpp
 
 LIB_TARGET = _rpg
 
