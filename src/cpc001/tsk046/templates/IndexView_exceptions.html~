@@ -1,0 +1,408 @@
+###
+### index.mako - this is the main page for the dashboard
+###
+
+<%!
+    inherit_layout = True
+    page_id = 'main-page'
+    page_title = 'demo-page'
+    page_classes = ''
+%>
+
+###
+### inheritence chain
+###
+
+<%inherit file="page.mako" />
+
+###
+### namespaces
+###
+
+###
+### blocks
+###
+
+<%block name="extra_header_markup">
+
+
+<script type="text/javascript">
+    tday=new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
+    tmonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+
+    function GetClock(){
+    var d=new Date();
+    var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+    if(nyear<1000) nyear+=1900;
+    var d=new Date();
+    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+    if(nmin<=9) nmin="0"+nmin
+    if(nsec<=9) nsec="0"+nsec;
+
+    document.getElementById('clockbox-date').innerHTML=""+tday[nday]+", "+tmonth[nmonth]+" "+ndate+", "+nyear;
+    document.getElementById('clockbox-time').innerHTML=""+nhour+":"+nmin+":"+nsec+" "+"UT";
+    }
+
+    window.onload=function(){
+    GetClock();
+    setInterval(GetClock,1000);
+    }
+</script>
+
+
+<script>
+
+    function toRadians(deg) {
+        return deg * Math.PI / 180
+    }
+	var checkName = "checkmark.png"
+	var deleteName = "delete.png"
+	$(document).ready(function(){
+		$('.prog').circleProgress({
+		value: 1 ,
+		size: 180.0,
+		startAngle: -Math.PI*(.75),
+		thickness: 'auto',
+		fill: {
+			gradient: ['#F0FFFF','#000000']
+		},
+		emptyFill: 'rgba(0, 0, 0, 0)',
+		lineCap:'round',
+		});
+		$("#currentVCP").css('background-color', '#51FF22','font-size','20px');
+		$("#PRF").css('background-color', '#51FF22');
+		$("#grid1").css('background-color', '#51FF22','border-style','solid','border-color','#51FF22','border-width','3px');
+		$("#grid2").css('background-color', '#51FF22');
+		$("#grid3").css('background-color', '#51FF22');
+		$(".vcp-confirm").css('background-color','#1F497D','color','#FFFFFF');
+		$(".nav-item").css('background-color','#002060');
+		$("#marq1").css('background-color','white')
+		$("#marq2").css('background-color','#4bacc6')
+		$("#marq3").css('background-color','#51FF22')
+
+        var canvas=document.getElementById("radome");
+        var maincircle=canvas.getContext("2d");
+        maincircle.fillStyle="white";
+        maincircle.arc(150,150,135,0,2*Math.PI);
+		maincircle.fill();
+
+        maincircle.beginPath();
+        maincircle.arc(150,150,135,0,2*Math.PI);
+		maincircle.lineWidth=3;
+		maincircle.strokeStyle="black";
+		maincircle.stroke();
+        maincircle.fillStyle="black";
+
+        maincircle.beginPath();
+        maincircle.moveTo(150,150);
+        maincircle.arc(150,150,135,-Math.PI / 2,Math.PI / 4);
+        maincircle.lineTo(150,150);
+        maincircle.closePath();
+        maincircle.fill();
+
+        maincircle.fillStyle="white";
+
+        maincircle.beginPath();
+		maincircle.arc(150,150,120,0,2*Math.PI);
+        maincircle.fill();
+		
+
+        maincircle.fillStyle="#FFFFFF";
+		maincircle.font = "bold 80px Helvetica";
+		maincircle.fillStyle = 'black';
+		maincircle.fillText("0.5",100,120);
+
+
+
+		maincircle.strokeRect(60,290,180,54)
+		maincircle.strokeRect(60,344,180,54)
+		maincircle.beginPath();
+		maincircle.moveTo(60,290)
+		maincircle.lineTo(240,344)
+		maincircle.moveTo(60,344)
+		maincircle.lineTo(240,290)
+		maincircle.moveTo(60,344)
+		maincircle.lineTo(240,398)
+		maincircle.moveTo(60,398)
+		maincircle.lineTo(240,344)
+		maincircle.fillStyle = '#5B575B';
+		maincircle.fillRect(115, 329, 70, 30);
+		maincircle.strokeRect(115, 329, 70, 30);
+		maincircle.fillStyle = 'white';
+		maincircle.font = "bold 18px Helvetica";
+		maincircle.fillText("KOUN",123,350);
+		maincircle.fillStyle = 'black';
+		maincircle.fillText("SAILS:",65,170)
+		maincircle.fillText("AVSET:",60,215)
+		maincircle.stroke();
+		maincircle.beginPath();
+		maincircle.lineWidth = 5;
+		maincircle.moveTo(150,358)
+		maincircle.lineTo(150,400)
+		maincircle.moveTo(150,285)
+		maincircle.lineTo(150,330)
+		maincircle.stroke();
+		document.getElementById("radome").style.zIndex = 1;
+
+
+
+
+
+
+		
+
+
+
+
+
+
+
+	});
+</script>
+<script src="static/handlebars-v3.0.3.js"></script>
+</%block>
+
+###
+### body
+###
+	
+	<div role="banner" class="ui-header ui-bar-a" data-role="header">
+		<h1 aria-level="1" role="heading" class="ui-title">RPG Control/Status</h1>
+	</div>
+
+	
+
+    <div id="content">
+        <div data-role="navbar">
+        	<ul>
+        		<li><div style="font-size:14px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
+        		<li><a style="color:white" class="nav-item" href="#">WSR-88D Operations</a></li>
+        		<li><a style="color:white" class="nav-item" href="#">Shift Change Checklist</a></li>
+        		<li><a style="color:white" class="nav-item" href="#">PRF Control</a></li>
+        		<li><a style="color:white" class="nav-item" href="#">Environmental Data</a></li>
+        	</ul>
+        </div>
+
+        <div data-role="popup" id="vcp-desc">
+            <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+            <div data-role="header">
+                <h1 class="vcp-desc-title"></h1>
+            </div>
+            <div role="main" class="ui-content">
+                <div id="vcp-desc-text" class="ui-body ui-body-a" style="height:600px; overflow:auto;">
+                    <ul type="square" data-role="listview" data-inset="false" style="padding-top:0.5em;">
+                        <li data-role="list-divider">Parameters</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div data-role="popup" id="vcp-confirm" data-dismissable="true" style="padding:25px;">
+                <div data-role="header">
+                    <h1 class="vcp-prompt"></h1>
+                </div>
+                <div role="main" class="ui-content">
+                    <h3 class ="final-vcp-confirm"></h3>
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Send</a>
+                </div>
+        </div>
+            <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
+            	<div class="ui-grid-b">
+					<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+
+							<canvas style="z-index:-1;position:relative;top:80px;margin-top:-40px;margin-bottom:-25px;" class="radome" id="radome" width="300" height="400"></canvas><br>
+    						<div class="radome-selectors" style="position:relative;top:-160px;left:35px;z-index:2">
+                                <select  name="flip-mini" id="flip-mini" data-role="slider">
+                                	<option value="off">Disabled</option>
+                                	<option value="on">Enabled</option>
+                                </select>	
+							</div>
+    						<div class="radome-selectors" style="position:relative;top:-170px;left:35px;z-index:3">
+                                <select name="flip-mini" id="flip-mini1" data-role="slider">
+                                	<option value="off">Disabled</option>
+                                	<option value="on">Enabled</option>
+                                </select>	
+							</div>
+<div id="grid1" class="center" style="margin-top:-10px;float:center;display:inline-block;width:54%;height:290px;border:5px outset #51FF22">
+    							<p style="color:black">RDA</p>
+    							<ul data-role="listview"  data-inset="true" data-theme="e">
+                            		<li><a class="vcp-confirm" style="color:white;text-align:center" href="#vcp-confirm" data-rel="popup">Control</a></li>
+                            		<li><a style="color:white;font-size:14px;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Performance<br> Data</a></li>
+                            		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Alarms</a></li>
+                        		</ul>
+
+							</div>					
+
+
+					    <div style="display:inline-block;width:25%;height:100%;float:right;position:absolute;font-size:10px;">
+							<p style="color:black;">RPG</p>
+							<div id="rpg"style="color:black;font-size:10px;" class="rpg-border"></div>	
+							<br><br><br>
+    						<div class=" bar-border" id="squaresWaveG">
+								<div style="font-size:10px;color:black"id="squaresWaveG_1" class="squaresWaveG">R</div>
+								<div id="squaresWaveG_2" class="squaresWaveG"></div>
+								<div id="squaresWaveG_3" class="squaresWaveG"></div>
+								<div id="squaresWaveG_4" class="squaresWaveG"></div>
+								<div id="squaresWaveG_5" class="squaresWaveG"></div>
+								<div id="squaresWaveG_6" class="squaresWaveG"></div>
+								<div id="squaresWaveG_7" class="squaresWaveG"></div>
+								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
+							</div>
+							<br><br>
+            				<div class="bar-border" id="squaresWaveG">
+								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">V</div>
+								<div id="squaresWaveG_2" class="squaresWaveG"></div>
+								<div id="squaresWaveG_3" class="squaresWaveG"></div>
+								<div id="squaresWaveG_4" class="squaresWaveG"></div>
+								<div id="squaresWaveG_5" class="squaresWaveG"></div>
+								<div id="squaresWaveG_6" class="squaresWaveG"></div>
+								<div id="squaresWaveG_7" class="squaresWaveG"></div>
+								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
+    						</div>	
+							<br><br>
+        					<div class="bar-border" id="squaresWaveG">
+								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">W</div>
+    							<div id="squaresWaveG_2" class="squaresWaveG"></div>
+								<div id="squaresWaveG_3" class="squaresWaveG"></div>
+								<div id="squaresWaveG_4" class="squaresWaveG"></div>
+								<div id="squaresWaveG_5" class="squaresWaveG"></div>
+								<div id="squaresWaveG_6" class="squaresWaveG"></div>
+								<div id="squaresWaveG_7" class="squaresWaveG"></div>
+								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
+    						</div>   
+							<br><br>    			
+        					<div class="bar-border" id="squaresWaveG">
+								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">D</div>
+								<div id="squaresWaveG_2" class="squaresWaveG"></div>
+								<div id="squaresWaveG_3" class="squaresWaveG"></div>
+								<div id="squaresWaveG_4" class="squaresWaveG"></div>
+								<div id="squaresWaveG_5" class="squaresWaveG"></div>
+								<div id="squaresWaveG_6" class="squaresWaveG"></div>
+								<div id="squaresWaveG_7" class="squaresWaveG"></div>
+								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
+    						</div>
+						</div>
+
+
+
+					</div>
+                    <div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+						<br><br><br>
+						<div class="center" style="width: 80%;display: table;">
+							<div style="display: table-row">
+    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">H Delta DBZ0:</div></div>
+    							<div style="font-size:11px;display: table-cell;"><div style="color:black" class="contain-white">0.34dB</div></div>
+							</div>
+							<div style="display: table-row">
+    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">V Delta DBZ0:</div></div>
+    							<div style="font-size:11px;display: table-cell;"><div style="color:black" class="contain-white">0.10dB</div></div>
+							</div>
+							<div style="display: table-row">
+    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current Z/R:</div></div>
+    							<div style="font-size:11px;display: table-cell;"><div style="color:black" class="contain-white">Convective</div></div>
+							</div>
+							<div style="display: table-row">
+    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current R(Z,ZDR):</div></div>
+    							<div style="font-size:11px;display: table-cell;"><div style="color:black" class="contain-white">Continental</div></div>
+							</div>
+						</div>
+						<div class="ui-grid-a">
+							<div class="ui-block-a">
+								<button type="button" style="font-size:40px;background-color:white" data-theme="b">VCP</button>
+							</div>
+							<div class="ui-block-b">
+								<button type="button" style="font-size:40px;background-color:#51FF22" data-theme="b">212/A</button>
+							</div>
+						</div>
+						<p style="font-size:14px;color:black">VCP START: June 29, 2015 14:07:47 UT </p>
+						<div class="ui-grid-a center" style="width: 80%;">
+							<div class="ui-block-a">
+								<div style="font-size:11px"class="bar-border1">Perf. Check in</div>
+							</div>
+							<div class="ui-block-b">
+								<div style="font-size:11px"class="bar-border2">05 h 22 m</div>
+							</div>
+						</div>
+						<br><br><br>
+
+						<div class="ui-grid-a">
+							<div class="ui-block-a">
+        						<div id="grid2" style="float:left;display:inline-block;height:290px;border:5px outset #51FF22">
+        							<p style="color:black">RPG</p>
+        							<ul data-role="listview" data-inset="true">
+                                		<li><a style="color:white;text-align:center" class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Control</a></li>
+                                		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Products</a></li>
+                                		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Misc</a></li>
+                                		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Status</a></li>
+                            		</ul>
+    								<br>
+    							</div>
+    							<br><br><br>
+        	
+        						<div style="display:inline-block" class="bar-border" id="squaresWaveG_long">
+    								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+        						</div>
+							</div>
+							<div class="ui-block-b">
+
+        					</div>
+						</div>
+					</div>
+                    <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+
+								
+							<div style="color:black;display:inline-block;"><div style="height:50px;" class="abs-center">PRF Mode</div></div>
+                            <div style="display:inline-block" class="containing-element">
+                            	<select name="flip-min" id="flip-min" data-role="slider"data-theme="a">
+                            		<option value="off">Manual</option>
+                            		<option value="on">Multi</option>
+                            	</select>
+                            </div>
+
+    							<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    					    	<div id="grid3" style="float:left;display:inline-block;border:5px outset #51FF22;background-color:#51FF22">
+            						<p style="color:black">Users</p>
+            						<ul data-role="listview" data-inset="true">
+                                    	<li><a style="color:white"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Comms</a></li>
+                                    	<li><a style="color:white;font-size:14px" class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Console <br> Messages</a></li>
+                                	</ul>
+    								<br>
+                				</div>
+					</div>
+					
+                </div>
+            </div>
+	</div>
+							<br>
+							<table data-role="table" class="ui-responsive">
+								<thead>
+									<tr>
+                                      <th style="float:right;font-size:14px">Feedback:</td>
+                                      <td id="marq1" class="bar-border">Jun 29,15 [14:25:33] >> Requesting the VCP to be restarted</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                      <th style="float:right;font-size:14px">Status:</th>
+                                      <td class="bar-border">Jun 29,15 [14:25:39] >> Vol:3(Seq:3)RDA Clock:06/12/15 14:25:39 VCP:212 L2:6 DP SR SAILS</td>
+                                    </tr>
+								    <tr>
+                                      <th style="float:right;font-size:14px">Alarms:</th>
+                                      <td id="marq3" class="bar-border">Jun 29,15 [14:25:39] >> RPG ALARM CLEARED:[RDA:1] RDA <-> RPG COMMUNICATIONS LINK BROKEN</td>
+                                    </tr>
+								</tbody>
+							</table>
+	
+
+
+
+	
+
+
