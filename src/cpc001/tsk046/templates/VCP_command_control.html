@@ -13,7 +13,7 @@
 ### inheritence chain
 ###
 
-<%inherit file="page.mako" />
+<%inherit file="vcp_page.mako" />
 
 ###
 ### namespaces
@@ -208,7 +208,7 @@ $(document).ready(function(){
 
 
 </script>
-<script src="static/handlebars-v3.0.3.js"></script>
+
 </%block>
 
 ###
@@ -267,7 +267,7 @@ vcp_list.remove("32")
 	
 
 			
-            <div class="ui-body ui-body-a ui-corner-all">
+            <div class="ui-body ui-body-a ui-corner-all" style="height:40%;">
                 <div class="ui-grid-b">
         			<div class="ui-block-a">
         				<div class="ui-grid-a">
@@ -276,7 +276,7 @@ vcp_list.remove("32")
                             </ul>
         					<a class="vcp-page-click ui-block-b" href="#vcp-${vcp}-page">
         					<div id="vcp${vcp}-draw-overview" style="height:80px; width:160px;"></div>
-        					</a>	
+						</a>	
         				</div>
         			</div>
                     <a class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all">
@@ -289,7 +289,7 @@ vcp_list.remove("32")
         				</tr>
         			    </thead>
         			    </table>
-        			<p style="font-size:11px" align="left">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p><p align="left"> Update Interval: N/A</p></a>
+        			<p style="font-size:11px" align="left">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p><p align="left">Update Interval: N/A</p></a>
                                 <a href="#vcp-desc" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${vcp} Sample 				Info</p></a>
                 </div>
 
@@ -318,7 +318,7 @@ vcp_list.remove("32")
 
 
 		<script type="text/template" id="rowTemplateMulti">
-                <div class="ui-body ui-body-a ui-corner-all">
+                <div class="ui-body ui-body-a ui-corner-all" style="height:150px;">
                     <div class="ui-grid-b">
 			<div class="ui-block-a">
 				<div class="ui-grid-a">
@@ -350,9 +350,8 @@ vcp_list.remove("32")
 				</tr>
 				</thead>
 				</table>
-			<p style="font-size:11px" align="left">Elev. Angles: {6} # Split Cuts: {7} # Batch Cuts: {8}</p><div style="height:80px; width:160px;">
-			<p align="left"> Update Interval: N/A</p>
-			</div>
+			<p style="font-size:11px" align="left">Elev. Angles: {6} # Split Cuts: {7} # Batch Cuts: {8}</p>	
+			<p align="left">Update Interval: N/A</p>
 			</a>
                         <a href="#vcp-desc" id="{0}/{1}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP {0} 			Sample Info</p><p style="text-indent:0.5em; padding-left:0.5em;">VCP {1} Sample Info</p>
 			</a>

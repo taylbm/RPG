@@ -23,10 +23,11 @@
 ### blocks
 ###
 
+
+
 <%block name="extra_header_markup">
 
 </%block>
-
 ###
 ### body
 ###
@@ -41,9 +42,21 @@
 
 
 	</div>
-
 	
 
+<% 
+STATUS_VALS = {}
+error_status = "ERROR: value not retrieved"
+STATUS_VALS.update({"RS_RDA_ALARM_SUMMARY":{0:'No Alarms',2:'Tower/Utilities',4:'Pedestal',8:'Transmitter',16:'Receiver',32:'RDA Control',64:'Communication',128:'Signal Processor'}}) 
+STATUS_VALS.update({"RS_OPERABILITY_STATUS":{2:'On-line',4:'Maintainance Action Required',8:'Maintainance Action Mandatory',16:'Commanded Shutdown',32:'Inoperable'}}) 
+STATUS_VALS.update({"RS_RDA_STATUS":{2:'Start-Up',4:'Standby',8:'Restart',16:'Operate',32:'Spare',64:'Off-line Operate'}}) 
+STATUS_VALS.update({"RS_CONTROL_STATUS":{2:'Local Only',4:'RPG (Remote) Only',8:'Either'}}) 
+STATUS_VALS.update({"RS_TPS_STATUS":{0:'Not Installed',1:'OFF',3:'ON'}}) 
+STATUS_VALS.update({"RS_AUX_POWER_GEN_STATE":{1:'Start-Up',2:'Standby',4:'Restart',8:'Operate',16:'Spare'}}) 
+STATUS_VALS.update({"RS_SUPER_RES":{2:'Enabled',4:'Disabled'}}) 
+STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
+STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}}) 
+%>
     <div id="content">
 		<div class="ui-grid-a">
             <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
@@ -55,39 +68,35 @@
                 <tbody>
                     <tr>
                         <td>RDA Alarm Summary:</td>
-                        <td>COM, CTR</td>
+                        <td>${STATUS_VALS["RS_RDA_ALARM_SUMMARY"].get(context.get("RS_dict").get("RS_RDA_ALARM_SUMMARY"),error_status)}</td>
                     </tr>
             	    <tr>
                         <td>Operability Status:</td>
-                        <td>On-line</td>
-                    </tr>
-            	    <tr>
-                        <td>Operability Status:</td>
-                        <td>On-line</td>
+                        <td>${STATUS_VALS["RS_OPERABILITY_STATUS"].get(context.get("RS_dict").get("RS_OPERABILITY_STATUS"),error_status)}</td>
                     </tr>
             	    <tr>
                         <td>RDA Status:</td>
-                        <td>Operate</td>
+                        <td>${STATUS_VALS["RS_RDA_STATUS"].get(context.get("RS_dict").get("RS_RDA_STATUS"),error_status)}</td>
                     </tr>
             	    <tr>
                         <td>Control Status:</td>
-                        <td>RDA</td>
+                        <td>${STATUS_VALS["RS_RDA_STATUS"].get(context.get("RS_dict").get("RS_CONTROL_STATUS"),error_status)}<td>
                     </tr>
             	    <tr>
                         <td>Transition Power Source (TPS):</td>
-                        <td>OK</td>
+                        <td>${STATUS_VALS["RS_TPS_STATUS"].get(context.get("RS_dict").get("RS_TPS_STATUS"),error_status)}</td>
                     </tr>
             	    <tr>
                         <td>Aux Power Generator State:</td>
-                        <td>Util Avail</td>
+                        <td>${STATUS_VALS["RS_AUX_POWER_GEN_STATE"].get(context.get("RS_dict").get("RS_AUX_POWER_GEN_STATE"),error_status)}</td>
                     </tr>
             	    <tr>
                         <td>Super Resolution (SR):</td>
-                        <td>Enabled</td>
-                    </tr>
+                    	<td>${STATUS_VALS["RS_SUPER_RES"].get(context.get("RS_dict").get("RS_SUPER_RES"),error_status)}</td>
+		    </tr>
             	    <tr>
                         <td>Clutter Mitigation Decision:</td>
-                        <td>Enabled</td>
+                        <td>${STATUS_VALS["RS_CMD"].get(context.get("RS_dict").get("RS_CMD"),"Enabled")}</td>
                     </tr>
             	    <tr>
                         <td>Horizontal Delta dBZ0:</td>
@@ -99,15 +108,15 @@
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
-                        <td>358kW</td>
+  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} W</td>                 
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
-                        <td>212</td>
+                        <td>${context.get("RS_dict").get("RS_VCP_NUMBER")}</td>
                     </tr>
             	    <tr>
                         <td>AVSET Status:</td>
-                        <td>Enabled</td>
+                        <td>${STATUS_VALS["RS_AVSET"].get(context.get("RS_dict").get("RS_AVSET"))}</td>
                     </tr>
             	</tbody>
             </table>
@@ -123,25 +132,25 @@
                     </tr>
             	    <tr>
                         <td>Generator Fuel Level:</td>
-                        <td>85%</td>
+                        <td>${context.get("PMD_dict").get("cnvrtd_gnrtr_fuel_lvl")}%</td>
                     </tr>
             	    <tr>
                         <td>Transmitter Air Temp:</td>
-                        <td>30 Deg C</td>
+                        <td>${context.get("PMD_dict").get("trsmttr_leaving_air_temp")} (deg C)</td>
                     </tr>
             	    <tr>
                         <th>Transmitter:</th>
                     </tr>
             	    <tr>
                         <td>Peak Power:</td>
-                        <td>750kW</td>
+                         <td>${context.get("PMD_dict").get("xmtr_peak_pwr")} W</td>
                     </tr>
             	    <tr>
                         <th>Device Status:</th>
                     </tr>
             	    <tr>
                         <td>Performance Check Time:</td>
-                        <td>06h 04m 33s</td>
+                         <td>${context.get("PMD_dict").get("perf_check_time")}</td>
                     </tr>
             	    <tr>
                         <th><u>RPG Status Information</u></th>

@@ -5,7 +5,8 @@ import simplejson as json
 from templating import LOOKUP
 import sys
 import web
-
+import _rpg
+import time
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
 
 def stripList(list1):
@@ -15,12 +16,18 @@ def hasNumbers(inputString):
 
 class IndexView(object):
     def GET(self):
-        return LOOKUP.IndexView(name="hi")
-
-
+        return LOOKUP.IndexView()
 class Shift_change_checklist(object):
     def GET(self):
-        return LOOKUP.Shift_change_check()
+	RS_list = [x for x in dir(_rpg.rdastatus) if x[0]+x[1]=='RS']
+	RS_dict = {}
+	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
+	PMD_dict = {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
+	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr)}
+	for task in RS_list:
+		RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
+	full = {"RS_dict":RS_dict,"PMD_dict":PMD_dict}
+        return LOOKUP.Shift_change_check(**full)
 class List_VCPS(object):
     def GET(self):
   	dir_list = (os.listdir(vcp_dir))

@@ -10,7 +10,7 @@
 
 
  
-<%inherit file= "layout.mako"/>
+<%inherit file= "vcp.mako"/>
 	
 
 			

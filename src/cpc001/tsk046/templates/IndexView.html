@@ -3,7 +3,8 @@
 ###
 
 <%!
-    inherit_layout = True
+    inherit_layout = True 
+    layout_name = "layout.mako" 
     page_id = 'main-page'
     page_title = 'demo-page'
     page_classes = ''
@@ -59,17 +60,6 @@
 	var checkName = "checkmark.png"
 	var deleteName = "delete.png"
 	$(document).ready(function(){
-		$('.prog').circleProgress({
-		value: 1 ,
-		size: 180.0,
-		startAngle: -Math.PI*(.75),
-		thickness: 'auto',
-		fill: {
-			gradient: ['#F0FFFF','#000000']
-		},
-		emptyFill: 'rgba(0, 0, 0, 0)',
-		lineCap:'round',
-		});
 		$("#currentVCP").css('background-color', '#51FF22','font-size','20px');
 		$("#PRF").css('background-color', '#51FF22');
 		$("#grid1").css('background-color', '#51FF22','border-style','solid','border-color','#51FF22','border-width','3px');
@@ -151,7 +141,7 @@
 
 	});
 </script>
-<script src="static/handlebars-v3.0.3.js"></script>
+
 </%block>
 
 ###
@@ -551,7 +541,7 @@
 								<thead>
 									<tr>
                                       <th style="float:right;font-size:14px">Feedback:</td>
-                                      <td id="marq1" class="bar-border">{Jun 29,15 [14:25:33] >> Requesting the VCP to be restarted</td>
+                                      <td id="marq1" class="bar-border">Jun 29,15 [14:25:33] >> Requesting the VCP to be restarted</td>
                                     </tr>
                                 </thead>
                                 <tbody>
