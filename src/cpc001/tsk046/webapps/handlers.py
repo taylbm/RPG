@@ -5,7 +5,8 @@ import simplejson as json
 from templating import LOOKUP
 import sys
 import web
-
+import _rpg
+import time
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
 
 def stripList(list1):
@@ -15,12 +16,18 @@ def hasNumbers(inputString):
 
 class IndexView(object):
     def GET(self):
-        return LOOKUP.IndexView(name="hi")
-
-
+        return LOOKUP.IndexView()
 class Shift_change_checklist(object):
     def GET(self):
-        return LOOKUP.Shift_change_check()
+	RS_list = [x for x in dir(_rpg.rdastatus) if x[0]+x[1]=='RS']
+	RS_dict = {}
+	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
+	PMD_dict = {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
+	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr)}
+	for task in RS_list:
+		RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
+	full = {"RS_dict":RS_dict,"PMD_dict":PMD_dict}
+        return LOOKUP.Shift_change_check(**full)
 class List_VCPS(object):
     def GET(self):
   	dir_list = (os.listdir(vcp_dir))
@@ -154,10 +161,10 @@ class VCP_command_control(object):
                 for sector in sector_elements:
             		edge_angle = stripList(re.findall(r'angle(.*?)dop',str(sector),re.DOTALL))
             		dop_prf = stripList(re.findall(r'prf(.*?)\n',str(sector),re.DOTALL))
-            	sector_subdict = {'edge_angle':float(edge_angle),'dop_prf':float(dop_prf)}
-            	temp_dict = {'Sector_'+str(sector_count): sector_subdict}
-            	elev_multi_dict.update(temp_dict)
-            	sector_count+=1
+            	        sector_subdict = {'edge_angle':float(edge_angle),'dop_prf':float(dop_prf)}
+            	        temp_dict = {'Sector_'+str(sector_count): sector_subdict}
+            	        elev_multi_dict.update(temp_dict)
+            	        sector_count+=1
                 text_lines[start] = text_lines[start].replace('{','')
                 elev_sector_label = stripList(text_lines[start])
                 elev_sector_labels[h] = elev_sector_label
@@ -234,7 +241,7 @@ class VCP_command_control(object):
 class Parse_VCPS(object):
     def GET(self):
 	user_data = web.input(VCP=None)
-	fname = vcp_dir+'/KLGX_vcp_%s' %user_data.VCP
+	fname = vcp_dir+'KLGX_vcp_%s' %user_data.VCP
 	try:
 	    f = open(fname,'r')
 	    text = f.read()
@@ -347,6 +354,7 @@ class Parse_VCPS(object):
 		temp_dict = {'Sector_'+str(sector_count): sector_subdict}
 		elev_multi_dict.update(temp_dict)
 		sector_count+=1
+	
 	    text_lines[start] = text_lines[start].replace('{','')
 	    elev_sector_label = stripList(text_lines[start])
 	    elev_sector_labels[h] = elev_sector_label

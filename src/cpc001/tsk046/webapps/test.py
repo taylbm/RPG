@@ -91,12 +91,12 @@ for vcp in dir_list_parse:
         break_length = len(substr)-1
         for idx in xrange(0,break_length,2):
     		if substr[idx+1].replace('.','').isdigit():
-    	    		temp1 = {substr[idx]:float(substr[idx+1])}
-    		else:
+    	    		temp = {substr[idx]:float(substr[idx+1])}  			
+ 		else:
     	    		temp = {substr[idx]:(substr[idx+1])}		    
-        subdict.update(temp)
-        subdict.update(temp1)
+                subdict.update(temp)
         elev_multi_dict.update(subdict)
+        print elev_multi_dict
         loose2 = {'#':newstr[2]}
         elev_multi_dict.update(loose2)
         dop_pulses = {'dop_pulses':map(float,stripList(re.findall(r'dop_pulses(.*?)Sector_1',str(omitstr),re.DOTALL)).split())}
@@ -134,10 +134,11 @@ for vcp in dir_list_parse:
         for sector in sector_elements:
     		edge_angle = stripList(re.findall(r'angle(.*?)dop',str(sector),re.DOTALL))
     		dop_prf = stripList(re.findall(r'prf(.*?)\n',str(sector),re.DOTALL))
-    	sector_subdict = {'edge_angle':float(edge_angle),'dop_prf':float(dop_prf)}
-    	temp_dict = {'Sector_'+str(sector_count): sector_subdict}
-    	elev_multi_dict.update(temp_dict)
-    	sector_count+=1
+    	        sector_subdict = {'edge_angle':float(edge_angle),'dop_prf':float(dop_prf)}
+    	        temp_dict = {'Sector_'+str(sector_count): sector_subdict}
+    	        elev_multi_dict.update(temp_dict)
+    		sector_count+=1
+	
         text_lines[start] = text_lines[start].replace('{','')
         elev_sector_label = stripList(text_lines[start])
         elev_sector_labels[h] = elev_sector_label
