@@ -13,21 +13,30 @@ def stripList(list1):
 	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
 	return any(char.isdigit() for char in inputString)
-
+def RS():
+	RS_dict = {}
+	RS_list = [x for x in dir(_rpg.rdastatus) if x[0]+x[1]=='RS']
+	for task in RS_list:
+		if task == "RS_CMD" and _rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task)) >=1:
+			RS_dict.update({task:1})
+		else: 
+			RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
+	return RS_dict
+def PMD():
+	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
+	return {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
+	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr)}
+	
 class IndexView(object):
     def GET(self):
-        return LOOKUP.IndexView()
+        return LOOKUP.IndexView(**RS())
+class Updater(object):
+    def GET(self):
+	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS()})
+	
 class Shift_change_checklist(object):
     def GET(self):
-	RS_list = [x for x in dir(_rpg.rdastatus) if x[0]+x[1]=='RS']
-	RS_dict = {}
-	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
-	PMD_dict = {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
-	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr)}
-	for task in RS_list:
-		RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
-	full = {"RS_dict":RS_dict,"PMD_dict":PMD_dict}
-        return LOOKUP.Shift_change_check(**full)
+        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS()})
 class List_VCPS(object):
     def GET(self):
   	dir_list = (os.listdir(vcp_dir))

@@ -19,7 +19,11 @@ from handlers import *
 SESSION_DIR = '/tmp/HCI_vcp'            # change "my_app_name" to your application name
 URLS = (
     '/',    'handlers.IndexView',            # you can list other handlers here
-'/list_vcps','handlers.List_VCPS','/parse_vcps','handlers.Parse_VCPS','/VCP','handlers.VCP_command_control','/shift_change_checklist','handlers.Shift_change_checklist')
+'/list_vcps','handlers.List_VCPS',
+'/parse_vcps','handlers.Parse_VCPS',
+'/VCP','handlers.VCP_command_control',
+'/shift_change_checklist','handlers.Shift_change_checklist'
+,'/update','handlers.Updater')
 
 if __name__ == '__main__':
     app = web.application(URLS, globals())

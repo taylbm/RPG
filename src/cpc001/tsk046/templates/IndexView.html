@@ -23,6 +23,19 @@
 ###
 ### blocks
 ###
+        <% 
+        STATUS_VALS = {}
+        error_status = "ERROR: value not retrieved"
+        STATUS_VALS.update({"RS_RDA_ALARM_SUMMARY":{0:'No Alarms',2:'Tower/Utilities',4:'Pedestal',8:'Transmitter',16:'Receiver',32:'RDA Control',64:'Communication',128:'Signal Processor'}}) 
+        STATUS_VALS.update({"RS_OPERABILITY_STATUS":{2:'On-line',4:'Maintainance Action Required',8:'Maintainance Action Mandatory',16:'Commanded Shutdown',32:'Inoperable'}}) 
+        STATUS_VALS.update({"RS_RDA_STATUS":{2:'Start-Up',4:'Standby',8:'Restart',16:'Operate',32:'Spare',64:'Off-line Operate'}}) 
+        STATUS_VALS.update({"RS_CONTROL_STATUS":{2:'Local Only',4:'RPG (Remote) Only',8:'Either'}}) 
+        STATUS_VALS.update({"RS_TPS_STATUS":{0:'Not Installed',1:'OFF',3:'ON'}}) 
+        STATUS_VALS.update({"RS_AUX_POWER_GEN_STATE":{1:'Start-Up',2:'Standby',4:'Restart',8:'Operate',16:'Spare'}}) 
+        STATUS_VALS.update({"RS_SUPER_RES":{2:'on',4:'off'}}) 
+        STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
+        STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}}) 
+        %>
 
 <%block name="extra_header_markup">
 
@@ -53,7 +66,15 @@
 
 <script>
 	
-
+    var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
+    var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
+    var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
+    var RS_RDA_STATUS = new Array(); RS_RDA_STATUS[2] = 'Start-Up'; RS_RDA_STATUS[4] = 'Standby'; RS_RDA_STATUS[8] = 'Restart'; RS_RDA_STATUS[16] = 'Operate'; RS_RDA_STATUS[32] = 'Spare'; RS_RDA_STATUS[64] = 'Off-line Operate';
+    var RS_TPS_STATUS = new Array(); RS_TPS_STATUS[0] = 'Not Installed'; RS_TPS_STATUS[1] = 'Off'; RS_TPS_STATUS[3] = 'On';
+    var RS_OPERABILITY_STATUS = new Array(); RS_OPERABILITY_STATUS[2] = 'On-line';RS_OPERABILITY_STATUS[4] = 'Maint Req'; RS_OPERABILITY_STATUS[8] = 'Maint Mand'; RS_OPERABILITY_STATUS[16] = 'Shut Down';
+    RS_OPERABILITY_STATUS[32] = 'INOP'
+    RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET}
+    RS_STATUS = {'RS_RDA_STATUS':RS_RDA_STATUS,'RS_TPS_STATUS':RS_TPS_STATUS,'RS_OPERABILITY_STATUS':RS_OPERABILITY_STATUS};
     function toRadians(deg) {
         return deg * Math.PI / 180
     }
@@ -113,32 +134,45 @@
 		maincircle.moveTo(150,285)
 		maincircle.lineTo(150,330)
 		maincircle.stroke();
-		document.getElementById("radome").style.zIndex = 1;   		
+		document.getElementById("radome").style.zIndex = 1;
 		$(".toggle").on('slidestop',function(){		
 			var controlname = $(this).attr("id")	
 			var cancel = $(this).val();	
-			console.log(cancel)
 			var present;var previous;
 			if (cancel=="on"){present = "on";previous = "off"}else{present="off";previous="on"}
 
-
 			if (confirm('Are you sure you want to change '+controlname+'?')){
 
-				$(this).val(present)
-			
-			
-			}
-			else{$(this).val(previous)}
+				$("#"+controlname+'_LABEL').html('PENDING');
+			}	
+			else{ $(this).val(previous) }
 			$(this).slider('refresh')
-			if ($(this).val()=="on"){$(this).slider('disable');$("#"+controlname).css('background-color','#51FF22');}
 
 		});
-
-
-
-
+		
+		var item = Object.keys(RS_TOGGLE);  		
+		var state = Object.keys(RS_STATUS);
+		setInterval(function (){	
+			$.getJSON("/update",function(data){
+				for (i in item){
+					var value = item[i]
+					var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
+					if (retrieved == "on"){$("#"+value+"_contain").html(' ');$("#"+value+"_status").css('background-color','#51FF22');}
+					$("#"+value).val(retrieved).slider("refresh")
+				}
+				for (j in state){
+					var value1 = state[j]
+					$("#"+value1).html(RS_STATUS[value1][data['RS_dict'][value1]])
+					if (RS_STATUS[value1][data['RS_dict'][value1]] == "Operate"|| RS_STATUS[value1][data['RS_dict'][value1]] == "On" ){$("#"+value1).css('background-color','#51FF22')}
+				}
+				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER']).css('background-color','#51FF22')
+				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'])				
+			});
 			
-
+			
+		},250);
+			
+	
 	});
 </script>
 
@@ -147,7 +181,6 @@
 ###
 ### body
 ###
-	
 	<div role="banner" class="ui-header ui-bar-a" data-role="header">
 		<h1 aria-level="1" role="heading" class="ui-title">RPG Control/Status</h1>
 	</div>
@@ -210,8 +243,8 @@
         								<div style="font-size:11px"class="bar-border1">Oper:</div>
         							</div>
         							<div class="ui-block-b">
-        								<div style="font-size:11px;background-color:#FCFC23;color:black"class="bar-border2">Standby</div>
-        								<div style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">Shutdown</div>
+        								<div id ="RS_RDA_STATUS" style="font-size:11px;background-color:#FCFC23;color:black"class="bar-border2">N/A</div>
+        								<div id = "RS_OPERABILITY_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
         							</div>
         						</div>
 								<br><br>
@@ -224,7 +257,7 @@
                                 </select>	
 							</div>
     						<div class="radome-selectors" style="position:relative;top:-75px;left:35px;z-index:3">
-                                <select class="toggle" name="flip-mini" id="AVSET" data-role="slider">
+                                <select class="toggle" name="flip-mini" id="RS_AVSET" data-role="slider">
                                 	<option value="off">Disabled</option>
                                 	<option value="on">Enabled</option>
                                 </select>	
@@ -236,7 +269,7 @@
         								<div style="font-size:11px"class="bar-border1">TPS:</div>
         							</div>
         							<div class="ui-block-b">
-        								<div style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">INOP</div>
+        								<div id="RS_TPS_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
         							</div>
         						</div>
 							</div>
@@ -333,7 +366,7 @@
 								<button type="button" style="font-size:40px;background-color:white" data-theme="b">VCP</button>
 							</a>
 							<a class="ui-block-b" style="text-decoration : none; color : #000000;" href="/VCP">
-								<button type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
+								<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
 							</a>
 						</div>
 						<p style="font-size:14px;color:black">VCP START: June 29, 2015 14:07:47 UT </p>
@@ -342,7 +375,7 @@
 								<div style="font-size:11px"class="bar-border1">Perf. Check in</div>
 							</div>
 							<div class="ui-block-b">
-								<div style="font-size:11px"class="bar-border2">05 h 22 m</div>
+								<div id="perf_check_time" style="font-size:11px"class="bar-border2">-9999</div>
 							</div>
 						</div>
 						<br>
@@ -466,12 +499,12 @@
 							</div>
 	 						<div class="ui-grid-a center">
 								<div class="ui-block-a">
-									<button type="button" id="Super_Res" style="font-size:11px;background-color:#FCFC23" data-theme="b">Super Res</button>
+									<button type="button" id="RS_SUPER_RES_status" style="font-size:11px;background-color:#FCFC23" data-theme="b">Super Res</button>
 								</div>
 								<div class="ui-block-b">
-                            		<div style="float:left" class="containing-element-lg">
-										<select class="toggle" name="flip-min" id="Super_Res" data-role="slider"data-theme="a"data-mini="true">
-                                			<option select value="off">DISABLED</option>
+                            		<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
+										<select class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
+                                			<option value="off">DISABLED</option>
                                 			<option value="on">ENABLED</option>
                                 		</select>
                             		</div>
@@ -479,13 +512,13 @@
 							</div>
 	 						<div class="ui-grid-a center">
 								<div class="ui-block-a">
-									<button type="button" id="CMD" style="font-size:11px;background-color:#FCFC23" data-theme="b">CMD</button>
+									<button type="button" id="RS_CMD_status" style="font-size:11px;background-color:#FCFC23" data-theme="b">CMD</button>
 								</div>
 								<div class="ui-block-b">
-                            		<div style="float:left" class="containing-element-lg">
-										<select class="toggle" name="flip-min" id="CMD" data-role="slider"data-theme="a"data-mini="true">
-                                			<option select value="off">DISABLED</option>
-                                			<option value="on">ENABLED</option>
+                            		<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
+										<select class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
+                                			<option  select value="off">DISABLED</option>
+                                			<option id="RS_CMD_LABEL" value="on">ENABLED</option>
                                 		</select>
                             		</div>
 								</div>
