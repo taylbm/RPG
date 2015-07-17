@@ -8,6 +8,7 @@ using boost::python::scope;
 extern "C"
 {
     #include "hci_orda_pmd.h"
+    #include "hci_wx_status.h"
 }
 
 #include "wrap_libhci.h"
@@ -24,7 +25,10 @@ namespace rpg
             &hci_get_orda_pmd_ptr, 
             return_value_policy<reference_existing_object>()    // it's a static C-variable we don't manage
         );
+        def("hci_get_wx_status", &hci_get_wx_status);
+
         c.staticmethod("hci_get_orda_pmd_ptr");
+        c.staticmethod("hci_get_wx_status");
     }
 }
 

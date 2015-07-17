@@ -1,7 +1,9 @@
 #include <boost/python.hpp>
 
+#include "wrap_gen_stat_msg.h"
 #include "wrap_libhci.h"
 #include "wrap_liborpg.h"
+#include "wrap_mode_select.h"
 #include "wrap_orda_pmd.h"
 #include "wrap_orpg_misc.h"
 #include "wrap_rda_status.h"
@@ -25,6 +27,8 @@ namespace rpg
 
         export_rpg_rda();
         export_pmd_t();
+        export_mode_select();
+        export_gen_stat_msg();
 
         //
         // RPG stuff
