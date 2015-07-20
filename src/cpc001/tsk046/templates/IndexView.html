@@ -71,7 +71,7 @@
     var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
     var RS_RDA_STATUS = new Array(); RS_RDA_STATUS[2] = 'Start-Up'; RS_RDA_STATUS[4] = 'Standby'; RS_RDA_STATUS[8] = 'Restart'; RS_RDA_STATUS[16] = 'Operate'; RS_RDA_STATUS[32] = 'Spare'; RS_RDA_STATUS[64] = 'Off-line Operate';
     var RS_TPS_STATUS = new Array(); RS_TPS_STATUS[0] = 'Not Installed'; RS_TPS_STATUS[1] = 'Off'; RS_TPS_STATUS[3] = 'On';
-    var RS_OPERABILITY_STATUS = new Array(); RS_OPERABILITY_STATUS[2] = 'On-line';RS_OPERABILITY_STATUS[4] = 'Maint Req'; RS_OPERABILITY_STATUS[8] = 'Maint Mand'; RS_OPERABILITY_STATUS[16] = 'Shut Down';
+    var RS_OPERABILITY_STATUS = new Array(); RS_OPERABILITY_STATUS[2] = 'Online';RS_OPERABILITY_STATUS[4] = 'Maint Req'; RS_OPERABILITY_STATUS[8] = 'Maint Mand'; RS_OPERABILITY_STATUS[16] = 'Shut Down';
     RS_OPERABILITY_STATUS[32] = 'INOP'
     RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET}
     RS_STATUS = {'RS_RDA_STATUS':RS_RDA_STATUS,'RS_TPS_STATUS':RS_TPS_STATUS,'RS_OPERABILITY_STATUS':RS_OPERABILITY_STATUS};
@@ -142,8 +142,9 @@
 			if (cancel=="on"){present = "on";previous = "off"}else{present="off";previous="on"}
 
 			if (confirm('Are you sure you want to change '+controlname+'?')){
+			
 
-				$("#"+controlname+'_LABEL').html('PENDING');
+									
 			}	
 			else{ $(this).val(previous) }
 			$(this).slider('refresh')
@@ -157,20 +158,25 @@
 				for (i in item){
 					var value = item[i]
 					var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
-					if (retrieved == "on"){$("#"+value+"_contain").html(' ');$("#"+value+"_status").css('background-color','#51FF22');}
+					if (retrieved == "on"){$("#"+value+"_status").css('visibility','hidden');}
 					$("#"+value).val(retrieved).slider("refresh")
 				}
 				for (j in state){
 					var value1 = state[j]
 					$("#"+value1).html(RS_STATUS[value1][data['RS_dict'][value1]])
-					if (RS_STATUS[value1][data['RS_dict'][value1]] == "Operate"|| RS_STATUS[value1][data['RS_dict'][value1]] == "On" ){$("#"+value1).css('background-color','#51FF22')}
+					if (RS_STATUS[value1][data['RS_dict'][value1]] == "Operate"|| RS_STATUS[value1][data['RS_dict'][value1]] == "On"
+					|| RS_STATUS[value1][data['RS_dict'][value1]] == "Online"){$("#"+value1).css('background-color','#51FF22')}
 				}
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER']).css('background-color','#51FF22')
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'])				
 			});
 			
 			
-		},250);
+		},1000);
+		$('#refreshPage').click(function(){
+			location.reload()
+		});
+
 			
 	
 	});
@@ -191,10 +197,10 @@
         <div data-role="navbar">
         	<ul>
         		<li><div style="font-size:14px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
-        		<li><a style="color:white" class="nav-item" href="#">WSR-88D Operations</a></li>
-        		<li><a style="color:white" class="nav-item" href="/shift_change_checklist">Shift Change Checklist</a></li>
-        		<li><a style="color:white" class="nav-item" href="#">PRF Control</a></li>
-        		<li><a style="color:white" class="nav-item" href="#">Environmental Data</a></li>
+        		<li><a style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
+        		<li><a rel="external" style="color:white" class="nav-item control-shadow" href="/shift_change_checklist">Shift Change Checklist</a></li>
+        		<li><a style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
+        		<li><a style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
         	</ul>
         </div>
 
@@ -239,12 +245,12 @@
 					<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
         						<div class="ui-grid-a" style="width:50%;float:left">
         							<div class="ui-block-a">
-        								<div style="font-size:11px"class="bar-border1">State:</div>
-        								<div style="font-size:11px"class="bar-border1">Oper:</div>
+        								<div style="font-size:11px"class="ui-corner-all bar-border1">State:</div>
+        								<div style="font-size:11px"class="ui-corner-all bar-border1">Oper:</div>
         							</div>
         							<div class="ui-block-b">
-        								<div id ="RS_RDA_STATUS" style="font-size:11px;background-color:#FCFC23;color:black"class="bar-border2">N/A</div>
-        								<div id = "RS_OPERABILITY_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
+        								<div id ="RS_RDA_STATUS" style="font-size:11px;background-color:#FCFC23;color:black"class="ui-corner-all bar-border2">N/A</div>
+        								<div id = "RS_OPERABILITY_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="ui-corner-all bar-border2">N/A</div>
         							</div>
         						</div>
 								<br><br>
@@ -281,9 +287,9 @@
 <div id="grid1" class="center" style="margin-top:-25px;float:center;display:inline-block;width:54%;height:290px;border:5px outset #51FF22">
     							<p style="color:black">RDA</p>
     							<ul data-role="listview"  data-inset="true" data-theme="e">
-                            		<li><a class="vcp-confirm" style="color:white;text-align:center" href="#vcp-confirm" data-rel="popup">Control</a></li>
-                            		<li><a style="color:white;font-size:14px;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Performance<br> Data</a></li>
-                            		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Alarms</a></li>
+                            		<li><a class="vcp-confirm control-shadow" style="color:white;text-align:center" href="#vcp-confirm" data-rel="popup">Control</a></li>
+                            		<li><a style="color:white;font-size:14px;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Performance<br> Data</a></li>
+                            		<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Alarms</a></li>
                         		</ul>
 
 							</div>					
@@ -362,10 +368,10 @@
 							</div>
 						</div>
 						<div class="ui-grid-a">
-							<a class="ui-block-a" style="text-decoration : none; color : #000000;" href="/VCP">
+							<a rel="external" class="ui-block-a" style="text-decoration : none; color : #000000;" href="/VCP">
 								<button type="button" style="font-size:40px;background-color:white" data-theme="b">VCP</button>
 							</a>
-							<a class="ui-block-b" style="text-decoration : none; color : #000000;" href="/VCP">
+							<a rel="external" class="ui-block-b" style="text-decoration : none; color : #000000;" href="/VCP">
 								<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
 							</a>
 						</div>
@@ -386,8 +392,8 @@
 								<div style="font-size:11px"class="bar-border1">Oper:</div>
 							</div>
 							<div class="ui-block-b">
-								<div style="font-size:11px;background-color:#FCFC23;color:black"class="bar-border2">Standby</div>
-								<div style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">Shutdown</div>
+								<div style="font-size:11px;background-color:#FFA500;color:black"class="bar-border2">N/A</div>
+								<div style="font-size:11px;background-color:#FFA500;color:black"class="bar-border2">N/A</div>
 							</div>
 						</div>
 						<br><br>
@@ -398,10 +404,10 @@
         						<div id="grid2" style="float:left;display:inline-block;height:290px;border:5px outset #51FF22">
         							<p style="color:black">RPG</p>
         							<ul data-role="listview" data-inset="true">
-                                		<li><a style="color:white;text-align:center" class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Control</a></li>
-                                		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Products</a></li>
-                                		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Misc</a></li>
-                                		<li><a style="color:white;text-align:center"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Status</a></li>
+                                		<li><a style="color:white;text-align:center" class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Control</a></li>
+                                		<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Products</a></li>
+                                		<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Misc</a></li>
+                                		<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Status</a></li>
                             		</ul>
     								<br>
     							</div>
@@ -426,7 +432,7 @@
                     <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
 
 								
-							<div style="color:black;display:block;"><div style="height:20px;">PRF Mode</div></div>
+			<div style="color:black;display:block;"><div style="height:20px;">PRF Mode</div></div>
                             <div style="display:block" class="containing-element">
                             	<select class="toggle" name="flip-min" id="PRF Mode" data-role="slider"data-theme="a">
                             		<option select value="off">MANUAL</option>
@@ -438,35 +444,35 @@
 
     								<div class="ui-block-a">
 									<div style="color:black;display:inline-block;"><div style="height:20px;">AVSET</div></div>
-                                		<div style="float:right" class="containing-element-lg">
+                                					<div style="float:right" class="containing-element-lg">
     										<select class="toggle" name="flip-min" id="AVSET_Alarm" data-role="slider"data-theme="a"data-mini="true">
-                                    			<option select value="off">DISABLED</option>
-                                    			<option value="on">ENABLED</option>
-                                    		</select>
-                                		</div>
+                                    							<option select value="off">DISABLED</option>
+                                    							<option value="on">ENABLED</option>
+                                    						</select>
+                                					</div>
     								</div>
     								<div class="ui-block-b">
 									<div style="color:black;display:inline-block;"><div style="height:20px;">SAILS</div></div>
-                                		<div style="float:left" class="containing-element-lg">
+                                					<div style="float:left" class="containing-element-lg">
     										<select class="toggle" name="flip-min" id="SAILS_Alarm" data-role="slider"data-theme="a"data-mini="true">
-                                    			<option select value="off">DISABLED</option>
-                                    			<option value="on">ENABLED</option>
-                                    		</select>
-                                		</div>
+                                    							<option select value="off">DISABLED</option>
+                                    							<option value="on">ENABLED</option>
+                                    						</select>
+                                					</div>
     								</div>
     							</div>
 
 							<div class="ui-grid-a center">
 								<div class="ui-block-a">
-									<button type="button"  id="Mode_Conflict" style="font-size:11px;background-color:#FCFC23" data-theme="b">Mode Conflict</button>
+									<button type="button" id="Mode_Conflict" style="font-size:11px;background-color:#FCFC23" data-theme="b">Mode Conflict</button>
 								</div>
 								<div class="ui-block-b" id="Mode Conflict">
-                            		<div style="float:left" class="containing-element">
+                            						<div style="float:left" class="containing-element">
 										<select class="toggle" name="flip-min" id="Mode_Conflict" data-role="slider"data-theme="a"data-mini="true">
-                                			<option select value="off">YES</option>
-                                			<option value="on">NO</option>
-                                		</select>
-                            		</div>
+                                							<option select value="off">YES</option>
+                                							<option value="on">NO</option>
+                                						</select>
+                            						</div>
 								</div>
 
 							</div>
@@ -476,51 +482,51 @@
 									<button type="button" id="Clear_Air_Switch" style="font-size:11px;background-color:#FCFC23" data-theme="b">Clear Air Switch</button>
 								</div>
 								<div class="ui-block-b" id="Clear Air Switch">
-                            		<div style="float:left" class="containing-element">
+                            						<div style="float:left" class="containing-element">
 										<select class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
-                                			<option select value="off">MANUAL</option>
-                                			<option value="on">AUTO</option>
-                                		</select>
-                            		</div>
+                                							<option select value="off">MANUAL</option>
+                                							<option value="on">AUTO</option>
+                                						</select>
+                            						</div>
 								</div>
 							</div>
-	 						<div class="ui-grid-a center">
+	 						<div class="ui-grid-a center" id="Precip_Switch_status">
 								<div class="ui-block-a">
-									<button type="button" id="Precip_Switch" style="font-size:11px;background-color:#FCFC23" data-theme="b">Precip Switch</button>
+									<button type="button" style="font-size:11px;background-color:#FCFC23" data-theme="b">Precip Switch</button>
 								</div>
 								<div class="ui-block-b">
-                            		<div style="float:left" class="containing-element">
+                            						<div style="float:left" class="containing-element">
 										<select class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
-                                			<option select value="off">MANUAL</option>
-                                			<option value="on">AUTO</option>
-                                		</select>
-                            		</div>
+                                							<option select value="off">MANUAL</option>
+                                							<option id="Precip_Switch_label" value="on">AUTO</option>
+                                						</select>
+                            						</div>
 								</div>
 							</div>
-	 						<div class="ui-grid-a center">
+	 						<div class="ui-grid-a center" id="RS_SUPER_RES_status">
 								<div class="ui-block-a">
-									<button type="button" id="RS_SUPER_RES_status" style="font-size:11px;background-color:#FCFC23" data-theme="b">Super Res</button>
+									<button type="button" style="font-size:11px;background-color:#FCFC23" data-theme="b">Super Res</button>
 								</div>
 								<div class="ui-block-b">
-                            		<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
+                            						<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
 										<select class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
-                                			<option value="off">DISABLED</option>
-                                			<option value="on">ENABLED</option>
-                                		</select>
-                            		</div>
+                                							<option value="off">DISABLED</option>
+                                							<option value="on">ENABLED</option>
+                                						</select>
+                            						</div>
 								</div>
 							</div>
-	 						<div class="ui-grid-a center">
+	 						<div class="ui-grid-a center" id="RS_CMD_status">
 								<div class="ui-block-a">
-									<button type="button" id="RS_CMD_status" style="font-size:11px;background-color:#FCFC23" data-theme="b">CMD</button>
+									<button type="button" style="font-size:11px;background-color:#FCFC23" data-theme="b">CMD</button>
 								</div>
 								<div class="ui-block-b">
-                            		<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
+                            						<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
 										<select class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
-                                			<option  select value="off">DISABLED</option>
-                                			<option id="RS_CMD_LABEL" value="on">ENABLED</option>
-                                		</select>
-                            		</div>
+                                							<option select value="off">DISABLED</option>
+                                							<option value="on">ENABLED</option>
+                                						</select>
+                            						</div>
 								</div>
 							</div>
 	 						<div class="ui-grid-a">
@@ -530,10 +536,10 @@
 											<button type="button" id="Model_Update" style="font-size:10px;background-color:#FCFC23" data-theme="b">Model Update</button>
 										</div>
 										<div class="ui-block-b">
-    										<select class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
-                                    			<option select value="off">OFF</option>
-                                    			<option value="on">ON</option>
-                                    		</select>
+    											<select class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+                                    								<option select value="off">OFF</option>
+                                    								<option value="on">ON</option>
+                                    							</select>
 										</div>
 									</div>
 								</div>
@@ -543,10 +549,10 @@
 											<button type="button" id="VAD_Update" style="font-size:10px;background-color:#FCFC23" data-theme="b">VAD Update</button>
 										</div>
 										<div class="ui-block-b">
-       										<select class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
-                                        		<option select value="off">OFF</option>
-                                        		<option value="on">ON</option>
-                                        	</select>
+       											<select class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+                                        							<option select value="off">OFF</option>
+                                        							<option value="on">ON</option>
+                                        						</select>
 										</div>
 									</div>
 								</div>
@@ -559,8 +565,8 @@
     					    	<div id="grid3" style="float:left;display:inline-block;border:5px outset #51FF22;background-color:#51FF22">
             						<p style="color:black">Users</p>
             						<ul data-role="listview" data-inset="true">
-                                    	<li><a style="color:white"class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Comms</a></li>
-                                    	<li><a style="color:white;font-size:14px" class="vcp-confirm" href="#vcp-confirm" data-rel="popup">Console <br> Messages</a></li>
+                                    	<li><a style="color:white"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Comms</a></li>
+                                    	<li><a style="color:white;font-size:14px" class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Console <br> Messages</a></li>
                                 	</ul>
     								<br>
                 				</div>

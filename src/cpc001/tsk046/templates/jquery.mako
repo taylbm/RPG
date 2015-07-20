@@ -21,4 +21,3 @@
 <script src="/static/flot/jquery.flot.min.js"></script>
 <script src="/static/flot/jquery.flot.fillbetween.js"></script>
 <script src="/static/flot/jquery.flot.axislabels.js"></script>
-<script src="/static/progress_bar/dist/circle-progress.js"></script>

@@ -26,15 +26,21 @@
 
 
 <%block name="extra_header_markup">
-
+<script>
+$(document).ready(function(){
+	$('#refreshPage').click(function(){
+		location.reload()
+	});
+});
+</script>
 </%block>
 ###
 ### body
 ###
 	
 	<div role="banner" class="ui-header ui-bar-a" data-role="header">
-		<a href="#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>	
-		<button  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
+		<a href="#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
+		<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
  		<h1 aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1>
 
 
@@ -100,11 +106,11 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Horizontal Delta dBZ0:</td>
-                        <td>-0.09dBZ</td>
+                        <td>-0.09dBZ *stub*</td>
                     </tr>
             	    <tr>
                         <td>Vertical Delta dBZ0:</td>
-                        <td>0.12dBZ</td>
+                        <td>0.12dBZ *stub*</td>
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
@@ -157,27 +163,27 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>RPG Alarm Summary:</td>
-                        <td>Task Failure</td>
+                        <td>Task Failure *stub*</td>
                     </tr>
             	    <tr>
                         <td>Operability Status:</td>
-                        <td>On-line</td>
+                        <td>On-line *stub*</td>
                     </tr>
             	    <tr>
                         <td>Wideband Status:</td>
-                        <td>Connected</td>
+                        <td>Connected *stub*</td>
                     </tr>
             	    <tr>
                         <td>SAILS:</td>
-                        <td>Disabled</td>
+                        <td>Disabled *stub*</td>
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
-                        <td>212</td>
+                        <td>212 *stub*</td>
                     </tr>
             	    <tr>
                         <td>PRF Mode:</td>
-                        <td>Multi-Storm</td>
+                        <td>Multi-Storm *stub*</td>
                     </tr>
             	</tbody>
             </table>
@@ -192,30 +198,30 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                 <tbody>
                     <tr>
                         <td>Transmit Status:</td>
-                        <td>On</td>
+                        <td>On *stub*</td>
                     </tr>
             	    <tr>
                         <td>Version:</td>
-                        <td>7</td>
+                        <td>7 *stub*</td>
                     </tr>
             	    <tr>
                         <th><u>Mode Selection Function (MSF)</u></th>
                     </tr>
             	    <tr>
                         <td>Mode Conflict:</td>
-                        <td>Yes</td>
+                        <td>Yes *stub*</td>
                     </tr>
             	    <tr>
                         <td>Mode Switch Clear Air:</td>
-                        <td>Auto</td>
+                        <td>Auto *stub*</td>
                     </tr>
             	    <tr>
                         <td>Mode Switch Precip:</td>
-                        <td>Manual</td>
+                        <td>Manual *stub*</td>
                     </tr>
             	    <tr>
                         <td>Mode Change Thresholds:</td>
-                        <td>50km^2 > 30dBz</td>
+                        <td>50km^2 > 30dBz *stub*</td>
                     </tr>
             	</tbody>
             </table>
@@ -229,37 +235,37 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                 <tbody>
             	    <tr>
                         <td>VAD Update:</td>
-                        <td>On</td>
+                        <td>On *stub*</td>
                     </tr>
             	    <tr>
                         <td>Model Update:</td>
-                        <td>On</td>
+                        <td>On *stub*</td>
                     </tr>
             	    <tr>
                         <th><u>Algorithm Status/Data</u></th>
                     </tr>
             	    <tr>
                         <td>PPS Precipitation Status:</td>
-                        <td>Accum</td>
+                        <td>Accum *stub*</td>
                     </tr>
             	    <tr>
                         <td>PPS Z-R Relationship:</td>
-                        <td>Tropical</td>
+                        <td>Tropical *stub*</td>
                     </tr>
             	    <tr>
                         <td>QPE Precipitation Type:</td>
-                        <td>Exponent</td>
+                        <td>Exponent *stub*</td>
                     </tr>
             	    <tr>
                         <td>Apply RPG Estimated ISDP:</td>
-                        <td>Yes</td>
+                        <td>Yes *stub*</td>
                     </tr>
             	    <tr>
                         <th><u>Narrrowband Communications</u></th>
                     </tr>
             	    <tr>
                         <td>Dedicated Connected Users:</td>
-                        <td>3</td>
+                        <td>3 *stub*</td>
                     </tr>
             	</tbody>
             </table>
