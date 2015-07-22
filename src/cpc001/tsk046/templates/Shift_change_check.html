@@ -39,7 +39,7 @@ $(document).ready(function(){
 ###
 	
 	<div role="banner" class="ui-header ui-bar-a" data-role="header">
-		<a href="#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
+		<a href="/#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
 		<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
  		<h1 aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1>
 
@@ -63,7 +63,7 @@ STATUS_VALS.update({"RS_SUPER_RES":{2:'Enabled',4:'Disabled'}})
 STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
 STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}}) 
 %>
-    <div id="content">
+    <div id="content" style="font-size:15px">
 		<div class="ui-grid-a">
             <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
@@ -74,7 +74,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                 <tbody>
                     <tr>
                         <td>RDA Alarm Summary:</td>
-                        <td>${STATUS_VALS["RS_RDA_ALARM_SUMMARY"].get(context.get("RS_dict").get("RS_RDA_ALARM_SUMMARY"),error_status)}</td>
+                        <td>${context.get("RS_dict").get("RS_RDA_ALARM_SUMMARY_LIST")}</td>
                     </tr>
             	    <tr>
                         <td>Operability Status:</td>
@@ -124,12 +124,52 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                         <td>AVSET Status:</td>
                         <td>${STATUS_VALS["RS_AVSET"].get(context.get("RS_dict").get("RS_AVSET"))}</td>
                     </tr>
+            	    <tr>
+                        <th>&nbsp;</th>
+                    </tr>
+		    <tr>
+		        <td>&nbsp;</td>
+			<td>&nbsp;</td>
+		    </tr>
+		    <tr>
+		        <td>&nbsp;</td>
+			<td>&nbsp;</td>
+		    </tr>
+		    <tr>
+		    	<th><u>Archive Level II</u></th>
+		    </tr>
+		    <tr>
+                        <td>Transmit Status:</td>
+                        <td>On *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Version:</td>
+                        <td>7 *stub*</td>
+                    </tr>
+            	    <tr>
+                        <th><u>Mode Selection Function</u></th>
+                    </tr>
+            	    <tr>
+                        <td>Mode Conflict:</td>
+                        <td>Yes *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Switch Clear Air:</td>
+                        <td>Auto *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Switch Precip:</td>
+                        <td>Manual *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Change Thresholds:</td>
+                        <td>50km^2 > 30dBz *stub*</td>
             	</tbody>
             </table>
             <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
             		<tr>
-                        <th><u>RDA Performance/Maintainence Data</u></th>
+                        <th><u>RDA Perform/Maintainence Data</u></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,65 +225,20 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                         <td>PRF Mode:</td>
                         <td>Multi-Storm *stub*</td>
                     </tr>
-            	</tbody>
-            </table>
-		</div>
-		<div class="ui-grid-a">
-            <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
-            	<thead>
-            		<tr>
-                        <th><u>Archive Level II</u></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Transmit Status:</td>
-                        <td>On *stub*</td>
-                    </tr>
             	    <tr>
-                        <td>Version:</td>
-                        <td>7 *stub*</td>
-                    </tr>
-            	    <tr>
-                        <th><u>Mode Selection Function (MSF)</u></th>
-                    </tr>
-            	    <tr>
-                        <td>Mode Conflict:</td>
-                        <td>Yes *stub*</td>
-                    </tr>
-            	    <tr>
-                        <td>Mode Switch Clear Air:</td>
-                        <td>Auto *stub*</td>
-                    </tr>
-            	    <tr>
-                        <td>Mode Switch Precip:</td>
-                        <td>Manual *stub*</td>
-                    </tr>
-            	    <tr>
-                        <td>Mode Change Thresholds:</td>
-                        <td>50km^2 > 30dBz *stub*</td>
-                    </tr>
-            	</tbody>
-            </table>
-
-            <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
-            	<thead>
-            		<tr>
                         <th><u>Environmental Data</u></th>
                     </tr>
-                </thead>
-                <tbody>
-            	    <tr>
-                        <td>VAD Update:</td>
-                        <td>On *stub*</td>
-                    </tr>
-            	    <tr>
-                        <td>Model Update:</td>
-                        <td>On *stub*</td>
-                    </tr>
-            	    <tr>
-                        <th><u>Algorithm Status/Data</u></th>
-                    </tr>
+		    <tr>
+		        <td>VAD Update:</td>
+			<td>On *stub*</td>
+		    </tr>
+		    <tr>
+		        <td>Model Update:</td>
+			<td>On *stub*</td>
+		    </tr>
+		    <tr>
+			<th><u>Algorithm Status/Data</u></th>
+		    </tr>	    
             	    <tr>
                         <td>PPS Precipitation Status:</td>
                         <td>Accum *stub*</td>
@@ -269,8 +264,8 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	</tbody>
             </table>
-		</div>
 	</div>
+</div>
 	
 
 
