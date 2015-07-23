@@ -3,7 +3,14 @@
 
 namespace rpg
 {
-    struct rdastatus_ns {};     // dummy struct for namespacing
+    struct rdastatus_ns {};     // dummy structs for namespacing
+    struct wideband_ns {};
+    struct rdastatus2_ns {};
+    struct opstatus_ns {};
+    struct alarmsummary_ns {};
+    struct tps_ns {};
+    struct auxgen_ns {};
+
     void export_rda_status();
 }
 

@@ -60,16 +60,19 @@ namespace rpg
         // wideband status line values
         //
 
-        in_rdastatus.attr("RS_NOT_IMPLEMENTED") = RS_NOT_IMPLEMENTED;
-        in_rdastatus.attr("RS_CONNECT_PENDING") = RS_CONNECT_PENDING;
-        in_rdastatus.attr("RS_DISCONNECT_PENDING") = RS_DISCONNECT_PENDING;
-        in_rdastatus.attr("RS_DISCONNECTED_HCI") = RS_DISCONNECTED_HCI;
-        in_rdastatus.attr("RS_DISCONNECTED_CM") = RS_DISCONNECTED_CM;
-        in_rdastatus.attr("RS_DISCONNECTED_SHUTDOWN") = RS_DISCONNECTED_SHUTDOWN;
-        in_rdastatus.attr("RS_CONNECTED") = RS_CONNECTED;
-        in_rdastatus.attr("RS_DOWN") = RS_DOWN;
-        in_rdastatus.attr("RS_WBFAILURE") = RS_WBFAILURE;
-        in_rdastatus.attr("RS_DISCONNECTED_RMS") = RS_DISCONNECTED_RMS;
+        {
+            scope in_wideband = class_<wideband_ns>("wideband");
+            in_wideband.attr("RS_NOT_IMPLEMENTED") = RS_NOT_IMPLEMENTED;
+            in_wideband.attr("RS_CONNECT_PENDING") = RS_CONNECT_PENDING;
+            in_wideband.attr("RS_DISCONNECT_PENDING") = RS_DISCONNECT_PENDING;
+            in_wideband.attr("RS_DISCONNECTED_HCI") = RS_DISCONNECTED_HCI;
+            in_wideband.attr("RS_DISCONNECTED_CM") = RS_DISCONNECTED_CM;
+            in_wideband.attr("RS_DISCONNECTED_SHUTDOWN") = RS_DISCONNECTED_SHUTDOWN;
+            in_wideband.attr("RS_CONNECTED") = RS_CONNECTED;
+            in_wideband.attr("RS_DOWN") = RS_DOWN;
+            in_wideband.attr("RS_WBFAILURE") = RS_WBFAILURE;
+            in_wideband.attr("RS_DISCONNECTED_RMS") = RS_DISCONNECTED_RMS;
+        }
 
         //
         // command ack status values
@@ -84,24 +87,71 @@ namespace rpg
         //
         // RDA status states
         //
-
-        in_rdastatus.attr("RS_STARTUP") = RS_STARTUP;
-        in_rdastatus.attr("RS_STANDBY") = RS_STANDBY;
-        in_rdastatus.attr("RS_RESTART") = RS_RESTART;
-        in_rdastatus.attr("RS_OPERATE") = RS_OPERATE;
-        in_rdastatus.attr("RS_OFFOPER") = RS_OFFOPER;
+        
+        {
+            scope in_rdastatus2 = class_<rdastatus2_ns>("rdastatus");
+            in_rdastatus2.attr("RS_STARTUP") = RS_STARTUP;
+            in_rdastatus2.attr("RS_STANDBY") = RS_STANDBY;
+            in_rdastatus2.attr("RS_RESTART") = RS_RESTART;
+            in_rdastatus2.attr("RS_OPERATE") = RS_OPERATE;
+            in_rdastatus2.attr("RS_OFFOPER") = RS_OFFOPER;
+        }
 
         //
         // RDA operability status
         //
 
-        in_rdastatus.attr("OS_INDETERMINATE") = OS_INDETERMINATE;
-        in_rdastatus.attr("OS_ONLINE") = OS_ONLINE;
-        in_rdastatus.attr("OS_MAINTENANCE_REQ") = OS_MAINTENANCE_REQ;
-        in_rdastatus.attr("OS_MAINTENANCE_MAN") = OS_MAINTENANCE_MAN;
-        in_rdastatus.attr("OS_COMMANDED_SHUTDOWN") = OS_COMMANDED_SHUTDOWN;
-        in_rdastatus.attr("OS_INOPERABLE") = OS_INOPERABLE;
-        in_rdastatus.attr("OS_WIDEBAND_DISCONNECT") = OS_WIDEBAND_DISCONNECT;
+        {
+            scope in_opstatus = class_<opstatus_ns>("opstatus");
+            in_opstatus.attr("OS_INDETERMINATE") = OS_INDETERMINATE;
+            in_opstatus.attr("OS_ONLINE") = OS_ONLINE;
+            in_opstatus.attr("OS_MAINTENANCE_REQ") = OS_MAINTENANCE_REQ;
+            in_opstatus.attr("OS_MAINTENANCE_MAN") = OS_MAINTENANCE_MAN;
+            in_opstatus.attr("OS_COMMANDED_SHUTDOWN") = OS_COMMANDED_SHUTDOWN;
+            in_opstatus.attr("OS_INOPERABLE") = OS_INOPERABLE;
+            in_opstatus.attr("OS_WIDEBAND_DISCONNECT") = OS_WIDEBAND_DISCONNECT;
+        }
+
+        //
+        // RDA aux/gen status
+        //
+
+        {
+            scope in_auxgen = class_<auxgen_ns>("auxgen");
+            in_auxgen.attr("RS_COMMANDED_SWITCHOVER") = RS_COMMANDED_SWITCHOVER;
+            in_auxgen.attr("AP_UTILITY_PWR_AVAIL") = AP_UTILITY_PWR_AVAIL;
+            in_auxgen.attr("AP_GENERATOR_ON") = AP_GENERATOR_ON;
+            in_auxgen.attr("AP_TRANS_SWITCH_MAN") = AP_TRANS_SWITCH_MAN;
+            in_auxgen.attr("AP_COMMAND_SWITCHOVER") = AP_COMMAND_SWITCHOVER;
+            in_auxgen.attr("AP_SWITCH_AUX_PWR") = AP_SWITCH_AUX_PWR;
+        }
+
+        //
+        // TPS status
+        //
+
+        {
+            scope in_tps = class_<tps_ns>("tps");
+            in_tps.attr("TP_NOT_INSTALLED") = TP_NOT_INSTALLED;
+            in_tps.attr("TP_OFF") = TP_OFF;
+            in_tps.attr("TP_OK") = TP_OK;
+        }
+
+        //
+        // alarm summary
+        //
+
+        {
+            scope in_as = class_<alarmsummary_ns>("alarmsummary");
+            in_as.attr("AS_NO_ALARMS") = AS_NO_ALARMS;
+            in_as.attr("AS_TOW_UTIL") = AS_TOW_UTIL;
+            in_as.attr("AS_PEDESTAL") = AS_PEDESTAL;
+            in_as.attr("AS_TRANSMITTER") = AS_TRANSMITTER;
+            in_as.attr("AS_RECV") = AS_RECV;
+            in_as.attr("AS_RDA_CONTROL") = AS_RDA_CONTROL;
+            in_as.attr("AS_RPG_COMMUN") = AS_RPG_COMMUN;
+            in_as.attr("AS_SIGPROC") = AS_SIGPROC;
+        }
     }
 }
 

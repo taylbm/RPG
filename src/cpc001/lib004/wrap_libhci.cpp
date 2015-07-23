@@ -1,3 +1,6 @@
+#include <string>
+using std::string;
+
 #include <boost/python.hpp>
 using boost::python::class_;
 using boost::python::def;
@@ -17,15 +20,21 @@ namespace rpg
 {
     void export_libhci()
     {
+        string doc1(
+            "Retrieves the latest orda_pmd_t pointer and returns it. Python does NOT own this object!"
+        ), doc2(
+            "Returns the latest Wx_status_t object."
+        );
         class_<libhci_ns> c("libhci");
         scope in_libhci = c;
 
         def(
             "hci_get_orda_pmd_ptr", 
             &hci_get_orda_pmd_ptr, 
-            return_value_policy<reference_existing_object>()    // it's a static C-variable we don't manage
+            return_value_policy<reference_existing_object>(),    // it's a static C-variable we don't manage
+            doc1
         );
-        def("hci_get_wx_status", &hci_get_wx_status);
+        def("hci_get_wx_status", &hci_get_wx_status, doc2);
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
