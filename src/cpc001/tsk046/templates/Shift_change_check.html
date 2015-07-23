@@ -26,15 +26,21 @@
 
 
 <%block name="extra_header_markup">
-
+<script>
+$(document).ready(function(){
+	$('#refreshPage').click(function(){
+		location.reload()
+	});
+});
+</script>
 </%block>
 ###
 ### body
 ###
 	
 	<div role="banner" class="ui-header ui-bar-a" data-role="header">
-		<a href="#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>	
-		<button  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
+		<a href="/#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
+		<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
  		<h1 aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1>
 
 
@@ -56,8 +62,14 @@ STATUS_VALS.update({"RS_AUX_POWER_GEN_STATE":{1:'Start-Up',2:'Standby',4:'Restar
 STATUS_VALS.update({"RS_SUPER_RES":{2:'Enabled',4:'Disabled'}}) 
 STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
 STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}}) 
+WIDEBAND = context.get("RS_dict").get("WIDEBAND").split('_')
+WIDEBAND.remove('RS')
+WIDEBAND_clean = "".join(WIDEBAND)
+RDA_STATE = context.get("RS_dict").get("RDA_STATE").split('_')
+RDA_STATE.remove('RS')
+RDA_STATE_clean = "".join(RDA_STATE)
 %>
-    <div id="content">
+    <div id="content" style="font-size:15px">
 		<div class="ui-grid-a">
             <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
@@ -68,7 +80,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                 <tbody>
                     <tr>
                         <td>RDA Alarm Summary:</td>
-                        <td>${STATUS_VALS["RS_RDA_ALARM_SUMMARY"].get(context.get("RS_dict").get("RS_RDA_ALARM_SUMMARY"),error_status)}</td>
+                        <td>${context.get("RS_dict").get("RS_RDA_ALARM_SUMMARY_LIST")}</td>
                     </tr>
             	    <tr>
                         <td>Operability Status:</td>
@@ -76,7 +88,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>RDA Status:</td>
-                        <td>${STATUS_VALS["RS_RDA_STATUS"].get(context.get("RS_dict").get("RS_RDA_STATUS"),error_status)}</td>
+                        <td>${RDA_STATE_clean}</td>
                     </tr>
             	    <tr>
                         <td>Control Status:</td>
@@ -100,11 +112,11 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Horizontal Delta dBZ0:</td>
-                        <td>-0.09dBZ</td>
+                        <td>-0.09dBZ *stub*</td>
                     </tr>
             	    <tr>
                         <td>Vertical Delta dBZ0:</td>
-                        <td>0.12dBZ</td>
+                        <td>0.12dBZ *stub*</td>
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
@@ -118,12 +130,52 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                         <td>AVSET Status:</td>
                         <td>${STATUS_VALS["RS_AVSET"].get(context.get("RS_dict").get("RS_AVSET"))}</td>
                     </tr>
+            	    <tr>
+                        <th>&nbsp;</th>
+                    </tr>
+		    <tr>
+		        <td>&nbsp;</td>
+			<td>&nbsp;</td>
+		    </tr>
+		    <tr>
+		        <td>&nbsp;</td>
+			<td>&nbsp;</td>
+		    </tr>
+		    <tr>
+		    	<th><u>Archive Level II</u></th>
+		    </tr>
+		    <tr>
+                        <td>Transmit Status:</td>
+                        <td>On *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Version:</td>
+                        <td>7 *stub*</td>
+                    </tr>
+            	    <tr>
+                        <th><u>Mode Selection Function</u></th>
+                    </tr>
+            	    <tr>
+                        <td>Mode Conflict:</td>
+                        <td>Yes *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Switch Clear Air:</td>
+                        <td>Auto *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Switch Precip:</td>
+                        <td>Manual *stub*</td>
+                    </tr>
+            	    <tr>
+                        <td>Mode Change Thresholds:</td>
+                        <td>50km^2 > 30dBz *stub*</td>
             	</tbody>
             </table>
             <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
             		<tr>
-                        <th><u>RDA Performance/Maintainence Data</u></th>
+                        <th><u>RDA Perform/Maintainence Data</u></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -157,114 +209,69 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>RPG Alarm Summary:</td>
-                        <td>Task Failure</td>
+                        <td>Task Failure *stub*</td>
                     </tr>
             	    <tr>
                         <td>Operability Status:</td>
-                        <td>On-line</td>
+                        <td>On-line *stub*</td>
                     </tr>
             	    <tr>
                         <td>Wideband Status:</td>
-                        <td>Connected</td>
+                        <td>${WIDEBAND_clean}</td>
                     </tr>
             	    <tr>
                         <td>SAILS:</td>
-                        <td>Disabled</td>
+                        <td>Disabled *stub*</td>
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
-                        <td>212</td>
+                        <td>212 *stub*</td>
                     </tr>
             	    <tr>
                         <td>PRF Mode:</td>
-                        <td>Multi-Storm</td>
-                    </tr>
-            	</tbody>
-            </table>
-		</div>
-		<div class="ui-grid-a">
-            <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
-            	<thead>
-            		<tr>
-                        <th><u>Archive Level II</u></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Transmit Status:</td>
-                        <td>On</td>
+                        <td>Multi-Storm *stub*</td>
                     </tr>
             	    <tr>
-                        <td>Version:</td>
-                        <td>7</td>
-                    </tr>
-            	    <tr>
-                        <th><u>Mode Selection Function (MSF)</u></th>
-                    </tr>
-            	    <tr>
-                        <td>Mode Conflict:</td>
-                        <td>Yes</td>
-                    </tr>
-            	    <tr>
-                        <td>Mode Switch Clear Air:</td>
-                        <td>Auto</td>
-                    </tr>
-            	    <tr>
-                        <td>Mode Switch Precip:</td>
-                        <td>Manual</td>
-                    </tr>
-            	    <tr>
-                        <td>Mode Change Thresholds:</td>
-                        <td>50km^2 > 30dBz</td>
-                    </tr>
-            	</tbody>
-            </table>
-
-            <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
-            	<thead>
-            		<tr>
                         <th><u>Environmental Data</u></th>
                     </tr>
-                </thead>
-                <tbody>
-            	    <tr>
-                        <td>VAD Update:</td>
-                        <td>On</td>
-                    </tr>
-            	    <tr>
-                        <td>Model Update:</td>
-                        <td>On</td>
-                    </tr>
-            	    <tr>
-                        <th><u>Algorithm Status/Data</u></th>
-                    </tr>
+		    <tr>
+		        <td>VAD Update:</td>
+			<td>On *stub*</td>
+		    </tr>
+		    <tr>
+		        <td>Model Update:</td>
+			<td>On *stub*</td>
+		    </tr>
+		    <tr>
+			<th><u>Algorithm Status/Data</u></th>
+		    </tr>	    
             	    <tr>
                         <td>PPS Precipitation Status:</td>
-                        <td>Accum</td>
+                        <td>Accum *stub*</td>
                     </tr>
             	    <tr>
                         <td>PPS Z-R Relationship:</td>
-                        <td>Tropical</td>
+                        <td>Tropical *stub*</td>
                     </tr>
             	    <tr>
                         <td>QPE Precipitation Type:</td>
-                        <td>Exponent</td>
+                        <td>Exponent *stub*</td>
                     </tr>
             	    <tr>
                         <td>Apply RPG Estimated ISDP:</td>
-                        <td>Yes</td>
+                        <td>Yes *stub*</td>
                     </tr>
             	    <tr>
                         <th><u>Narrrowband Communications</u></th>
                     </tr>
             	    <tr>
                         <td>Dedicated Connected Users:</td>
-                        <td>3</td>
+                        <td>3 *stub*</td>
                     </tr>
             	</tbody>
             </table>
-		</div>
 	</div>
+</div>
 	
 
 

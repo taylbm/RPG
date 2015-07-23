@@ -8,6 +8,10 @@ import web
 import _rpg
 import time
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
+RS_RDA_ALARM_SUMMARY = {0:'No Alarms',2:'Tower/Utilities',4:'Pedestal',8:'Transmitter',16:'Receiver',32:'RDA Control',64:'Communication',128:'Signal Processor'} 
+WIDEBAND = ['RS_NOT_IMPLEMENTED','RS_CONNECT_PENDING','RS_DISCONNECT_PENDING','RS_DISCONNECTED_HCI','RS_DISCONNECTED_CM','RS_DISCONNECTED_SHUTDOWN','RS_CONNECTED','RS_DOWN','RS_WBFAILURE','RS_DISCONNECTED_RMS']
+RDA_STATE = ['RS_STARTUP','RS_STANDBY','RS_RESTART','RS_OPERATE','RS_PLAYBACK','RS_OFFOPER']
+
 
 def stripList(list1):
 	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
@@ -19,9 +23,23 @@ def RS():
 	for task in RS_list:
 		if task == "RS_CMD" and _rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task)) >=1:
 			RS_dict.update({task:1})
-		else: 
+		elif task not in WIDEBAND and task not in RDA_STATE: 
 			RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
+	RDA_STATE_dict = dict((getattr(_rpg.rdastatus,task),task) for task in RS_list if task in RDA_STATE)
+	WIDEBAND_dict = dict((getattr(_rpg.rdastatus,task),task) for task in RS_list if task in WIDEBAND)
+	RS_dict.update({'WIDEBAND':WIDEBAND_dict[_rpg.liborpg.orpgrda_get_wb_status(0)],'RDA_STATE':RDA_STATE_dict[_rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_RDA_STATUS)]})
+	alarm_list = []
+	for key in RS_RDA_ALARM_SUMMARY.keys():
+		if (RS_dict['RS_RDA_ALARM_SUMMARY'] == 0):
+			break
+		if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0:
+			alarm_list.append(RS_RDA_ALARM_SUMMARY[key])
+	RS_dict.update({'RS_RDA_ALARM_SUMMARY_LIST':",".join(alarm_list)}) 	
 	return RS_dict
+def RPG_misc():
+	RPG_list = [x for x in dir(_rpg.orpgmisc) if x.split('_')[0] == 'ORPGMISC']
+	RPG_dict = dict((task,_rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))) for task in RPG_list)
+	return RPG_dict	
 def PMD():
 	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
 	return {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
@@ -32,7 +50,7 @@ class IndexView(object):
         return LOOKUP.IndexView(**RS())
 class Updater(object):
     def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS()})
+	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG_misc()})
 	
 class Shift_change_checklist(object):
     def GET(self):

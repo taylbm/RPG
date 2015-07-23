@@ -974,11 +974,13 @@ table.no-spacing {
 
 
 .ui-slider .ui-btn-active{
-	background-color:#51FF22 !important;
+	background-color:#51FF22 !important;	
 	color:#000000 !important;
+	text-shadow: none !important;
 }
-
-
+.control-shadow {
+	text-shadow:2px 2px 4px #000000 !important;
+}
 
 
 
