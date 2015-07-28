@@ -39,6 +39,7 @@ LIB_CXXSRCS =	wrap_liborpg.cpp \
 		wrap_rda_status.cpp \
 		wrap_orda_pmd.cpp \
 		wrap_orpg_misc.cpp \
+		wrap_orpg_info.cpp \
 		wrap_libhci.cpp \
 		wrap_gen_stat_msg.cpp \
 		wrap_mode_select.cpp \

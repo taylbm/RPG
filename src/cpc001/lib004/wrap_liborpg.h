@@ -1,6 +1,9 @@
 #ifndef _RPG_WRAP_LIBORPG_H_
 #define _RPG_WRAP_LIBORPG_H_
 
+#include <boost/python.hpp>
+using boost::python::tuple;
+
 #include <vector>
 using std::vector;
 
@@ -18,9 +21,12 @@ namespace rpg
         int param5, 
         vector<char>& msg
     );
+    tuple thinwrap_orpg_statefl_get_rpgalrm();
+    tuple thinwrap_orpg_statefl_get_rpgopst();
 
     void wrap_orpgrda();
     void wrap_orpgmisc();
+    void wrap_orpginfo();
     void export_liborpg();
 }
 

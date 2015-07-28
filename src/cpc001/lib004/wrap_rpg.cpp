@@ -5,6 +5,7 @@
 #include "wrap_liborpg.h"
 #include "wrap_mode_select.h"
 #include "wrap_orda_pmd.h"
+#include "wrap_orpg_info.h"
 #include "wrap_orpg_misc.h"
 #include "wrap_orpg_sails.h"
 #include "wrap_rda_status.h"
@@ -36,6 +37,7 @@ namespace rpg
         //
 
         export_orpg_misc();
+        export_orpginfo();
         export_orpgsails();
         export_rpg_messages();
         export_rda_status();

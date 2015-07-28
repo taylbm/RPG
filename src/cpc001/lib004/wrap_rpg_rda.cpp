@@ -29,6 +29,7 @@ namespace rpg
             in_orpgrda.attr("COM4_VEL_RESO") = COM4_VEL_RESO;
             in_orpgrda.attr("COM4_HEARTBEATLB") = COM4_HEARTBEATLB;
             in_orpgrda.attr("COM4_PBD_TEST") = COM4_PBD_TEST;
+            in_orpgrda.attr("ORPGRDA_DATA_NOT_FOUND") = ORPGRDA_DATA_NOT_FOUND;
     }
 }
 

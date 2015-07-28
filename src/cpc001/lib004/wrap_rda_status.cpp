@@ -113,6 +113,17 @@ namespace rpg
         }
 
         //
+        // RDA control status
+        //
+
+        {
+            scope in_cs = class_<controlstatus_ns>("controlstatus");
+            in_cs.attr("CS_LOCAL_ONLY") = CS_LOCAL_ONLY;
+            in_cs.attr("CS_RPG_REMOTE") = CS_RPG_REMOTE;
+            in_cs.attr("CS_EITHER") = CS_EITHER;
+        }
+
+        //
         // RDA aux/gen status
         //
 

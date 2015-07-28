@@ -11,6 +11,9 @@ using boost::python::scope;
 extern "C"
 {
     #include "hci_orda_pmd.h"
+//#define class class_variable
+//    #include "hci_up_nb.h"
+//#undef class
     #include "hci_wx_status.h"
 }
 
@@ -18,6 +21,15 @@ extern "C"
 
 namespace rpg
 {
+    /*
+    int thinwrap_hci_up_nb_update_dedicated_user_table()
+    {
+        char *throw_away = 0;
+
+        return hci_up_nb_update_dedicated_user_table(throw_away);
+    }
+    */
+
     void export_libhci()
     {
         string doc1(
@@ -31,13 +43,21 @@ namespace rpg
         def(
             "hci_get_orda_pmd_ptr", 
             &hci_get_orda_pmd_ptr, 
-            return_value_policy<reference_existing_object>(),    // it's a static C-variable we don't manage
-            doc1
+            return_value_policy<reference_existing_object>()//,    // it's a static C-variable we don't manage
+//            doc1
         );
-        def("hci_get_wx_status", &hci_get_wx_status, doc2);
+        //def("hci_get_wx_status", &hci_get_wx_status, doc2);
+        def("hci_get_wx_status", &hci_get_wx_status);
+        /*
+        def(
+            "hci_up_nb_update_dedicated_user_table", 
+            &thinwrap_hci_up_nb_update_dedicated_user_table
+        );
+        */
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
+        //c.staticmethod("hci_up_nb_update_dedicated_user_table");
     }
 }
 

@@ -29,7 +29,8 @@ namespace rpg
             "A Python wrapper for the Wx_status_t object. You can use libhci.hci_get_wx_status to retrieve this object."
         );
 
-        class_<Wx_status_t>("Wx_status_t", doc)
+//        class_<Wx_status_t>("Wx_status_t", doc)
+        class_<Wx_status_t>("Wx_status_t")
             .def_readwrite(
                 "current_wxstatus", 
                 &Wx_status_t::current_wxstatus
