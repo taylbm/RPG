@@ -69,13 +69,7 @@
     var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
     var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
     var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
-    var RS_RDA_STATUS = new Array(); RS_RDA_STATUS[2] = 'Start-Up'; RS_RDA_STATUS[4] = 'Standby'; RS_RDA_STATUS[8] = 'Restart'; RS_RDA_STATUS[16] = 'Operate'; RS_RDA_STATUS[32] = 'Spare'; RS_RDA_STATUS[64] = 'Off-line Operate';
-    var RS_TPS_STATUS = new Array(); RS_TPS_STATUS[0] = 'Not Installed'; RS_TPS_STATUS[1] = 'Off'; RS_TPS_STATUS[3] = 'On';
-    var RS_OPERABILITY_STATUS = new Array(); RS_OPERABILITY_STATUS[2] = 'Online';RS_OPERABILITY_STATUS[4] = 'Maint Req'; RS_OPERABILITY_STATUS[8] = 'Maint Mand'; RS_OPERABILITY_STATUS[16] = 'Shut Down';
-    RS_OPERABILITY_STATUS[32] = 'INOP';
-    RPG_STATUS = {'ORPGMISC_IS_RPG_STATUS_OPER':['Operate','#51FF22'],'ORPGMISC_IS_RPG_STATUS_STANDBY':'Standby','ORPGMISC_IS_RPG_STATUS_TEST':'Test','RPGMISC_IS_RPG_STATUS_RESTART':'Restart'};
     RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};
-    RS_STATUS = {'RS_RDA_STATUS':RS_RDA_STATUS,'RS_TPS_STATUS':RS_TPS_STATUS,'RS_OPERABILITY_STATUS':RS_OPERABILITY_STATUS};
     function toRadians(deg) {
         return deg * Math.PI / 180
     }
@@ -139,59 +133,85 @@
 		maincircle.lineTo(150,330)
 		maincircle.stroke();
 		document.getElementById("radome").style.zIndex = 1;
-		$(".radome-selectors .toggle").on('slidestop',function(){		
-			var controlname = $(this).attr("id")	
+		$(".toggle").on('slidestop',function(){		
+			var controlname = $(this).attr("id")
 			var current = $(this).val();	
 			var cancel;var confirmation;
 			if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
-			console.log($("#"+controlname+" .ui-slider .ui-btn-active"))
 			$("#popup-link").click();
+			var child1 = $(this).find("option:first-child").html()
+			var child2 = $(this).find("option:last-child").html()
 			var displayname = $(this).attr("alt")
-			$("#id-confirm").html('Are you sure you want to change '+displayname +'?')
+			if (current=="off"){
+			$("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child1+' ?')
+			}
+			else{$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')}
 			$("#pop-cancel").on('click',function(){
 				$("#"+controlname).val(cancel).slider('refresh')
 			});			
 			$("#pop-confirm").on('click',function(){
 				if (current == "off"){
+					if (displayname == "SAILS" || displayname  == "AVSET"){
 					$("#contain"+controlname+" .ui-slider-label-a").text('Pending').attr('style','background-color:#FCFC23 !important')
 					$("#"+controlname).slider('refresh')}
+					}
 				$("#"+controlname).val(confirmation).slider('refresh')	
 			});
 
 		});
 		
-		var item = Object.keys(RS_TOGGLE);  		
-		var state = Object.keys(RS_STATUS);
+	 		
+		var item = Object.keys(RS_TOGGLE);
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
+				var state = Object.keys(data['RS_dict']['RDA_static']);
 				for (i in item){
 					var value = item[i]
 					var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
 					if (retrieved == "on"){$("#"+value+"_status").css('visibility','hidden');}
 					$("#"+value).val(retrieved).slider("refresh")
 				}
-				for (j in state){
-					var value1 = state[j]
-					$("#"+value1).html(RS_STATUS[value1][data['RS_dict'][value1]])
-					if (RS_STATUS[value1][data['RS_dict'][value1]] == "Operate"|| RS_STATUS[value1][data['RS_dict'][value1]] == "On"
-					|| RS_STATUS[value1][data['RS_dict'][value1]] == "Online"){$("#"+value1).css('background-color','#51FF22')}
+				
+				for (b in state){
+					var value2 = state[b];
+					$("#"+value2).html(data['RS_dict']['RDA_static'][value2])
+					if (data['RS_dict']['RDA_static'][value2] == 'OPERATE' || data['RS_dict']['RDA_static'][value2] =="ONLINE" || data['RS_dict']['RDA_static'][value2] == "OK"){
+						$("#"+value2).css('background-color','#51FF22')
+					}
+					if (data['RS_dict']['RDA_static'][value2] == 'MAINTENANCE_MAN'){
+						$("#grid1").css('background-color','#FCFC23')
+						$("#"+value2).css('background-color','#FCFC23')
+					}
+					if (data['RS_dict']['RDA_static'][value2] == 'UNKNOWN'){
+						$("#"+value2).css({'background-color':'red','color':'white'})
+					}
 				}
+				console.log(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'])
+				if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').css('background-color','#51FF22')}
+				else{$('#grid1').css('background-color','red')}
+				if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').css('background-color','#51FF22')}
+				else{$('#grid2').css({'background-color':'#FCFC23','border':'5px outset black'})}
+			
+				var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split(',')
+				if (gen_list[gen_list.length-1]=='false'){$('#gen_state').css('visibility','hidden')}
 				$("#gen_level").attr('value',data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl'])	
 				$("#gen_level_num").html(data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl']+'%')
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER']).css('background-color','#51FF22')
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'])
-				var list = Object.keys(data['RPG_dict'])
-				for (k in list){
-					var value2 = list[k]
-					if(data['RPG_dict'][value2]){
-						var tuple = RPG_STATUS[list[k]]
-						$("#RPGstate").html(tuple[0]).css('background-color',tuple[1])
-						
-					}
-				}
-						
-					
-								
+				$('#RPG_state').html(data['RPG_dict']['RPG_state'])
+				$('#RPG_oper').html(data['RPG_dict']['RPG_op'])
+			        if (data['RPG_dict']['RPG_state'] == 'OPER'){$('#RPG_state').css({'background-color':'#51FF22','color':'black'})}
+				else{$('#RPG_state').css({'background-color':'red','color':'white'})}
+				if (data['RPG_dict']['RPG_op'] == 'ONLINE'){$('#RPG_oper').css({'background-color':'#51FF22','color':'black'})}
+				if (data['RPG_dict']['RPG_state'] == 'SHUTDOWN'){$('#RPG_state').css({'background-color':'red','color':'white'})};
+				var linkgrab = $("#link").html();				
+				if (data['RS_dict']['RDA_static']['WIDEBAND'] != "CONNECTED"){$('.link-status').html(data['RS_dict']['RDA_static']['WIDEBAND']).css('background-color','#FFA500')}
+				if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').css('background-color','#FCFC23')}
+				else{$('#h_delta_dbz0').css('background-color','#51FF22')}
+				if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').css('background-color','#FCFC23')}
+				else{$('#v_delta_dbz0').css('background-color','#51FF22')}
+				$('#h_delta_dbz0').html(data['PMD_dict']['h_delta_dbz0']+'dB')			
+				$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')			
 			});
 			
 			
@@ -199,9 +219,49 @@
 		$('#refreshPage').click(function(){
 			location.reload()
 		});
+		$('#rda_control').click(function(){
+			window.location="/button?id=hci_rdc_orda"
+			window.location="/"
+		});
+		$('#rda_perf').click(function(){
+			window.location="/button"
+			window.location="/"
+		});
+		$('#rda_alarms').click(function(){
+			window.location="/button?id=hci_rda_orda"
+			window.location="/"
+		});	
+		
+		$('#rpg_control').click(function(){
+			window.location="/button?id=hci_rpc"
+			window.location="/"
+		});	
 
+		$('#rpg_status').click(function(){
+			window.location="/button?id=hci_status"
+			window.location="/"
+		});	
 			
+
+		$('#user_comms').click(function(){
+			window.location="/button?id=hci_nb"
+			window.location="/"
+		});	
 	
+		$('#prf_control').click(function(){
+			window.location="/button?id=hci_prf"
+			window.location="/"
+		});	
+
+		$('#enviro_data').click(function(){
+			window.location="/button?id=hci_wind"
+			window.location="/"
+		});
+		
+		$('#rpg_misc').click(function(){
+			window.location="/button?id=hci_misc"
+			window.location="/"
+		});	
 	});
 </script>
 
@@ -217,10 +277,10 @@
         <div data-role="navbar">
         	<ul>
         		<li><div style="font-size:12px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
-        		<li><a style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
+        		<li><a id="88D-ops" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
         		<li><a rel="external" style="color:white" class="nav-item control-shadow" href="/shift_change_checklist">Shift Change Checklist</a></li>
-        		<li><a style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
-        		<li><a style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
+        		<li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
+        		<li><a id="enviro_data" style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
         	</ul>
         </div>
 
@@ -273,64 +333,65 @@
             <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
             	<div class="ui-grid-b">
 			<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
-        			<div class="ui-grid-a" style="width:50%;float:left">
+        			<div class="ui-grid-a" style="width:100%;float:left">
         				<div class="ui-block-a">
-        					<div style="font-size:11px"class="ui-corner-all bar-border1">State:</div>
-        					<div style="font-size:11px"class="ui-corner-all bar-border1">Oper:</div>
+        					<div style="font-size:11px"class="bar-border1">State:</div>
+        					<div style="font-size:11px"class="bar-border1">Oper:</div>
         				</div>
         				<div class="ui-block-b">
-        				<div id ="RS_RDA_STATUS" style="font-size:11px;background-color:#FCFC23;color:black"class="ui-corner-all bar-border2">N/A</div>
-        				<div id = "RS_OPERABILITY_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="ui-corner-all bar-border2">N/A</div>
+        				<div id ="RDA_STATE" style="text-shadow:none;font-size:11px;background-color:#FCFC23;color:black"class="bar-border2">N/A</div>
+        				<div id = "OPERABILITY_LIST" style="text-shadow:none;font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
         			</div>
         		</div>
 			<br><br>
-			<canvas style="z-index:-1;position:relative;margin-bottom:-212px;" class="radome" id="radome" width="300" height="400"></canvas><br>
-    				<div class="radome-selectors" id="containSAILS" style="position:relative;top:-55px;left:35px;z-index:2">
+			<canvas style="z-index:-1;position:relative;margin-bottom:-225px;" class="radome" id="radome" width="300" height="400"></canvas><br>
+    				<div class="radome-selectors" id="containSAILS" style="position:relative;top:-40px;left:35px;z-index:2">
                                 	<select alt="SAILS" class="toggle" name="flip-mini" id="SAILS" data-role="slider">
                                 		<option value="off">Disabled</option>
                                 		<option id="SAILSlabel" value="on">Enabled</option>
                                 	</select>	
 				</div>
-    				<div class="radome-selectors" style="position:relative;top:-65px;left:35px;z-index:3">
+    				<div class="radome-selectors" style="position:relative;top:-50px;left:35px;z-index:3">
                                 	<select alt="AVSET" class="toggle" name="flip-mini" id="RS_AVSET" data-role="slider">
                                 		<option value="off">Disabled</option>
                                 		<option value="on">Enabled</option>
                                 	</select>	
 				</div>
 
-    						<div class="center" style="position:relative;top:-18px;z-index:2;width:50%;">
-        						<div class="ui-grid-a center" style="width: 80%;">
+    						<div class="center" style="position:relative;top:-5px;z-index:2;width:50%;">
+        						<div class="ui-grid-a center" style="width: 100%;">
         							<div class="ui-block-a">
-        								<div style="font-size:11px"class="bar-border1">TPS:</div>
+        								<div style="font-size:11px" class="bar-border1">TPS:</div>
         							</div>
         							<div class="ui-block-b">
-        								<div id="RS_TPS_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
+        								<div id="TPS_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
         							</div>
         						</div>
 							</div>
 							
-    						<div style="position:relative;top:300px;left:-140px;z-index:4;font-size:12px;transform:rotate(-90deg)">
-						<meter id="gen_level" max=100 min=0 value=90 high=90 low =50 optimum=75 style="height:40px;width:80px"></meter>
-						<p id="gen_level_num" style="transform:rotate(90deg)">N/A</p>
+    						<div id="gen_state" style="position:relative;top:300px;left:-140px;z-index:4;font-size:12px;transform:rotate(-90deg)">
+					<meter id="gen_level" max=100 min=0 value=90 high=90 low =50 optimum=75 style="position:relative;left:50px;display:inline-block;height:60px;width:80px"></meter>
+						<p id="gen_level_num" style="position:relative;left:-40px;top:-22px;transform:rotate(90deg);display:inline-block">N/A</p>
+						<img style="height:80px;width:60px;position:relative;top:12px;left:30px;transform:rotate(90deg);display:inline-block" src='/static/gen_shelter.png'></img>
 						</div>
 
 
-<div id="grid1" class="center" style="margin-top:-px;float:center;display:inline-block;width:54%;height:290px;border:5px outset #51FF22">
+					<div id="grid1" class="center" style="margin-top:-px;float:center;display:inline-block;width:54%;height:290px;border:5px outset black">
     							<p style="color:black">RDA</p>
     							<ul data-role="listview"  data-inset="true" data-theme="e">
-                            		<li><a class="vcp-confirm control-shadow" style="color:white;text-align:center" href="#vcp-confirm" data-rel="popup">Control</a></li>
-                            		<li><a style="color:white;font-size:14px;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Performance<br> Data</a></li>
-                            		<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Alarms</a></li>
+                            		<li><a id="rda_control" class="vcp-confirm control-shadow" style="color:white;text-align:center" href="#" data-rel="dialog">Control</a></li>
+                            		<li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Performance<br> Data</a></li>
+                            		<li><a id="rda_alarms" style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Alarms</a></li>
                         		<ul>
 
 							</div>					
 
 
-					    <div style="display:inline-block;width:25%;height:100%;float:right;position:absolute;font-size:10px;">
+					    <div id="link" style="display:inline-block;width:25%;height:100%;float:right;position:absolute;font-size:10px;">
 							<p style="color:black;">RPG</p>
 							<div id="rpg"style="color:black;font-size:10px;" class="rpg-border"></div>	
 							<br><br><br>
-    						<div class=" bar-border" id="squaresWaveG">
+    						<div class="bar-border link-status" id="squaresWaveG">
 								<div style="font-size:10px;color:black"id="squaresWaveG_1" class="squaresWaveG">R</div>
 								<div id="squaresWaveG_2" class="squaresWaveG"></div>
 								<div id="squaresWaveG_3" class="squaresWaveG"></div>
@@ -341,7 +402,7 @@
 								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
 							</div>
 							<br><br>
-            				<div class="bar-border" id="squaresWaveG">
+            					<div class="bar-border link-status" id="squaresWaveG">
 								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">V</div>
 								<div id="squaresWaveG_2" class="squaresWaveG"></div>
 								<div id="squaresWaveG_3" class="squaresWaveG"></div>
@@ -352,7 +413,7 @@
 								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
     						</div>	
 							<br><br>
-        					<div class="bar-border" id="squaresWaveG">
+        					<div class="bar-border link-status" id="squaresWaveG">
 								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">W</div>
     							<div id="squaresWaveG_2" class="squaresWaveG"></div>
 								<div id="squaresWaveG_3" class="squaresWaveG"></div>
@@ -363,7 +424,7 @@
 								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
     						</div>   
 							<br><br>    			
-        					<div class="bar-border" id="squaresWaveG">
+        					<div class="bar-border link-status" id="squaresWaveG">
 								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">D</div>
 								<div id="squaresWaveG_2" class="squaresWaveG"></div>
 								<div id="squaresWaveG_3" class="squaresWaveG"></div>
@@ -382,12 +443,12 @@
 						<br><br><br>
 						<div class="center" style="width: 80%;display: table;">
 							<div style="display: table-row">
-    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">H Delta DBZ0:</div></div>
-    							<div style="font-size:11px;display: table-cell;"><div style="color:black" class="contain-white">0.34dB</div></div>
+    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
+    							<div style="font-size:11px;display: table-cell;"><div id="h_delta_dbz0" style="color:black" class="contain-white">N/A</div></div>
 							</div>
 							<div style="display: table-row">
-    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">V Delta DBZ0:</div></div>
-    							<div style="font-size:11px;display: table-cell;"><div style="color:black" class="contain-white">0.10dB</div></div>
+    							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">V Delta dBZ0:</div></div>
+    							<div style="font-size:11px;display: table-cell;"><div id="v_delta_dbz0" style="color:black" class="contain-white">N/A</div></div>
 							</div>
 							<div style="display: table-row">
     							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current Z/R:</div></div>
@@ -424,8 +485,8 @@
 								<div style="font-size:11px"class="bar-border1">Oper:</div>
 							</div>
 							<div class="ui-block-b">
-								<div style="font-size:11px;background-color:#FFA500;color:black" id="RPGstate" class="bar-border2">N/A</div>
-								<div style="font-size:11px;background-color:#FFA500;color:black" id="RPGoper" class="bar-border2">N/A</div>
+								<div style="text-shadow:none;font-size:11px;background-color:#FFA500;color:black" id="RPG_state" class="bar-border2">N/A</div>
+								<div style="font-size:11px;background-color:#FFA500;color:black" id="RPG_oper" class="bar-border2">N/A</div>
 							</div>
 						</div>
 						<br><br>
@@ -433,13 +494,13 @@
 
 						<div class="ui-grid-a">
 							<div class="ui-block-a">
-        						<div id="grid2" style="float:left;display:inline-block;height:300px;border:5px outset #51FF22">
+        						<div id="grid2" style="float:left;display:inline-block;height:300px;border:5px outset black ">
         							<p style="color:black">RPG</p>
         							<ul data-role="listview" data-inset="true">
-                                					<li><a style="color:white;text-align:center" class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Control</a></li>
-                                					<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Products</a></li>
-                                					<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Misc</a></li>
-                                					<li><a style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Status</a></li>
+                                					<li><a id="rpg_control" style="color:white;text-align:center" class="vcp-confirm control-shadow" href="#" data-rel="popup">Control</a></li>
+                                					<li><a id="rpg_products" style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Products</a></li>
+                                					<li><a id="rpg_misc"style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Misc</a></li>
+                                					<li><a id="rpg_status"style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Status</a></li>
                             					</ul>
     								<br>
     							</div>
@@ -466,7 +527,7 @@
 								
 			<div style="color:black;display:block;"><div style="height:20px;">PRF Mode</div></div>
                             <div style="display:block" class="containing-element">
-                            	<select class="toggle" name="flip-min" id="PRF Mode" data-role="slider"data-theme="a">
+                            	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF Mode" data-role="slider"data-theme="a">
                             		<option select value="off">MANUAL</option>
                             		<option value="on">MULTI</option>
                             	</select>
@@ -477,7 +538,7 @@
     								<div class="ui-block-a">
 									<div style="color:black;display:inline-block;"><div style="height:20px;">AVSET</div></div>
                                 					<div style="float:right" class="containing-element-lg">
-    										<select class="toggle" name="flip-min" id="AVSET_Alarm" data-role="slider"data-theme="a"data-mini="true">
+    										<select class="toggle" alt="AVSET Mismatch"  name="flip-min" id="AVSET_Alarm" data-role="slider"data-theme="a"data-mini="true">
                                     							<option select value="off">DISABLED</option>
                                     							<option value="on">ENABLED</option>
                                     						</select>
@@ -486,7 +547,7 @@
     								<div class="ui-block-b">
 									<div style="color:black;display:inline-block;"><div style="height:20px;">SAILS</div></div>
                                 					<div style="float:left" class="containing-element-lg">
-    										<select class="toggle" name="flip-min" id="SAILS_Alarm" data-role="slider"data-theme="a"data-mini="true">
+    										<select alt="SAILS Mismatch" class="toggle" name="flip-min" id="SAILS_Alarm" data-role="slider"data-theme="a"data-mini="true">
                                     							<option select value="off">DISABLED</option>
                                     							<option value="on">ENABLED</option>
                                     						</select>
@@ -500,7 +561,7 @@
 								</div>
 								<div class="ui-block-b" id="Mode Conflict">
                             						<div style="float:left" class="containing-element">
-										<select class="toggle" name="flip-min" id="Mode_Conflict" data-role="slider"data-theme="a"data-mini="true">
+										<select alt = "Mode Conflict" class="toggle" name="flip-min" id="Mode_Conflict" data-role="slider"data-theme="a"data-mini="true">
                                 							<option select value="off">YES</option>
                                 							<option value="on">NO</option>
                                 						</select>
@@ -515,7 +576,7 @@
 								</div>
 								<div class="ui-block-b" id="Clear Air Switch">
                             						<div style="float:left" class="containing-element">
-										<select class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option select value="off">MANUAL</option>
                                 							<option value="on">AUTO</option>
                                 						</select>
@@ -528,7 +589,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
-										<select class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option select value="off">MANUAL</option>
                                 							<option id="Precip_Switch_label" value="on">AUTO</option>
                                 						</select>
@@ -541,7 +602,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
-										<select class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Super Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">DISABLED</option>
                                 							<option value="on">ENABLED</option>
                                 						</select>
@@ -554,7 +615,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
-										<select class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="CMD" class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
                                 							<option select value="off">DISABLED</option>
                                 							<option value="on">ENABLED</option>
                                 						</select>
@@ -568,7 +629,7 @@
 											<button type="button" id="Model_Update" style="font-size:10px;background-color:#FCFC23" data-theme="b">Model Update</button>
 										</div>
 										<div class="ui-block-b">
-    											<select class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+    											<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
                                     								<option select value="off">OFF</option>
                                     								<option value="on">ON</option>
                                     							</select>
@@ -581,7 +642,7 @@
 											<button type="button" id="VAD_Update" style="font-size:10px;background-color:#FCFC23" data-theme="b">VAD Update</button>
 										</div>
 										<div class="ui-block-b">
-       											<select class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+       											<select alt="VAD Update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
                                         							<option select value="off">OFF</option>
                                         							<option value="on">ON</option>
                                         						</select>
@@ -594,11 +655,11 @@
 
 
     							
-    					    	<div id="grid3" style="float:left;display:inline-block;border:5px outset #51FF22;background-color:#51FF22">
+    					    	<div id="grid3" style="float:left;display:inline-block;border:5px outset black;background-color:#51FF22">
             						<p style="color:black">Users</p>
             						<ul data-role="listview" data-inset="true">
-                                    	<li><a style="color:white"class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Comms</a></li>
-                                    	<li><a style="color:white;font-size:14px" class="vcp-confirm control-shadow" href="#vcp-confirm" data-rel="popup">Console <br> Messages</a></li>
+                                    	<li><a id="user_comms" style="color:white"class="vcp-confirm control-shadow" href="#" data-rel="popup">Comms</a></li>
+                                    	<li><a id="user_messages"style="color:white;font-size:14px" class="vcp-confirm control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
                                 	</ul>
     								<br>
                 				</div>

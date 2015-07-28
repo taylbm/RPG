@@ -7,10 +7,8 @@ import sys
 import web
 import _rpg
 import time
+import subprocess
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
-RS_RDA_ALARM_SUMMARY = {0:'No Alarms',2:'Tower/Utilities',4:'Pedestal',8:'Transmitter',16:'Receiver',32:'RDA Control',64:'Communication',128:'Signal Processor'} 
-WIDEBAND = ['RS_NOT_IMPLEMENTED','RS_CONNECT_PENDING','RS_DISCONNECT_PENDING','RS_DISCONNECTED_HCI','RS_DISCONNECTED_CM','RS_DISCONNECTED_SHUTDOWN','RS_CONNECTED','RS_DOWN','RS_WBFAILURE','RS_DISCONNECTED_RMS']
-RDA_STATE = ['RS_STARTUP','RS_STANDBY','RS_RESTART','RS_OPERATE','RS_PLAYBACK','RS_OFFOPER']
 
 
 def stripList(list1):
@@ -19,42 +17,61 @@ def hasNumbers(inputString):
 	return any(char.isdigit() for char in inputString)
 def RS():
 	RS_dict = {}
-	RS_list = [x for x in dir(_rpg.rdastatus) if x[0]+x[1]=='RS']
+	RS_states = {}
+	RS_list = [x for x in dir(_rpg.rdastatus) if 'RS' in x]
 	for task in RS_list:
 		if task == "RS_CMD" and _rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task)) >=1:
 			RS_dict.update({task:1})
-		elif task not in WIDEBAND and task not in RDA_STATE: 
+		else:
 			RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
-	RDA_STATE_dict = dict((getattr(_rpg.rdastatus,task),task) for task in RS_list if task in RDA_STATE)
-	WIDEBAND_dict = dict((getattr(_rpg.rdastatus,task),task) for task in RS_list if task in WIDEBAND)
-	RS_dict.update({'WIDEBAND':WIDEBAND_dict[_rpg.liborpg.orpgrda_get_wb_status(0)],'RDA_STATE':RDA_STATE_dict[_rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_RDA_STATUS)]})
-	alarm_list = []
-	for key in RS_RDA_ALARM_SUMMARY.keys():
-		if (RS_dict['RS_RDA_ALARM_SUMMARY'] == 0):
-			break
-		if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0:
-			alarm_list.append(RS_RDA_ALARM_SUMMARY[key])
-	RS_dict.update({'RS_RDA_ALARM_SUMMARY_LIST':",".join(alarm_list)}) 	
+	class_list = [x for x in dir(_rpg.rdastatus) if '_' not in x]
+	class_dict = dict((classname,[x for x in dir(getattr(_rpg.rdastatus,classname)) if '__' not in x]) for classname in class_list)
+	for cls in class_list:
+		temp = dict((getattr(getattr(_rpg.rdastatus,cls),x),x) for x in class_dict[cls])
+		if cls == 'rdastatus':
+			temp.update({0:'N/A'})
+		RS_states.update({cls:temp})
+		
+	RS_dict.update(RS_states)
+	
+	
+	oper_list = [RS_states['opstatus'][key].replace('OS_','') for key in RS_states['opstatus'].keys() if (key & RS_dict['RS_OPERABILITY_STATUS']) > 0]
+	if not oper_list:
+		oper_list.append('UNKNOWN')	
+ 	aux_gen_list = [RS_states['auxgen'][key].strip('AP_').strip('RS_') for key in RS_states['auxgen'].keys() if (key & RS_dict['RS_AUX_POWER_GEN_STATE']) > 0]
+	if ['GENERATOR_ON','COMMANDED_SWITCHOVER','SWITCH_AUX_PWR'] in aux_gen_list:
+		aux_gen_list.append('true')
+	else:	
+		aux_gen_list.append('false')	
+	alarm_list = [RS_states['alarmsummary'][key].strip('AS_') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']] 
+	RS_dict.update({'RDA_static':{'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':",".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':",".join(alarm_list),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
 	return RS_dict
-def RPG_misc():
-	RPG_list = [x for x in dir(_rpg.orpgmisc) if x.split('_')[0] == 'ORPGMISC']
-	RPG_dict = dict((task,_rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))) for task in RPG_list)
-	return RPG_dict	
+def RPG():
+	RPG_state_list = [x for x in dir(_rpg.orpgmisc) if 'ORPGMISC' in x]
+	RPG_state = [task.replace('ORPGMISC_IS_RPG_STATUS_','') for task in RPG_state_list if _rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))]
+	if not RPG_state:
+		RPG_state.append("SHUTDOWN")	
+	RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
+	RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]  
+	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
+	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
+	return {'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_','')}	
 def PMD():
 	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
+	wx_accessor = _rpg.libhci.hci_get_wx_status().mode_select_adapt
 	return {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
-	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr)}
+	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr),'v_delta_dbz0':round(pmd_accessor.v_delta_dbz0,2),'h_delta_dbz0':round(pmd_accessor.h_delta_dbz0,2),"precip_mode_area_thresh":wx_accessor.precip_mode_area_thresh,"precip_mode_zthresh":wx_accessor.precip_mode_zthresh}
 	
 class IndexView(object):
     def GET(self):
         return LOOKUP.IndexView(**RS())
 class Updater(object):
     def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG_misc()})
+	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})
 	
 class Shift_change_checklist(object):
     def GET(self):
-        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS()})
+        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})
 class List_VCPS(object):
     def GET(self):
   	dir_list = (os.listdir(vcp_dir))
@@ -64,6 +81,10 @@ class List_VCPS(object):
     	    if newstr[0] == 'vcp':
                 dir_list_parse.append(int(newstr[1]))
 	return json.dumps(dir_list_parse)
+class Button(object):
+    def GET(self):
+	selected_button = web.input(id=None)
+	return subprocess.Popen(selected_button.id)
 
 class VCP_command_control(object):
     def GET(self):

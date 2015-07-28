@@ -23,7 +23,8 @@ URLS = (
 '/parse_vcps','handlers.Parse_VCPS',
 '/VCP','handlers.VCP_command_control',
 '/shift_change_checklist','handlers.Shift_change_checklist'
-,'/update','handlers.Updater')
+,'/update','handlers.Updater',
+'/button','handlers.Button')
 
 if __name__ == '__main__':
     app = web.application(URLS, globals())
