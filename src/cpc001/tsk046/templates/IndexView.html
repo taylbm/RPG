@@ -73,19 +73,9 @@
     function toRadians(deg) {
         return deg * Math.PI / 180
     }
-	var checkName = "checkmark.png"
-	var deleteName = "delete.png"
 	$(document).ready(function(){
-		$("#currentVCP").css('background-color', '#51FF22','font-size','20px');
-		$("#PRF").css('background-color', '#51FF22');
-		$("#grid1").css('background-color', '#51FF22','border-style','solid','border-color','#51FF22','border-width','3px');
-		$("#grid2").css('background-color', '#51FF22');
-		$("#grid3").css('background-color', '#51FF22');
-		$(".vcp-confirm").css('background-color','#1F497D','color','#FFFFFF');
+		$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 		$(".nav-item").css('background-color','#002060');
-		$("#marq1").css('background-color','white')
-		$("#marq2").css('background-color','#4BACC6')
-		$("#marq3").css('background-color','#51FF22')
 
         var canvas=document.getElementById("radome");
         var maincircle=canvas.getContext("2d");
@@ -165,51 +155,71 @@
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
 				var state = Object.keys(data['RS_dict']['RDA_static']);
+				if (data['RPG_dict']['RPG_SAILS']){$('#RPG_SAILS').val('on').slider('refresh')}
+				else{$('#RPG_SAILS').val('off').slider('refresh')}
 				for (i in item){
 					var value = item[i]
 					var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
-					if (retrieved == "on"){$("#"+value+"_status").css('visibility','hidden');}
+					if (retrieved == "on"){$("#"+value+"_status").addClass('hide')}
 					$("#"+value).val(retrieved).slider("refresh")
 				}
 				
 				for (b in state){
 					var value2 = state[b];
 					$("#"+value2).html(data['RS_dict']['RDA_static'][value2])
-					if (data['RS_dict']['RDA_static'][value2] == 'OPERATE' || data['RS_dict']['RDA_static'][value2] =="ONLINE" || data['RS_dict']['RDA_static'][value2] == "OK"){
-						$("#"+value2).css('background-color','#51FF22')
+					if (data['RS_dict']['RDA_static'][value2] == 'OPERATE' || data['RS_dict']['RDA_static'][value2] =="ONLINE" || data['RS_dict']['RDA_static'][value2] == "OK" || data['RS_dict']['RDA_static'][value2] == 'STARTUP'){
+						$("#"+value2).addClass('normal-ops')
 					}
+					if (data['RS_dict']['RDA_static'][value2] == 'NOT_INSTALLED'){$('#'+value2).addClass('hide')}
 					if (data['RS_dict']['RDA_static'][value2] == 'MAINTENANCE_MAN'){
-						$("#grid1").css('background-color','#FCFC23')
-						$("#"+value2).css('background-color','#FCFC23')
+						$("#grid1").addClass('major-alarm')
+						$("#"+value2).addClass('major-alarm')
+					}
+					if (data['RS_dict']['RDA_static'][value2] == 'MAINTENANCE_REQ'){
+						$("#grid1").addClass('minor-alarm')
+						$("#"+value2).addClass('minor-alarm')
 					}
 					if (data['RS_dict']['RDA_static'][value2] == 'UNKNOWN'){
-						$("#"+value2).css({'background-color':'red','color':'white'})
+						$("#"+value2).addClass('inop-indicator')
 					}
 				}
-				console.log(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'])
-				if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').css('background-color','#51FF22')}
-				else{$('#grid1').css('background-color','red')}
-				if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').css('background-color','#51FF22')}
-				else{$('#grid2').css({'background-color':'#FCFC23','border':'5px outset black'})}
+				var all_alarms = data['RS_dict']['RDA_alarms_all']
+				var current_alarms = data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>') 
+				var l = current_alarms.length;
+				(function(l){
+				for (a in all_alarms){
+					var value1 = all_alarms[a]
+					console.log()
+					if (a <= l-1){$('#'+current_alarms[a]).addClass('show')}
+					else{$('#'+value1).addClass('hide')}
+				};
+				}(l));
+				if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops')}
+				if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').addClass('normal-ops')}
+				else{$('#grid2').addClass('minor-alarm')}
 			
-				var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split(',')
-				if (gen_list[gen_list.length-1]=='false'){$('#gen_state').css('visibility','hidden')}
+				var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
+				if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
 				$("#gen_level").attr('value',data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl'])	
 				$("#gen_level_num").html(data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl']+'%')
-				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER']).css('background-color','#51FF22')
-				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'])
+				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
+				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
 				$('#RPG_state').html(data['RPG_dict']['RPG_state'])
 				$('#RPG_oper').html(data['RPG_dict']['RPG_op'])
-			        if (data['RPG_dict']['RPG_state'] == 'OPER'){$('#RPG_state').css({'background-color':'#51FF22','color':'black'})}
+			        if (data['RPG_dict']['RPG_state'] == 'OPER'){$('#RPG_state').addClass('normal-ops')}
 				else{$('#RPG_state').css({'background-color':'red','color':'white'})}
-				if (data['RPG_dict']['RPG_op'] == 'ONLINE'){$('#RPG_oper').css({'background-color':'#51FF22','color':'black'})}
-				if (data['RPG_dict']['RPG_state'] == 'SHUTDOWN'){$('#RPG_state').css({'background-color':'red','color':'white'})};
+				if (data['RPG_dict']['RPG_op'] == 'ONLINE'){$('#RPG_oper').addClass('normal-ops')}
+				if (data['RPG_dict']['RPG_state'] == 'SHUTDOWN'){
+					$('#RPG_state').addClass('inop-indicator')
+					$('#RDA_STATE').html('UNKNOWN').addClass('inop-indicator')
+					$('#OPERABILITY_LIST').html('UNKNOWN').addClass('inop-indicator')
+				};
 				var linkgrab = $("#link").html();				
-				if (data['RS_dict']['RDA_static']['WIDEBAND'] != "CONNECTED"){$('.link-status').html(data['RS_dict']['RDA_static']['WIDEBAND']).css('background-color','#FFA500')}
-				if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').css('background-color','#FCFC23')}
-				else{$('#h_delta_dbz0').css('background-color','#51FF22')}
-				if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').css('background-color','#FCFC23')}
-				else{$('#v_delta_dbz0').css('background-color','#51FF22')}
+				if (data['RS_dict']['RDA_static']['WIDEBAND'] != "CONNECTED"){$('.link-status').html(data['RS_dict']['RDA_static']['WIDEBAND']).addClass('major-alarm')}
+				if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
+				else{$('#h_delta_dbz0').addClass('normal-ops')}
+				if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
+				else{$('#v_delta_dbz0').addClass('normal-ops')}
 				$('#h_delta_dbz0').html(data['PMD_dict']['h_delta_dbz0']+'dB')			
 				$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')			
 			});
@@ -220,6 +230,10 @@
 			location.reload()
 		});
 		$('#rda_control').click(function(){
+			window.location="/button?id=hci_rdc_orda"
+			window.location="/"
+		});
+		$('#perf_check_time_link').click(function(){
 			window.location="/button?id=hci_rdc_orda"
 			window.location="/"
 		});
@@ -297,39 +311,6 @@
 			<a id="pop-confirm" class="ui-btn ui-btn-up-b ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="b" data-transition="flow" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Confirm</a>
 		</div>
 	</div>
-        <div data-role="popup" id="vcp-desc">
-            <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
-            <div data-role="header">
-                <h1 class="vcp-desc-title"></h1>
-            </div>
-            <div role="main" class="ui-content">
-                <div id="vcp-desc-text" class="ui-body ui-body-a" style="height:600px; overflow:auto;">
-                    <ul type="square" data-role="listview" data-inset="false" style="padding-top:0.5em;">
-                        <li data-role="list-divider">Parameters</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div data-role="popup" id="vcp-confirm" data-dismissable="true" style="padding:25px;">
-                <div data-role="header">
-                    <h1 class="vcp-prompt"></h1>
-                </div>
-                <div role="main" class="ui-content">
-                    <h3 class ="final-vcp-confirm"></h3>
-                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
-                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Send</a>
-                </div>
-        </div>
-        <div data-role="popup" id="action-confirm" data-dismissable="true" style="padding:25px;">
-                <div data-role="header">
-                    <h1 class="vcp-prompt"></h1>
-                </div>
-                <div role="main" class="ui-content">
-                    <h3 class ="final-vcp-confirm">Confirm Action</h3>
-                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
-                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Confirm</a>
-                </div>
-        </div>
             <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
             	<div class="ui-grid-b">
 			<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
@@ -339,55 +320,62 @@
         					<div style="font-size:11px"class="bar-border1">Oper:</div>
         				</div>
         				<div class="ui-block-b">
-        				<div id ="RDA_STATE" style="text-shadow:none;font-size:11px;background-color:#FCFC23;color:black"class="bar-border2">N/A</div>
-        				<div id = "OPERABILITY_LIST" style="text-shadow:none;font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
+        				<div id ="RDA_STATE" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">N/A</div>
+        				<div id = "OPERABILITY_LIST" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">N/A</div>
         			</div>
         		</div>
 			<br><br>
-			<canvas style="z-index:-1;position:relative;margin-bottom:-225px;" class="radome" id="radome" width="300" height="400"></canvas><br>
-    				<div class="radome-selectors" id="containSAILS" style="position:relative;top:-40px;left:35px;z-index:2">
-                                	<select alt="SAILS" class="toggle" name="flip-mini" id="SAILS" data-role="slider">
+			<canvas style="z-index:-1;position:relative;margin-bottom:-375px" class="radome" id="radome" width="300" height="400"></canvas><br>
+    				<div class="radome-selectors" id="containSAILS" style="position:relative;top:110px;left:35px;z-index:2">
+                                	<select alt="SAILS" class="toggle" name="flip-mini" id="RPG_SAILS" data-role="slider">
                                 		<option value="off">Disabled</option>
                                 		<option id="SAILSlabel" value="on">Enabled</option>
                                 	</select>	
 				</div>
-    				<div class="radome-selectors" style="position:relative;top:-50px;left:35px;z-index:3">
+    				<div class="radome-selectors" style="position:relative;top:100px;left:35px;z-index:3">
                                 	<select alt="AVSET" class="toggle" name="flip-mini" id="RS_AVSET" data-role="slider">
                                 		<option value="off">Disabled</option>
                                 		<option value="on">Enabled</option>
                                 	</select>	
 				</div>
 
-    						<div class="center" style="position:relative;top:-5px;z-index:2;width:50%;">
+    						<div class="center" style="position:relative;top:145px;z-index:2;width:25%;">
         						<div class="ui-grid-a center" style="width: 100%;">
         							<div class="ui-block-a">
         								<div style="font-size:11px" class="bar-border1">TPS:</div>
         							</div>
         							<div class="ui-block-b">
-        								<div id="TPS_STATUS" style="font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
+        								<div id="TPS_STATUS" style="text-shadow:none;font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
         							</div>
         						</div>
 							</div>
 							
-    						<div id="gen_state" style="position:relative;top:300px;left:-140px;z-index:4;font-size:12px;transform:rotate(-90deg)">
+    						<div id="gen_state" style="position:relative;top:455px;left:-130px;z-index:4;font-size:12px;transform:rotate(-90deg)">
 					<meter id="gen_level" max=100 min=0 value=90 high=90 low =50 optimum=75 style="position:relative;left:50px;display:inline-block;height:60px;width:80px"></meter>
 						<p id="gen_level_num" style="position:relative;left:-40px;top:-22px;transform:rotate(90deg);display:inline-block">N/A</p>
 						<img style="height:80px;width:60px;position:relative;top:12px;left:30px;transform:rotate(90deg);display:inline-block" src='/static/gen_shelter.png'></img>
 						</div>
-
-
-					<div id="grid1" class="center" style="margin-top:-px;float:center;display:inline-block;width:54%;height:290px;border:5px outset black">
+						<div style="position:relative;top:-5px">
+						<button id="RPG_COMMUN" class="rda-alarm-indicator">COM</button>
+						<button id="RDA_CONTROL" class="rda-alarm-indicator">CTR</button>
+						<button id="PEDESTAL" class="rda-alarm-indicator">PED</button>
+						<button id="RECV" class="rda-alarm-indicator">RCV</button>
+						<button id="SIGPROC" class="rda-alarm-indicator">SIG</button>
+						<button id="TOW_UTIL" class="rda-alarm-indicator">UTL</button>
+						<button id="TRANSMITTER"class="rda-alarm-indicator">XMT</button>
+						</div>
+					<div id="grid1" class="center" style="background-color:#51FF22;margin-top:-140px;float:center;display:inline-block;width:54%;height:290px;border:5px outset black">
     							<p style="color:black">RDA</p>
     							<ul data-role="listview"  data-inset="true" data-theme="e">
-                            		<li><a id="rda_control" class="vcp-confirm control-shadow" style="color:white;text-align:center" href="#" data-rel="dialog">Control</a></li>
-                            		<li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Performance<br> Data</a></li>
-                            		<li><a id="rda_alarms" style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Alarms</a></li>
+                            		<li><a id="rda_control" class="control-item control-shadow" style="color:white;text-align:center" href="#" data-rel="dialog">Control</a></li>
+                            		<li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Performance<br> Data</a></li>
+                            		<li><a id="rda_alarms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Alarms</a></li>
                         		<ul>
 
 							</div>					
 
 
-					    <div id="link" style="display:inline-block;width:25%;height:100%;float:right;position:absolute;font-size:10px;">
+					    <div id="link" style="margin-top:-180px;display:inline-block;width:25%;height:100%;float:right;position:absolute;font-size:10px;">
 							<p style="color:black;">RPG</p>
 							<div id="rpg"style="color:black;font-size:10px;" class="rpg-border"></div>	
 							<br><br><br>
@@ -461,7 +449,7 @@
 						</div>
 						<div class="ui-grid-a">
 							<a rel="external" class="ui-block-a" style="text-decoration : none; color : #000000;" href="/VCP">
-								<button type="button" style="font-size:40px;background-color:white" data-theme="b">VCP</button>
+								<button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
 							</a>
 							<a rel="external" class="ui-block-b" style="text-decoration : none; color : #000000;" href="/VCP">
 								<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
@@ -479,14 +467,14 @@
 						<br>
 						
 						
-						<div class="ui-grid-a" style="width:45%;float:left">
+						<div class="ui-grid-a" style="width:50%;float:left">
 							<div class="ui-block-a">
 								<div style="font-size:11px"class="bar-border1">State:</div>
 								<div style="font-size:11px"class="bar-border1">Oper:</div>
 							</div>
 							<div class="ui-block-b">
-								<div style="text-shadow:none;font-size:11px;background-color:#FFA500;color:black" id="RPG_state" class="bar-border2">N/A</div>
-								<div style="font-size:11px;background-color:#FFA500;color:black" id="RPG_oper" class="bar-border2">N/A</div>
+								<div style="text-shadow:none;font-size:11px;background-color:red;color:black" id="RPG_state" class="bar-border2">N/A</div>
+								<div style="font-size:11px;background-color:red;color:black"class="bar-border2"id="RPG_oper">N/A</div>
 							</div>
 						</div>
 						<br><br>
@@ -494,13 +482,13 @@
 
 						<div class="ui-grid-a">
 							<div class="ui-block-a">
-        						<div id="grid2" style="float:left;display:inline-block;height:300px;border:5px outset black ">
+        						<div id="grid2" style="background-color:#51FF22;float:left;display:inline-block;height:300px;border:5px outset black ">
         							<p style="color:black">RPG</p>
         							<ul data-role="listview" data-inset="true">
-                                					<li><a id="rpg_control" style="color:white;text-align:center" class="vcp-confirm control-shadow" href="#" data-rel="popup">Control</a></li>
-                                					<li><a id="rpg_products" style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Products</a></li>
-                                					<li><a id="rpg_misc"style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Misc</a></li>
-                                					<li><a id="rpg_status"style="color:white;text-align:center"class="vcp-confirm control-shadow" href="#" data-rel="popup">Status</a></li>
+                                					<li><a id="rpg_control" style="color:white;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Control</a></li>
+                                					<li><a id="rpg_products" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Products</a></li>
+                                					<li><a id="rpg_misc"style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Misc</a></li>
+                                					<li><a id="rpg_status"style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Status</a></li>
                             					</ul>
     								<br>
     							</div>
@@ -658,8 +646,8 @@
     					    	<div id="grid3" style="float:left;display:inline-block;border:5px outset black;background-color:#51FF22">
             						<p style="color:black">Users</p>
             						<ul data-role="listview" data-inset="true">
-                                    	<li><a id="user_comms" style="color:white"class="vcp-confirm control-shadow" href="#" data-rel="popup">Comms</a></li>
-                                    	<li><a id="user_messages"style="color:white;font-size:14px" class="vcp-confirm control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
+                                    	<li><a id="user_comms" style="color:white"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>
+                                    	<li><a id="user_messages"style="color:white;font-size:14px" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
                                 	</ul>
     								<br>
                 				</div>
@@ -673,7 +661,7 @@
 								<thead>
 									<tr>
                                       <th style="float:right;font-size:14px">Feedback:</td>
-                                      <td id="marq1" class="bar-border">Jun 29,15 [14:25:33] >> Requesting the VCP to be restarted</td>
+                                      <td id="marq1" style="background-color:white" class="bar-border">Jun 29,15 [14:25:33] >> Requesting the VCP to be restarted</td>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -683,7 +671,7 @@
                                     </tr>
 								    <tr>
                                       <th style="float:right;font-size:14px">Alarms:</th>
-                                      <td id="marq3" class="bar-border">Jun 29,15 [14:25:39] >> RPG ALARM CLEARED:[RDA:1] RDA <-> RPG COMMUNICATIONS LINK BROKEN</td>
+                                      <td id="marq3" style="background-color:#51FF22" class="bar-border">Jun 29,15 [14:25:39] >> RPG ALARM CLEARED:[RDA:1] RDA <-> RPG COMMUNICATIONS LINK BROKEN</td>
                                     </tr>
 								</tbody>
 							</table>

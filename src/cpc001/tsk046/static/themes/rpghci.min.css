@@ -767,6 +767,11 @@ background-color:#51FF22;
 	border-style:solid;
 	border-width:1px;
 }
+.link-status{
+	border-style:outset;
+	border-width:4px;
+	color: black;
+}
 .bar-border1{
 	border-style:solid;
 	border-width:2px;
@@ -789,57 +794,9 @@ background-color:#51FF22;
 	border-width:1px;
 }
 
-.tier-1{
-    position: relative;
-    top: 40px;
-	left:-30px;
-
-}
-.tier-2{
-    position: absolute;
-    top: 70px;
-	left:-30px;
-
-}
-.tier-3{
-    position: absolute;
-    top: 100px;
-	left:-30px;
-
-}
-.tier-4{
-    position: absolute;
-    top: 130px;
-	left:-30px;
-
-}
-.tier-5{
-    position: absolute;
-    top: 50px;
-
-}
 .vcp-pos{
 	position:absolute;
 	top: 60px;
-}
-.start-pos1{
-	position:absolute;
-	top: 160px;
-}
-.start-pos2{
-	position:absolute;
-	top: 225px;
-
-}
-.start-pos3{
-	position:absolute;
-	top: 225px;
-	left:90px;
-
-}
-.start-pos4{
-	position:absolute;
-	top: 180px;
 }
 canvas#viewport { border: 1px solid white; width: 166px; }
 
@@ -981,6 +938,32 @@ table.no-spacing {
 .control-shadow {
 	text-shadow:2px 2px 4px #000000 !important;
 }
-
-
-
+.link-status {
+	text-align:left;
+}
+.normal-ops { 
+	background-color:#51FF22 !important;
+	color:black;
+	}
+.minor-alarm {
+	background-color:#FCFC23 !important;
+}
+.major-alarm {
+	background-color:#FFA500 !important;
+}
+.inop-indicator {
+	background-color:red !important;
+	color: white !important;
+	border: 2px solid black !important;
+}
+.rda-alarm-indicator {
+	width:20% !important;
+	font-size:12px !important;
+	display:block !important;
+}
+.hide { 
+	visibility:hidden !important;
+}
+.show {
+	visibility:visible !important;
+}

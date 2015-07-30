@@ -9,6 +9,8 @@ import _rpg
 import time
 import subprocess
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
+yellow ='#FCFC23'
+green = '#51FF22'
 
 
 def stripList(list1):
@@ -30,6 +32,7 @@ def RS():
 		temp = dict((getattr(getattr(_rpg.rdastatus,cls),x),x) for x in class_dict[cls])
 		if cls == 'rdastatus':
 			temp.update({0:'N/A'})
+		temp.update({-9999:'-9999'})
 		RS_states.update({cls:temp})
 		
 	RS_dict.update(RS_states)
@@ -44,7 +47,8 @@ def RS():
 	else:	
 		aux_gen_list.append('false')	
 	alarm_list = [RS_states['alarmsummary'][key].strip('AS_') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']] 
-	RS_dict.update({'RDA_static':{'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':",".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':",".join(alarm_list),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
+	RS_dict.update({'RDA_static':{'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':",".join(alarm_list),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
+	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
 def RPG():
 	RPG_state_list = [x for x in dir(_rpg.orpgmisc) if 'ORPGMISC' in x]
@@ -59,7 +63,11 @@ def RPG():
 def PMD():
 	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
 	wx_accessor = _rpg.libhci.hci_get_wx_status().mode_select_adapt
-	return {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),
+	if int(time.strftime('%H',time.gmtime(pmd_accessor.perf_check_time-int(time.time())))) < 1:
+		perf_color = yellow
+	else: 
+		perf_color = 'white'
+	return {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),perf_color],
 	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr),'v_delta_dbz0':round(pmd_accessor.v_delta_dbz0,2),'h_delta_dbz0':round(pmd_accessor.h_delta_dbz0,2),"precip_mode_area_thresh":wx_accessor.precip_mode_area_thresh,"precip_mode_zthresh":wx_accessor.precip_mode_zthresh}
 	
 class IndexView(object):
