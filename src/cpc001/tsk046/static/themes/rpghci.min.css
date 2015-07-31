@@ -603,7 +603,8 @@ background-color:#51FF22;
 #squaresWaveG_long{
 position:relative;
 width:165px;
-height:20px}
+height:20px;
+}
 
 .squaresWaveG_long{
 position:absolute;
@@ -766,11 +767,6 @@ background-color:#51FF22;
 .bar-border{
 	border-style:solid;
 	border-width:1px;
-}
-.link-status{
-	border-style:outset;
-	border-width:4px;
-	color: black;
 }
 .bar-border1{
 	border-style:solid;
@@ -955,6 +951,11 @@ table.no-spacing {
 	background-color:red !important;
 	color: white !important;
 	border: 2px solid black !important;
+}
+.inop {
+	background-color:red !important;
+	color: white !important;
+	text-shadow: none;
 }
 .rda-alarm-indicator {
 	width:20% !important;

@@ -167,36 +167,43 @@
 				for (b in state){
 					var value2 = state[b];
 					$("#"+value2).html(data['RS_dict']['RDA_static'][value2])
-					if (data['RS_dict']['RDA_static'][value2] == 'OPERATE' || data['RS_dict']['RDA_static'][value2] =="ONLINE" || data['RS_dict']['RDA_static'][value2] == "OK" || data['RS_dict']['RDA_static'][value2] == 'STARTUP'){
-						$("#"+value2).addClass('normal-ops')
-					}
-					if (data['RS_dict']['RDA_static'][value2] == 'NOT_INSTALLED'){$('#'+value2).addClass('hide')}
-					if (data['RS_dict']['RDA_static'][value2] == 'MAINTENANCE_MAN'){
-						$("#grid1").addClass('major-alarm')
-						$("#"+value2).addClass('major-alarm')
-					}
-					if (data['RS_dict']['RDA_static'][value2] == 'MAINTENANCE_REQ'){
-						$("#grid1").addClass('minor-alarm')
-						$("#"+value2).addClass('minor-alarm')
-					}
-					if (data['RS_dict']['RDA_static'][value2] == 'UNKNOWN'){
-						$("#"+value2).addClass('inop-indicator')
+					switch (data['RS_dict']['RDA_static'][value2]){
+						case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP':
+							$("#"+value2).attr('class','normal-ops bar-border2');
+							break;
+						case 'NOT_INSTALLED':
+							$('#'+value2).addClass('hide');$('#'+value2+'_label').addClass('hide');
+							break;
+						case 'MAINTENANCE_MAN':
+							$("#grid1").attr('class','major-alarm');
+							$("#"+value2).attr('class','major-alarm');
+							break;
+						case 'MAINTENANCE_REQ':
+							$("#grid1").attr('class','minor-alarm');
+							$("#"+value2).attr('class','minor-alarm');
+							break;
+						case 'UNKNOWN':
+							$("#"+value2).attr('class','inop-indicator');
+							break;
+						case 'INOPERABLE,-9999':
+							$('#'+value2).attr('class','inop-indicator');
+							$('#grid1').attr('class','inop');
+							$('#grid1title').attr('class','inop');
 					}
 				}
 				var all_alarms = data['RS_dict']['RDA_alarms_all']
 				var current_alarms = data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>') 
 				var l = current_alarms.length;
+		
 				(function(l){
 				for (a in all_alarms){
 					var value1 = all_alarms[a]
-					console.log()
+					
 					if (a <= l-1){$('#'+current_alarms[a]).addClass('show')}
 					else{$('#'+value1).addClass('hide')}
 				};
 				}(l));
 				if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops')}
-				if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').addClass('normal-ops')}
-				else{$('#grid2').addClass('minor-alarm')}
 			
 				var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
 				if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
@@ -205,17 +212,64 @@
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
 				$('#RPG_state').html(data['RPG_dict']['RPG_state'])
-				$('#RPG_oper').html(data['RPG_dict']['RPG_op'])
-			        if (data['RPG_dict']['RPG_state'] == 'OPER'){$('#RPG_state').addClass('normal-ops')}
-				else{$('#RPG_state').css({'background-color':'red','color':'white'})}
-				if (data['RPG_dict']['RPG_op'] == 'ONLINE'){$('#RPG_oper').addClass('normal-ops')}
-				if (data['RPG_dict']['RPG_state'] == 'SHUTDOWN'){
-					$('#RPG_state').addClass('inop-indicator')
-					$('#RDA_STATE').html('UNKNOWN').addClass('inop-indicator')
-					$('#OPERABILITY_LIST').html('UNKNOWN').addClass('inop-indicator')
+				$('#RPG_oper').html(data['RPG_dict']['RPG_op'].split(',')[0])
+				switch (data['RPG_dict']['RPG_op'].split(',')[0]){
+					case 'CMDSHDN':
+						$('#RPG_oper').attr('class','minor-alarm bar-border2')
+						break;
+					case 'LOADSHED': case 'MAR':
+						$('#RPG_oper').attr('class','minor-alarm bar-border2')
+						$('#grid2').attr('class','minor-alarm')
+						break;
+					case 'MAM':
+						$('#RPG_oper').attr('class','major-alarm bar-border2')
+						$('#grid2').attr('class','major-alarm')
+						break;
+					case 'ONLINE':
+						if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops')}
+						$('#RPG_oper').attr('class','normal-ops bar-border2')
+						break;
+					default:
+						$('#RPG_oper').attr('class','inop-indicator bar-border2')
+						$('#grid2').attr('class','normal-ops')
+				}
+				switch(data['RPG_dict']['RPG_state']){
+				
+			        	case 'OPER': 
+						$('#RPG_state').attr('class','bar-border2 normal-ops');
+						break;
+					case 'RESTART': case 'STANDBY': 
+						$('#RPG_state').attr('class','bar-border2 inop-indicator');
+						break;
+					case 'TEST':
+						$('#RPG_state').attr('class','bar-border2 minor-alarm');
+						break;
+				        case 'SHUTDOWN':
+						$('#RPG_state').addClass('inop-indicator')
+						$('#RDA_STATE').html('UNKNOWN').addClass('inop-indicator')
+						$('#OPERABILITY_LIST').html('UNKNOWN').addClass('inop-indicator')	
+						break;		
 				};
-				var linkgrab = $("#link").html();				
-				if (data['RS_dict']['RDA_static']['WIDEBAND'] != "CONNECTED"){$('.link-status').html(data['RS_dict']['RDA_static']['WIDEBAND']).addClass('major-alarm')}
+				if (data['RS_dict']['RDA_static']['WIDEBAND'] != "CONNECTED"){
+					switch (data['RS_dict']['RDA_static']['WIDEBAND']){
+						case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
+							var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
+							var word_l = word.length-1
+							for (w = 0;w < 4; w++){
+								if(w > word_l){$('.status'+w).html('').addClass('major-alarm')}
+								else{$('.status'+w).html(word[w]).addClass('major-alarm')}
+							}
+							$('.link-status-sq').html('X').addClass('major-alarm')
+						case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
+							var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
+							var word_l = word.length-1
+							for (w = 0;w < 4; w++){
+								if(w > word_l){$('.status'+w).html('').addClass('minor-alarm')}
+								else{$('.status'+w).html(word[w]).addClass('minor-alarm')}
+							}
+							$('.link-status-sq').html('X').addClass('minor-alarm')
+					}
+				}
 				if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
 				else{$('#h_delta_dbz0').addClass('normal-ops')}
 				if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
@@ -320,12 +374,12 @@
         					<div style="font-size:11px"class="bar-border1">Oper:</div>
         				</div>
         				<div class="ui-block-b">
-        				<div id ="RDA_STATE" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">N/A</div>
-        				<div id = "OPERABILITY_LIST" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">N/A</div>
+        					<div id ="RDA_STATE" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">UNKNOWN</div>
+        					<div id = "OPERABILITY_LIST" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">UNKNOWN</div>
+        				</div>
         			</div>
-        		</div>
 			<br><br>
-			<canvas style="z-index:-1;position:relative;margin-bottom:-375px" class="radome" id="radome" width="300" height="400"></canvas><br>
+			<canvas style="z-index:0;position:relative;margin-bottom:-375px" class="radome" id="radome" width="300" height="400"></canvas><br>
     				<div class="radome-selectors" id="containSAILS" style="position:relative;top:110px;left:35px;z-index:2">
                                 	<select alt="SAILS" class="toggle" name="flip-mini" id="RPG_SAILS" data-role="slider">
                                 		<option value="off">Disabled</option>
@@ -342,7 +396,7 @@
     						<div class="center" style="position:relative;top:145px;z-index:2;width:25%;">
         						<div class="ui-grid-a center" style="width: 100%;">
         							<div class="ui-block-a">
-        								<div style="font-size:11px" class="bar-border1">TPS:</div>
+        								<div id="TPS_STATUS_label" style="font-size:11px" class="bar-border1">TPS:</div>
         							</div>
         							<div class="ui-block-b">
         								<div id="TPS_STATUS" style="text-shadow:none;font-size:11px;background-color:#ff0000;color:black"class="bar-border2">N/A</div>
@@ -364,71 +418,81 @@
 						<button id="TOW_UTIL" class="rda-alarm-indicator">UTL</button>
 						<button id="TRANSMITTER"class="rda-alarm-indicator">XMT</button>
 						</div>
-					<div id="grid1" class="center" style="background-color:#51FF22;margin-top:-140px;float:center;display:inline-block;width:54%;height:290px;border:5px outset black">
-    							<p style="color:black">RDA</p>
+					<div style="position:relative;left:10px;margin-top:-142px">
+					<div id="grid1" class="center" style="position:relative;z-index:2;background-color:#51FF22;float:center;display:inline-block;width:56%;height:290px;border:5px outset black">
+    							<p id="grid1title" style="color:black">RDA</p>
     							<ul data-role="listview"  data-inset="true" data-theme="e">
                             		<li><a id="rda_control" class="control-item control-shadow" style="color:white;text-align:center" href="#" data-rel="dialog">Control</a></li>
                             		<li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Performance<br> Data</a></li>
                             		<li><a id="rda_alarms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Alarms</a></li>
                         		<ul>
 
-							</div>					
-
-
-					    <div id="link" style="margin-top:-180px;display:inline-block;width:25%;height:100%;float:right;position:absolute;font-size:10px;">
-							<p style="color:black;">RPG</p>
-							<div id="rpg"style="color:black;font-size:10px;" class="rpg-border"></div>	
-							<br><br><br>
-    						<div class="bar-border link-status" id="squaresWaveG">
-								<div style="font-size:10px;color:black"id="squaresWaveG_1" class="squaresWaveG">R</div>
-								<div id="squaresWaveG_2" class="squaresWaveG"></div>
-								<div id="squaresWaveG_3" class="squaresWaveG"></div>
-								<div id="squaresWaveG_4" class="squaresWaveG"></div>
-								<div id="squaresWaveG_5" class="squaresWaveG"></div>
-								<div id="squaresWaveG_6" class="squaresWaveG"></div>
-								<div id="squaresWaveG_7" class="squaresWaveG"></div>
-								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
-							</div>
-							<br><br>
-            					<div class="bar-border link-status" id="squaresWaveG">
-								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">V</div>
-								<div id="squaresWaveG_2" class="squaresWaveG"></div>
-								<div id="squaresWaveG_3" class="squaresWaveG"></div>
-								<div id="squaresWaveG_4" class="squaresWaveG"></div>
-								<div id="squaresWaveG_5" class="squaresWaveG"></div>
-								<div id="squaresWaveG_6" class="squaresWaveG"></div>
-								<div id="squaresWaveG_7" class="squaresWaveG"></div>
-								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
-    						</div>	
-							<br><br>
-        					<div class="bar-border link-status" id="squaresWaveG">
-								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">W</div>
-    							<div id="squaresWaveG_2" class="squaresWaveG"></div>
-								<div id="squaresWaveG_3" class="squaresWaveG"></div>
-								<div id="squaresWaveG_4" class="squaresWaveG"></div>
-								<div id="squaresWaveG_5" class="squaresWaveG"></div>
-								<div id="squaresWaveG_6" class="squaresWaveG"></div>
-								<div id="squaresWaveG_7" class="squaresWaveG"></div>
-								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
-    						</div>   
-							<br><br>    			
-        					<div class="bar-border link-status" id="squaresWaveG">
-								<div style="font-size:10px;color:black" id="squaresWaveG_1" class="squaresWaveG">D</div>
-								<div id="squaresWaveG_2" class="squaresWaveG"></div>
-								<div id="squaresWaveG_3" class="squaresWaveG"></div>
-								<div id="squaresWaveG_4" class="squaresWaveG"></div>
-								<div id="squaresWaveG_5" class="squaresWaveG"></div>
-								<div id="squaresWaveG_6" class="squaresWaveG"></div>
-								<div id="squaresWaveG_7" class="squaresWaveG"></div>
-								<div id="squaresWaveG_8" class="squaresWaveG"></div> 
-    						</div>
-						</div>
-
-
-
 					</div>
+									
+				<div style="display:inline-block;color:black;position:relative;z-index:4;top:-20px;">
+				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:1px" class="normal-ops link-status-sq">R</div>	
+					<br>	
+				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:-1px" class="normal-ops link-status-sq">V</div>
+					<br>	
+				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:-3px" class="normal-ops link-status-sq">W</div>
+					<br>	
+				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:-4px" class="normal-ops link-status-sq">D</div>
+				</div>	
+					</div>
+					</div>
+				    <div id="link" style="font-weight:bold;color:black;text-shadow:none;display:inline-block;width:25%;height:100%;position:relative;left:-390px;top:390px;font-size:13px;z-index:1">				       <p class="center">RPG</p>
+					<div class="rpg-border" style="margin-left:-2px;position:relative;z-index:-2"></div>
+						<br><br><br>	
+    						<div style="text-align:center" class="bar-border link-status status0" id="squaresWaveG_long">
+								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+						</div>
+						<br>
+            					<div style="text-align:center" class="bar-border link-status status1" id="squaresWaveG_long">
+								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+    						</div>	
+						<br>
+        					<div style="text-align:center" class="bar-border link-status status2" id="squaresWaveG_long">
+								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+    								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+    						</div>   
+				   		<br>	
+        					<div style="text-align:center" class="bar-border link-status status3" id="squaresWaveG_long">
+								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
+								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+    						</div>
+					</div>
+
+
+
+				
                     <div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
-						<br><br><br>
+						<br>
 						<div class="center" style="width: 80%;display: table;">
 							<div style="display: table-row">
     							<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
@@ -467,7 +531,7 @@
 						<br>
 						
 						
-						<div class="ui-grid-a" style="width:50%;float:left">
+						<div class="ui-grid-a center" style="width:60%;">
 							<div class="ui-block-a">
 								<div style="font-size:11px"class="bar-border1">State:</div>
 								<div style="font-size:11px"class="bar-border1">Oper:</div>
@@ -477,12 +541,13 @@
 								<div style="font-size:11px;background-color:red;color:black"class="bar-border2"id="RPG_oper">N/A</div>
 							</div>
 						</div>
-						<br><br>
+					<br>	
 
 
-						<div class="ui-grid-a">
-							<div class="ui-block-a">
-        						<div id="grid2" style="background-color:#51FF22;float:left;display:inline-block;height:300px;border:5px outset black ">
+						<div class="ui-grid-c">
+							<div class="ui-block-a"></div>
+							<div class="ui-block-b">
+        						<div id="grid2" style="left:-5px;width:200%;position:relative;z-index:2;background-color:#51FF22;display:inline-block;height:325px;border:5px outset black ">
         							<p style="color:black">RPG</p>
         							<ul data-role="listview" data-inset="true">
                                 					<li><a id="rpg_control" style="color:white;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Control</a></li>
@@ -492,25 +557,15 @@
                             					</ul>
     								<br>
     							</div>
-    							<br><br><br>
+    							
         	
-        						<div style="display:inline-block" class="bar-border" id="squaresWaveG_long">
-    								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
-    								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
-        						</div>
 							</div>
 							<div class="ui-block-b">
 
         					</div>
 						</div>
 					</div>
-                    <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+                    <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="margin-top:-230px;background-color:#4bacc6">
 
 								
 			<div style="color:black;display:block;"><div style="height:20px;">PRF Mode</div></div>
@@ -643,15 +698,26 @@
 
 
     							
-    					    	<div id="grid3" style="float:left;display:inline-block;border:5px outset black;background-color:#51FF22">
+    					    	<div id="grid3" style="position:relative;z-index:2;width:50%;display:inline-block;border:5px outset black;background-color:#51FF22">
             						<p style="color:black">Users</p>
             						<ul data-role="listview" data-inset="true">
-                                    	<li><a id="user_comms" style="color:white"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>
-                                    	<li><a id="user_messages"style="color:white;font-size:14px" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
+                                    	<li><a id="user_comms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>
+                                    	<li><a id="user_messages"style="color:white;font-size:14px;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
                                 	</ul>
     								<br>
                 				</div>
 					</div>
+                                                        <div style="position:relative;z-index:1;left:-80px;top:-100px;display:inline-block" class="bar-border" id="squaresWaveG_long">
+                                                                <div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
+                                                                <div id="squaresWaveG_long_8" class="squaresWaveG_long"></div>
+                                                        </div>
+
 					
                 </div>
             </div>
