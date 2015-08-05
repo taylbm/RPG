@@ -23,19 +23,6 @@
 ###
 ### blocks
 ###
-        <% 
-        STATUS_VALS = {}
-        error_status = "ERROR: value not retrieved"
-        STATUS_VALS.update({"RS_RDA_ALARM_SUMMARY":{0:'No Alarms',2:'Tower/Utilities',4:'Pedestal',8:'Transmitter',16:'Receiver',32:'RDA Control',64:'Communication',128:'Signal Processor'}}) 
-        STATUS_VALS.update({"RS_OPERABILITY_STATUS":{2:'On-line',4:'Maintainance Action Required',8:'Maintainance Action Mandatory',16:'Commanded Shutdown',32:'Inoperable'}}) 
-        STATUS_VALS.update({"RS_RDA_STATUS":{2:'Start-Up',4:'Standby',8:'Restart',16:'Operate',32:'Spare',64:'Off-line Operate'}}) 
-        STATUS_VALS.update({"RS_CONTROL_STATUS":{2:'Local Only',4:'RPG (Remote) Only',8:'Either'}}) 
-        STATUS_VALS.update({"RS_TPS_STATUS":{0:'Not Installed',1:'OFF',3:'ON'}}) 
-        STATUS_VALS.update({"RS_AUX_POWER_GEN_STATE":{1:'Start-Up',2:'Standby',4:'Restart',8:'Operate',16:'Spare'}}) 
-        STATUS_VALS.update({"RS_SUPER_RES":{2:'on',4:'off'}}) 
-        STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
-        STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}}) 
-        %>
 
 <%block name="extra_header_markup">
 
@@ -149,8 +136,7 @@
 			});
 
 		});
-		
-	 		
+		var link = $('#squaresWaveG_long').html()
 		var item = Object.keys(RS_TOGGLE);
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
@@ -161,7 +147,8 @@
 					var value = item[i]
 					var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
 					if (retrieved == "on"){$("#"+value+"_status").addClass('hide')}
-					$("#"+value).val(retrieved).slider("refresh")
+		
+			$("#"+value).val(retrieved).slider("refresh")
 				}
 				
 				for (b in state){
@@ -170,41 +157,44 @@
 					switch (data['RS_dict']['RDA_static'][value2]){
 						case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP':
 							$("#"+value2).attr('class','normal-ops bar-border2');
+							$('#'+value2+'_label').attr('class','bar-border1 show');
 							break;
 						case 'NOT_INSTALLED':
-							$('#'+value2).addClass('hide');$('#'+value2+'_label').addClass('hide');
+							$('#'+value2).attr('class','bar-border2 hide');$('#'+value2+'_label').attr('class','bar-border1 hide');
 							break;
 						case 'MAINTENANCE_MAN':
 							$("#grid1").attr('class','major-alarm');
-							$("#"+value2).attr('class','major-alarm');
+							$("#"+value2).attr('class','bar-border2 major-alarm');
 							break;
 						case 'MAINTENANCE_REQ':
 							$("#grid1").attr('class','minor-alarm');
-							$("#"+value2).attr('class','minor-alarm');
+							$("#"+value2).attr('class','bar-border2 minor-alarm');
 							break;
 						case 'UNKNOWN':
-							$("#"+value2).attr('class','inop-indicator');
+							$("#"+value2).attr('class','bar-border2 inop-indicator');
 							break;
 						case 'INOPERABLE,-9999':
-							$('#'+value2).attr('class','inop-indicator');
+							$('#'+value2).attr('class','bar-border2 inop-indicator');
 							$('#grid1').attr('class','inop');
 							$('#grid1title').attr('class','inop');
 					}
 				}
 				var all_alarms = data['RS_dict']['RDA_alarms_all']
 				var current_alarms = data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>') 
-				var l = current_alarms.length;
-		
-				(function(l){
-				for (a in all_alarms){
-					var value1 = all_alarms[a]
-					
-					if (a <= l-1){$('#'+current_alarms[a]).addClass('show')}
-					else{$('#'+value1).addClass('hide')}
-				};
-				}(l));
+                                for (alarm in current_alarms){
+                                        $('#'+current_alarms[alarm]).addClass('show')
+                                        var i = all_alarms.indexOf(alarm);
+                                        if (i != -1) { 
+                                                all_alarms.splice(i,1);
+                                        }
+                                }
+                                for (a in all_alarms){
+                                        $('#'+all_alarms[a]).addClass('hide')
+                                };
+
 				if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops')}
-			
+				if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch_status').addClass('hide')}
+				if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch_status').addClass('hide')}	
 				var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
 				if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
 				$("#gen_level").attr('value',data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl'])	
@@ -246,11 +236,21 @@
 						break;
 				        case 'SHUTDOWN':
 						$('#RPG_state').addClass('inop-indicator')
-						$('#RDA_STATE').html('UNKNOWN').addClass('inop-indicator')
-						$('#OPERABILITY_LIST').html('UNKNOWN').addClass('inop-indicator')	
 						break;		
 				};
-				if (data['RS_dict']['RDA_static']['WIDEBAND'] != "CONNECTED"){
+				if (data['RS_dict']['RDA_static']['WIDEBAND'] == "CONNECTED"){
+					if ($('#squaresWaveG_long').html() != link){
+						$('.link-status').removeClass('major-alarm');
+						$('.link-status').removeClass('minor-alarm');
+						$('.link-status').html(link).addClass('normal-ops');
+						$('#link_R').html('R').attr('class','link-status-sq normal-ops');
+						$('#link_V').html('V').attr('class','link-status-sq normal-ops'); 
+						$('#link_W').html('W').attr('class','link-status-sq normal-ops'); 
+						$('#link_D').html('D').attr('class','link-status-sq normal-ops'); 
+					 }
+				}
+ 
+				else{
 					switch (data['RS_dict']['RDA_static']['WIDEBAND']){
 						case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
 							var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
@@ -280,6 +280,8 @@
 			
 			
 		},1000);
+
+
 		$('#refreshPage').click(function(){
 			location.reload()
 		});
@@ -429,20 +431,21 @@
 
 					</div>
 									
-				<div style="display:inline-block;color:black;position:relative;z-index:4;top:-20px;">
-				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:1px" class="normal-ops link-status-sq">R</div>	
-					<br>	
-				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:-1px" class="normal-ops link-status-sq">V</div>
-					<br>	
-				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:-3px" class="normal-ops link-status-sq">W</div>
-					<br>	
-				    <div style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:-4px" class="normal-ops link-status-sq">D</div>
-				</div>	
+				<div style="display:inline-block;color:black;position:relative;z-index:4;top:-26px;">
+				    <div id="link_R" style="display:block;width:20px;height:22px;margin-left:-6px;position:relative;text-align:center;top:0px" class="normal-ops link-status-sq">R</div>	
+						
+				    <div id="link_V" style="display:block;width:20px;height:21px;margin-left:-6px;position:relative;text-align:center;top:0px" class="normal-ops link-status-sq">V</div>
+						
+				    <div id="link_W" style="display:block;width:20px;height:21px;margin-left:-6px;position:relative;text-align:center;top:0px" class="normal-ops link-status-sq">W</div>
+						
+				    <div id="link_D" style="display:block;width:20px;height:22px;margin-left:-6px;position:relative;text-align:center;top:0px" class="normal-ops link-status-sq">D</div>
+				</div>
+	
 					</div>
 					</div>
 				    <div id="link" style="font-weight:bold;color:black;text-shadow:none;display:inline-block;width:25%;height:100%;position:relative;left:-390px;top:390px;font-size:13px;z-index:1">				       <p class="center">RPG</p>
 					<div class="rpg-border" style="margin-left:-2px;position:relative;z-index:-2"></div>
-						<br><br><br>	
+						<br><br><br><br><br><br>
     						<div style="text-align:center" class="bar-border link-status status0" id="squaresWaveG_long">
 								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
 								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
@@ -453,7 +456,6 @@
 								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
 								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
 						</div>
-						<br>
             					<div style="text-align:center" class="bar-border link-status status1" id="squaresWaveG_long">
 								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
 								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
@@ -464,7 +466,6 @@
 								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
 								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
     						</div>	
-						<br>
         					<div style="text-align:center" class="bar-border link-status status2" id="squaresWaveG_long">
 								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
     								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
@@ -475,7 +476,6 @@
 								<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
 								<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
     						</div>   
-				   		<br>	
         					<div style="text-align:center" class="bar-border link-status status3" id="squaresWaveG_long">
 								<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
 								<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
@@ -613,13 +613,13 @@
 
 							</div>
  
-							<div class="ui-grid-a center">
+							<div class="ui-grid-a center" id="Clear_Air_Switch_status">
 								<div class="ui-block-a">
 									<button type="button" id="Clear_Air_Switch" style="font-size:11px;background-color:#FCFC23" data-theme="b">Clear Air Switch</button>
 								</div>
 								<div class="ui-block-b" id="Clear Air Switch">
                             						<div style="float:left" class="containing-element">
-										<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Clear_Air_Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option select value="off">MANUAL</option>
                                 							<option value="on">AUTO</option>
                                 						</select>
@@ -632,7 +632,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
-										<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Precip_Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option select value="off">MANUAL</option>
                                 							<option id="Precip_Switch_label" value="on">AUTO</option>
                                 						</select>
@@ -669,7 +669,7 @@
 								<div class="ui-block-a">
 									<div class="ui-grid-a">
 										<div class="ui-block-a">
-											<button type="button" id="Model_Update" style="font-size:10px;background-color:#FCFC23" data-theme="b">Model Update</button>
+											<button type="button" id="Model_Update" style="font-size:9px;background-color:#FCFC23" data-theme="b">Model Update</button>
 										</div>
 										<div class="ui-block-b">
     											<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
@@ -682,7 +682,7 @@
 								<div class="ui-block-b">
 									<div class="ui-grid-a">
 										<div class="ui-block-a">
-											<button type="button" id="VAD_Update" style="font-size:10px;background-color:#FCFC23" data-theme="b">VAD Update</button>
+											<button type="button" id="VAD_Update" style="font-size:9px;background-color:#FCFC23" data-theme="b">VAD Update</button>
 										</div>
 										<div class="ui-block-b">
        											<select alt="VAD Update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
@@ -699,7 +699,7 @@
 
     							
     					    	<div id="grid3" style="position:relative;z-index:2;width:50%;display:inline-block;border:5px outset black;background-color:#51FF22">
-            						<p style="color:black">Users</p>
+            						<p style="color:black">USERS</p>
             						<ul data-role="listview" data-inset="true">
                                     	<li><a id="user_comms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>
                                     	<li><a id="user_messages"style="color:white;font-size:14px;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
