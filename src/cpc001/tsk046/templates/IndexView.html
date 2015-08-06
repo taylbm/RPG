@@ -347,7 +347,7 @@
         <div data-role="navbar">
         	<ul>
         		<li><div style="font-size:12px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
-        		<li><a id="88D-ops" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
+        		<li><a id="88D-ops" style="color:white" class="nav-item control-shadow" href="/operations">WSR-88D Operations</a></li>
         		<li><a rel="external" style="color:white" class="nav-item control-shadow" href="/shift_change_checklist">Shift Change Checklist</a></li>
         		<li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
         		<li><a id="enviro_data" style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
@@ -566,56 +566,58 @@
 						</div>
 					</div>
                     <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="margin-top:-230px;background-color:#4bacc6">
+		
+			<div class="ui-grid-b center">
+				<div class="ui-block-a">
+					<button type="button" style="height:40px;display:inline-block;font-size:12px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>										</div>
+				<div class="ui-block-c">	
+                            		<div style="display:block" class="containing-element">
+                            			<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF Mode" data-role="slider"data-theme="a">
+                            				<option select value="off">MANUAL</option>
+                            				<option value="on">MULTI</option>
+                            			</select>
+                            		</div>
+				</div>
+			</div>
 
-								
-			<div style="color:black;display:block;"><div style="height:20px;">PRF Mode</div></div>
-                            <div style="display:block" class="containing-element">
-                            	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF Mode" data-role="slider"data-theme="a">
-                            		<option select value="off">MANUAL</option>
-                            		<option value="on">MULTI</option>
-                            	</select>
-                            </div>
-    	 						<div class="ui-grid-a">
-
-
-    								<div class="ui-block-a">
-									<div style="color:black;display:inline-block;"><div style="height:20px;">AVSET</div></div>
-                                					<div style="float:right" class="containing-element-lg">
+							<div class="ui-grid-a center">
+								<div class="ui-block-a">
+									<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6" data-theme="b">AVSET</button>
+								</div>
+								<div class="ui-block-b">
+                                					<div style="display:inline-block" class="containing-element-lg">
     										<select class="toggle" alt="AVSET Mismatch"  name="flip-min" id="AVSET_Alarm" data-role="slider"data-theme="a"data-mini="true">
                                     							<option select value="off">DISABLED</option>
                                     							<option value="on">ENABLED</option>
                                     						</select>
                                 					</div>
-    								</div>
-    								<div class="ui-block-b">
-									<div style="color:black;display:inline-block;"><div style="height:20px;">SAILS</div></div>
-                                					<div style="float:left" class="containing-element-lg">
+								</div>
+							</div>
+							<div class="ui-grid-a center">
+								<div class="ui-block-a">
+									<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
+								</div>
+								<div class="ui-block-b">
+                                					<div style="display:inline-block" class="containing-element-lg">
     										<select alt="SAILS Mismatch" class="toggle" name="flip-min" id="SAILS_Alarm" data-role="slider"data-theme="a"data-mini="true">
                                     							<option select value="off">DISABLED</option>
                                     							<option value="on">ENABLED</option>
                                     						</select>
                                 					</div>
-    								</div>
-    							</div>
-
-							<div class="ui-grid-a center">
-								<div class="ui-block-a">
-									<button type="button" id="Mode_Conflict" style="font-size:11px;background-color:#FCFC23" data-theme="b">Mode Conflict</button>
 								</div>
-								<div class="ui-block-b" id="Mode Conflict">
-                            						<div style="float:left" class="containing-element">
-										<select alt = "Mode Conflict" class="toggle" name="flip-min" id="Mode_Conflict" data-role="slider"data-theme="a"data-mini="true">
-                                							<option select value="off">YES</option>
-                                							<option value="on">NO</option>
-                                						</select>
-                            						</div>
-								</div>
-
 							</div>
+							<div class="ui-grid-a center" id="Load_Shed_status">
+                                                                <div class="ui-block-a">
+                                                                        <button id="Mode_Conflict" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>                                                                                 </div>
+                                                                <div class="ui-block-b">
+                                                                        <button id="Load_Shed_contain" type="button" style="font-size:11px;background-color:#51FF22" data-theme="b">NO</button>
+                                                                </div>
+                                                        </div>
+
  
 							<div class="ui-grid-a center" id="Clear_Air_Switch_status">
 								<div class="ui-block-a">
-									<button type="button" id="Clear_Air_Switch" style="font-size:11px;background-color:#FCFC23" data-theme="b">Clear Air Switch</button>
+									<button type="button" id="Clear_Air_Switch" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
 								</div>
 								<div class="ui-block-b" id="Clear Air Switch">
                             						<div style="float:left" class="containing-element">
@@ -628,7 +630,7 @@
 							</div>
 	 						<div class="ui-grid-a center" id="Precip_Switch_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#FCFC23" data-theme="b">Precip Switch</button>
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
@@ -641,7 +643,7 @@
 							</div>
 	 						<div class="ui-grid-a center" id="RS_SUPER_RES_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#FCFC23" data-theme="b">Super Res</button>
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Super Res</button>
 								</div>
 								<div class="ui-block-b">
                             						<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
@@ -654,7 +656,7 @@
 							</div>
 	 						<div class="ui-grid-a center" id="RS_CMD_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#FCFC23" data-theme="b">CMD</button>
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">CMD</button>
 								</div>
 								<div class="ui-block-b">
                             						<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
@@ -669,7 +671,7 @@
 								<div class="ui-block-a">
 									<div class="ui-grid-a">
 										<div class="ui-block-a">
-											<button type="button" id="Model_Update" style="font-size:9px;background-color:#FCFC23" data-theme="b">Model Update</button>
+											<button type="button" id="Model_Update" style="font-size:10px;background-color:#DCDBD6" data-theme="b">Model Update</button>
 										</div>
 										<div class="ui-block-b">
     											<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
@@ -682,7 +684,7 @@
 								<div class="ui-block-b">
 									<div class="ui-grid-a">
 										<div class="ui-block-a">
-											<button type="button" id="VAD_Update" style="font-size:9px;background-color:#FCFC23" data-theme="b">VAD Update</button>
+											<button type="button" id="VAD_Update" style="font-size:10px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
 										</div>
 										<div class="ui-block-b">
        											<select alt="VAD Update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
