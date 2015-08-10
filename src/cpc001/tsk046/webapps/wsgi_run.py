@@ -24,7 +24,8 @@ URLS = (
 '/VCP','handlers.VCP_command_control',
 '/shift_change_checklist','handlers.Shift_change_checklist'
 ,'/update','handlers.Updater',
-'/button','handlers.Button')
+'/button','handlers.Button',
+'/operations','handlers.Operations')
 
 if __name__ == '__main__':
     app = web.application(URLS, globals())

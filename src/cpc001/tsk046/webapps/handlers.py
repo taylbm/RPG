@@ -8,6 +8,7 @@ import web
 import _rpg
 import time
 import subprocess
+import commands
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
@@ -46,20 +47,21 @@ def RS():
 		aux_gen_list.append('true')
 	else:	
 		aux_gen_list.append('false')	
-	alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']] 
-	RS_dict.update({'RDA_static':{'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"".join(alarm_list),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
+	alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
+	RS_dict.update({'RDA_static':{'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
 	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
 def RPG():
 	RPG_state_list = [x for x in dir(_rpg.orpgmisc) if 'ORPGMISC' in x]
 	RPG_state = [task.replace('ORPGMISC_IS_RPG_STATUS_','') for task in RPG_state_list if _rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))]
 	if not RPG_state:
-		RPG_state.append("SHUTDOWN")	
+		RPG_state.append("SHUTDOWN")
+	auto_mode = [_rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_A,_rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_B]	
 	RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
 	RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]  
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
-	return {'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_','')}	
+	return {'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),'auto_mode':auto_mode}	
 def PMD():
 	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
 	wx_accessor = _rpg.libhci.hci_get_wx_status().mode_select_adapt
@@ -76,7 +78,9 @@ class IndexView(object):
 class Updater(object):
     def GET(self):
 	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})
-	
+class Operations(object):
+    def GET(self):
+	return LOOKUP.ops(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})	
 class Shift_change_checklist(object):
     def GET(self):
         return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})
@@ -92,7 +96,8 @@ class List_VCPS(object):
 class Button(object):
     def GET(self):
 	selected_button = web.input(id=None)
-	return subprocess.Popen(selected_button.id)
+	if selected_button.id not in commands.getoutput('ps -A'):
+	    return subprocess.Popen(selected_button.id)
 
 class VCP_command_control(object):
     def GET(self):
