@@ -3,6 +3,8 @@ using boost::python::args;
 using boost::python::class_;
 using boost::python::def;
 using boost::python::make_tuple;
+using boost::python::reference_existing_object;
+using boost::python::return_value_policy;
 using boost::python::scope;
 
 #include <string>
@@ -13,6 +15,7 @@ using std::vector;
 
 extern "C"
 {
+    #include "orpgda.h"
     #include "orpginfo.h"
     #include "orpgmisc.h"
     #include "orpgrda.h"
@@ -58,6 +61,20 @@ namespace rpg
         bool success = ORPGINFO_statefl_get_rpgopst(&rval) == 0;
 
         return make_tuple(success, rval);
+    }
+
+    string thinwrap_orpgda_lbname(int data_id)
+    {
+        return string(ORPGDA_lbname(data_id));
+    }
+
+    void wrap_orpgda()
+    {
+        def(
+            "orpgda_lbname", 
+            &thinwrap_orpgda_lbname, 
+            args("data_id")
+        );
     }
 
     void wrap_orpgrda()
@@ -121,6 +138,7 @@ namespace rpg
         class_<liborpg_ns> c("liborpg");
         scope in_liborpg = c;
 
+        wrap_orpgda();
         wrap_orpgrda();
         wrap_orpgmisc();
         wrap_orpginfo();
@@ -128,6 +146,7 @@ namespace rpg
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
             .staticmethod("orpgrda_get_status")
+            .staticmethod("orpgda_lbname")
             .staticmethod("orpgmisc_is_rpg_status")
             .staticmethod("orpginfo_is_sails_enabled")
             .staticmethod("orpginfo_is_avest_enabled")
