@@ -87,12 +87,28 @@
 			});
 
 		});
+        	var item = Object.keys(RS_TOGGLE);
+
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
+				if(data['PMD_dict']['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
+				else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
+				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM').addClass('normal-ops')}
+				else{$('#Precip_contain').html('NO ACCUM').addClass('minor-alarm')}
+				if (data['RPG_dict']['RPG_SAILS']){$('#RPG_SAILS').val('on').slider('refresh')}
+                        	else{$('#RPG_SAILS').val('off').slider('refresh')}
+                        	for (i in item){
+                                	var value = item[i]
+                                	var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
+                			$("#"+value).val(retrieved).slider("refresh")
+                        	}
+
 				if (data['RPG_dict']['RPG_SAILS']){$('#RPG_SAILS').val('on').slider('refresh')}
 				else{$('#RPG_SAILS').val('off').slider('refresh')}
-				if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch_status').addClass('hide')}
-				if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch_status').addClass('hide')}	
+				if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch').val('on').slider('refresh')}
+				else{$('#Precip_Switch').val('off').slider('refresh')}
+				if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch').val('on').slider('refresh')}
+                                else{$('#Clear_Air_Switch').val('off').slider('refresh')}
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
 			});
@@ -106,12 +122,16 @@
 		});
 		$('#prf_control').click(function(){
 			window.location="/button?id=hci_prf"
-			window.location="/"
+			window.location="/operations"
 		});	
 
 		$('#enviro_data').click(function(){
 			window.location="/button?id=hci_wind"
-			window.location="/"
+			window.location="/operations"
+		});
+		$('#Precip_contain').click(function(){
+			window.location="/button?id=hci_precip_status"
+			window.location="/operations"
 		});
 		
 	});
@@ -217,20 +237,20 @@
 									<button type="button" id="Mode_Conflict" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
 								</div>
 								<div class="ui-block-b" id="Mode_Conflict_status">
-									<button type="button" style="font-size:11px;background-color:#51FF22">NO</button>
+									<button id="Mode_Conflict_contain" type="button" style="font-size:11px;">N/A</button>
 								</div>
 
 							</div>
  
 							<div class="ui-grid-a center" id="Clear_Air_Switch_status">
 								<div class="ui-block-a">
-									<button type="button" id="Clear_Air_Switch" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
 								</div>
-								<div class="ui-block-b" id="Clear Air Switch">
+								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
 										<select alt="Clear_Air_Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
-                                							<option select value="off">MANUAL</option>
-                                							<option value="on">AUTO</option>
+                                							<option value="off">MANUAL</option>
+                                							<option select value="on">AUTO</option>
                                 						</select>
                             						</div>
 								</div>
@@ -242,8 +262,8 @@
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
 										<select alt="Precip_Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
-                                							<option select value="off">MANUAL</option>
-                                							<option id="Precip_Switch_label" value="on">AUTO</option>
+                                							<option value="off">MANUAL</option>
+                                							<option select id="Precip_Switch_label" value="on">AUTO</option>
                                 						</select>
                             						</div>
 								</div>
@@ -259,7 +279,7 @@
                                                                         <button id="Precip" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Status</button>
                                                                 </div>
                                                                 <div class="ui-block-b">
-									<button id="Precip_contain" type="button" style="font-size:11px;background-color:#51FF22" data-theme="b">ACCUM</button>
+									<button id="Precip_contain" type="button" style="font-size:11px;" data-theme="b">N/A</button>
                                                                 </div>
                                                         </div>
 	
@@ -284,8 +304,8 @@
 								<div class="ui-block-b">
                             						<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
 										<select alt="CMD" class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
-                                							<option select value="off">DISABLED</option>
-                                							<option value="on">ENABLED</option>
+                                							<option value="off">DISABLED</option>
+                                							<option select value="on">ENABLED</option>
                                 						</select>
                             						</div>
 								</div>
@@ -298,8 +318,8 @@
 								<div class="ui-block-b">
                             						<div id="Model_Update_contain" style="float:left" class="containing-element-lg">
 										<select alt="CMD" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
-                                							<option select value="off">OFF</option>
-                                							<option value="on">ON</option>
+                                							<option value="off">OFF</option>
+                                							<option select value="on">ON</option>
                                 						</select>
                             						</div>
 								</div>
@@ -312,8 +332,8 @@
 								<div class="ui-block-b">
                             						<div id="VAD_Update_contain" style="float:left" class="containing-element-lg">
 										<select alt="VAD_update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
-                                							<option select value="off">OFF</option>
-                                							<option value="on">ON</option>
+                                							<option value="off">OFF</option>
+                                							<option select value="on">ON</option>
                                 						</select>
                             						</div>
 								</div>

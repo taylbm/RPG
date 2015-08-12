@@ -53,10 +53,7 @@ $(document).ready(function(){
 <% 
 STATUS_VALS = {}
 error_status = "ERROR: value not retrieved"
-STATUS_VALS.update({"RS_OPERABILITY_STATUS":{2:'On-line',4:'Maintainance Action Required',8:'Maintainance Action Mandatory',16:'Commanded Shutdown',32:'Inoperable'}}) 
-STATUS_VALS.update({"RS_RDA_STATUS":{2:'Start-Up',4:'Standby',8:'Restart',16:'Operate',32:'Spare',64:'Off-line Operate'}}) 
-STATUS_VALS.update({"RS_CONTROL_STATUS":{2:'Local Only',4:'RPG (Remote) Only',8:'Either'}}) 
-STATUS_VALS.update({"RS_TPS_STATUS":{0:'Not Installed',1:'OFF',3:'ON'}}) 
+STATUS_VALS.update({"Z_R":{300.0:'Convective',250.0:'Tropical',200.0:'Marshall-Palmer',130.0:'East-Cool Stratiform',75.0:'West-Cool Stratiform'}})
 STATUS_VALS.update({"RS_SUPER_RES":{2:'Enabled',4:'Disabled'}}) 
 STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
 STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
@@ -86,7 +83,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Control Status:</td>
-                        <td>${STATUS_VALS["RS_RDA_STATUS"].get(context.get("RS_dict").get("RS_CONTROL_STATUS"),error_status)}<td>
+                        <td>${context.get("RS_dict").get("RDA_static").get("CONTROL_STATUS")}<td>
                     </tr>
             	    <tr>
                         <td>Transition Power Source (TPS):</td>
@@ -94,7 +91,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Aux Power Generator State:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("AUX_GEN_LIST").replace(',false','')}</td>
+                        <td>${context.get("RS_dict").get("RDA_static").get("AUX_GEN_LIST").replace('false','')}</td>
                     </tr>
             	    <tr>
                         <td>Super Resolution (SR):</td>
@@ -114,7 +111,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
-  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} W</td>                 
+  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} kW</td>                 
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
@@ -133,7 +130,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Version:</td>
-                        <td>7 *stub*</td>
+                        <td>${context.get("ADAPT").get("version")}</td>
                     </tr>
             	    <tr>
                         <th><u>Mode Selection Function</u></th>
@@ -144,11 +141,19 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Mode Switch Clear Air:</td>
-                        <td>Auto *stub*</td>
+			%if context.get("RPG_dict").get("auto_mode")[1]:
+                        <td>Auto</td>
+			%else:
+			<td>Manual</td>
+			%endif
                     </tr>
             	    <tr>
                         <td>Mode Switch Precip:</td>
-                        <td>Manual *stub*</td>
+			%if context.get("RPG_dict").get("auto_mode")[0]:
+                        <td>Auto</td>
+			%else:	
+			<td>Manual</td>
+			%endif
                     </tr>
             	    <tr>
                         <td>Mode Change Thresholds:</td>
@@ -178,14 +183,14 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Peak Power:</td>
-                         <td>${context.get("PMD_dict").get("xmtr_peak_pwr")} W</td>
+                         <td>${context.get("PMD_dict").get("xmtr_peak_pwr")} kW</td>
                     </tr>
             	    <tr>
                         <th>Device Status:</th>
                     </tr>
             	    <tr>
                         <td>Performance Check Time:</td>
-                         <td>${context.get("PMD_dict").get("perf_check_time")}</td>
+                         <td>${context.get("PMD_dict").get("perf_check_time")[0]}</td>
                     </tr>
             	    <tr>
                         <th><u>RPG Status Information</u></th>
@@ -234,20 +239,31 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
 		    </tr>	    
             	    <tr>
                         <td>PPS Precipitation Status:</td>
-                        <td>Accum *stub*</td>
+			% if context.get("PMD_dict").get("current_precip_status"):
+                        <td>Accum</td>
+			% else:
+			<td>No Accum</td>
+			% endif
                     </tr>
             	    <tr>
                         <td>PPS Z-R Relationship:</td>
-                        <td>Tropical *stub*</td>
+                        <td>Z = ${context.get("ADAPT").get("ZR_mult")}*R^${context.get("ADAPT").get("ZR_exp")}</td>
                     </tr>
             	    <tr>
                         <td>QPE Precipitation Type:</td>
-                        <td>Exponent *stub*</td>
+                        <td>${context.get("ADAPT").get("ptype")}</td>
                     </tr>
             	    <tr>
                         <td>Apply RPG Estimated ISDP:</td>
-                        <td>Yes *stub*</td>
+			% if context.get("ADAPT").get("ISDP"):
+                        <td>No</td>
+			% else:
+			<td>Yes</td>
+			% endif
                     </tr>
+		    <tr>
+			<td>Default Storm Motion:</td>
+			<td>${context.get("ADAPT").get("default_dir")}@${context.get("ADAPT").get("default_spd")}kts
             	    <tr>
                         <th><u>Narrrowband Communications</u></th>
                     </tr>
