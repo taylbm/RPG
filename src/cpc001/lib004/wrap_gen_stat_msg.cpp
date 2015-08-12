@@ -39,6 +39,10 @@ namespace rpg
                 "mode_select_adapt", 
                 &Wx_status_t::mode_select_adapt
             )
+            .def_readwrite(
+                "recommended_wxstatus",
+                &Wx_status_t::recommended_wxstatus
+            )
         ;
     }
 

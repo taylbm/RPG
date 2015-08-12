@@ -30,6 +30,14 @@ namespace rpg
         return make_tuple(ret, vals);
     }
 
+    tuple thinwrap_deau_get_string_values(string key)
+    {
+        char *tmp;
+        int ret = DEAU_get_string_values(&key[0], &tmp);
+
+        return make_tuple(ret, string(tmp));
+    }
+
     void thinwrap_deau_lb_name(string name)
     {
         DEAU_LB_name(&name[0]);
@@ -46,9 +54,15 @@ namespace rpg
             &thinwrap_deau_get_values, 
             args("key", "number_of_values")
         );
+        def(
+            "deau_get_string_values", 
+            &thinwrap_deau_get_string_values, 
+            args("key")
+        );
 
         c.staticmethod("deau_get_values")
             .staticmethod("deau_lb_name")
+            .staticmethod("deau_get_string_values")
         ;
     }
 }
