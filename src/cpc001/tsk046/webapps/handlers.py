@@ -33,22 +33,25 @@ def RS():
 		temp = dict((getattr(getattr(_rpg.rdastatus,cls),x),x) for x in class_dict[cls])
 		if cls == 'rdastatus':
 			temp.update({0:'UNKNOWN'})
+		if cls == 'controlstatus':
+			temp.update({0:'N/A'})
 		temp.update({-9999:'-9999'})
 		RS_states.update({cls:temp})
-		
+	RS_states.update({'datatrans':{2:'None',4:'R',8:'V',16:'W'}})
 	RS_dict.update(RS_states)
-	
 	
 	oper_list = [RS_states['opstatus'][key].replace('OS_','') for key in RS_states['opstatus'].keys() if (key & RS_dict['RS_OPERABILITY_STATUS']) > 0]
 	if not oper_list:
-		oper_list.append('UNKNOWN')	
+		oper_list.append('UNKNOWN')
  	aux_gen_list = [RS_states['auxgen'][key].strip('AP_').strip('RS_') for key in RS_states['auxgen'].keys() if (key & RS_dict['RS_AUX_POWER_GEN_STATE']) > 0]
-	if ['GENERATOR_ON','COMMANDED_SWITCHOVER','SWITCH_AUX_PWR'] in aux_gen_list:
+	if 'GENERATOR_ON' in aux_gen_list:
 		aux_gen_list.append('true')
 	else:	
-		aux_gen_list.append('false')	
+		aux_gen_list.append('false')
+	data_trans = [RS_states['datatrans'][key] for key in RS_states['datatrans'].keys() if (key & RS_dict['RS_DATA_TRANS_ENABLED']) > 0]
+	
 	alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
-	RS_dict.update({'RDA_static':{'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
+	RS_dict.update({'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
 	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
 def RPG():
@@ -63,27 +66,38 @@ def RPG():
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
 	return {'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),'auto_mode':auto_mode}	
 def PMD():
-	pmd_accessor = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
-	wx_accessor = _rpg.libhci.hci_get_wx_status().mode_select_adapt
-	if int(time.strftime('%H',time.gmtime(pmd_accessor.perf_check_time-int(time.time())))) < 1:
+	precip = _rpg.libhci.hci_get_precip_status().current_precip_status
+	pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
+	wx = _rpg.libhci.hci_get_wx_status().mode_select_adapt
+	if int(time.strftime('%H',time.gmtime(pmd.perf_check_time-int(time.time())))) < 1:
 		perf_color = yellow
 	else: 
 		perf_color = 'white'
-	return {"cnvrtd_gnrtr_fuel_lvl":pmd_accessor.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd_accessor.perf_check_time-int(time.time()))),perf_color],
-	"trsmttr_leaving_air_temp":int(pmd_accessor.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd_accessor.xmtr_peak_pwr),'v_delta_dbz0':round(pmd_accessor.v_delta_dbz0,2),'h_delta_dbz0':round(pmd_accessor.h_delta_dbz0,2),"precip_mode_area_thresh":wx_accessor.precip_mode_area_thresh,"precip_mode_zthresh":wx_accessor.precip_mode_zthresh}
+	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
+	return {"mode_conflict":mode_conflict,"current_precip_status":precip,"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),'v_delta_dbz0':round(pmd.v_delta_dbz0,2),'h_delta_dbz0':round(pmd.h_delta_dbz0,2),"precip_mode_area_thresh":wx.precip_mode_area_thresh,"precip_mode_zthresh":wx.precip_mode_zthresh}
+def ADAPT():
+	ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
+	zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
+	zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
+	isdp = _rpg.librpg.deau_get_values('alg.dpprep.isdp_apply',1)
+	version = _rpg.librpg.deau_get_values('alg.Archive_II.version',1)
+	default_dir = _rpg.librpg.deau_get_values('alg.storm_cell_track.default_dir',1)
+        default_spd = _rpg.librpg.deau_get_values('alg.storm_cell_track.default_spd',1)
+	ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
+	return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ISDP':isdp[1][0],'ZR_exp':zr_exp[1][0],'version':version[1][0],'default_spd':default_spd[1][0],'default_dir':default_dir[1][0],'ptype':ptype[1]}
 	
 class IndexView(object):
     def GET(self):
         return LOOKUP.IndexView(**RS())
 class Updater(object):
     def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})
+	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
 class Operations(object):
     def GET(self):
 	return LOOKUP.ops(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})	
 class Shift_change_checklist(object):
     def GET(self):
-        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG()})
+        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
 class List_VCPS(object):
     def GET(self):
   	dir_list = (os.listdir(vcp_dir))
