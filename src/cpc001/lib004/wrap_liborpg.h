@@ -4,6 +4,9 @@
 #include <boost/python.hpp>
 using boost::python::tuple;
 
+#include <string>
+using std::string;
+
 #include <vector>
 using std::vector;
 
@@ -23,7 +26,9 @@ namespace rpg
     );
     tuple thinwrap_orpg_statefl_get_rpgalrm();
     tuple thinwrap_orpg_statefl_get_rpgopst();
+    string thinwrap_orpgda_lbname(int data_id);
 
+    void wrap_orpgda();
     void wrap_orpgrda();
     void wrap_orpgmisc();
     void wrap_orpginfo();

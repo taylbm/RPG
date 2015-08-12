@@ -14,6 +14,7 @@ extern "C"
 //#define class class_variable
 //    #include "hci_up_nb.h"
 //#undef class
+    #include "hci_precip_status.h"
     #include "hci_wx_status.h"
 }
 
@@ -54,9 +55,11 @@ namespace rpg
             &thinwrap_hci_up_nb_update_dedicated_user_table
         );
         */
+        def("hci_get_precip_status", &hci_get_precip_status);
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
+        c.staticmethod("hci_get_precip_status");
         //c.staticmethod("hci_up_nb_update_dedicated_user_table");
     }
 }
