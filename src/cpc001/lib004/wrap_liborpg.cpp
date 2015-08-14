@@ -20,6 +20,7 @@ extern "C"
     #include "orpgmisc.h"
     #include "orpgrda.h"
     #include "orpgsails.h"
+    #include "orpgvst.h"
 }
 
 #include "wrap_liborpg.h"
@@ -133,6 +134,11 @@ namespace rpg
         def("orpgsails_init", &ORPGSAILS_init);
     }
 
+    void wrap_orpgvst()
+    {
+        def("orpgvst_get_volume_time", &ORPGVST_get_volume_time);
+    }
+
     void export_liborpg()
     {
         class_<liborpg_ns> c("liborpg");
@@ -142,6 +148,7 @@ namespace rpg
         wrap_orpgrda();
         wrap_orpgmisc();
         wrap_orpginfo();
+        wrap_orpgvst();
 
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
@@ -154,6 +161,7 @@ namespace rpg
             .staticmethod("orpginfo_statefl_get_rpgopst")
             .staticmethod("orpgsails_get_status")
             .staticmethod("orpgsails_init")
+            .staticmethod("orpgvst_get_volume_time");
         ;
     }
 }

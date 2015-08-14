@@ -32,6 +32,7 @@ namespace rpg
     void wrap_orpgrda();
     void wrap_orpgmisc();
     void wrap_orpginfo();
+    void wrap_orpgvst();
     void export_liborpg();
 }
 
