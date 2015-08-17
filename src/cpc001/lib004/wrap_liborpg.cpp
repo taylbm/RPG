@@ -76,6 +76,9 @@ namespace rpg
             &thinwrap_orpgda_lbname, 
             args("data_id")
         );
+
+        def("orpgda_open", &ORPGDA_open, args("data_id", "flags"));
+        def("orpgda_close", &ORPGDA_close, args("data_id"));
     }
 
     void wrap_orpgrda()
@@ -154,6 +157,8 @@ namespace rpg
             .staticmethod("orpgrda_get_wb_status")
             .staticmethod("orpgrda_get_status")
             .staticmethod("orpgda_lbname")
+            .staticmethod("orpgda_open")
+            .staticmethod("orpgda_close")
             .staticmethod("orpgmisc_is_rpg_status")
             .staticmethod("orpginfo_is_sails_enabled")
             .staticmethod("orpginfo_is_avest_enabled")

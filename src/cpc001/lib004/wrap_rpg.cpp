@@ -11,6 +11,7 @@
 #include "wrap_orpg_misc.h"
 #include "wrap_orpg_sails.h"
 #include "wrap_precip_status.h"
+#include "wrap_prfselect_buf.h"
 #include "wrap_rda_status.h"
 #include "wrap_rpg_messages.h"
 #include "wrap_rpg_rda.h"
@@ -36,6 +37,7 @@ namespace rpg
         export_gen_stat_msg();
         export_orpgdat();
         export_precip_status();
+        export_prfselect_buf();
 
         //
         // RPG stuff

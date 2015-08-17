@@ -46,7 +46,9 @@ LIB_CXXSRCS =	wrap_liborpg.cpp \
 		wrap_orpg_sails.cpp \
 		wrap_librpg.cpp \
 		wrap_orpgdat.cpp \
-		wrap_precip_status.cpp
+		wrap_precip_status.cpp \
+		wrap_prfselect_buf.cpp \
+		wrap_lb.cpp
 
 LIB_TARGET = _rpg
 

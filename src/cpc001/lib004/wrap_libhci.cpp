@@ -10,6 +10,7 @@ using boost::python::scope;
 
 extern "C"
 {
+    #include "hci_environmental_wind.h"
     #include "hci_orda_pmd.h"
 //#define class class_variable
 //    #include "hci_up_nb.h"
@@ -56,11 +57,17 @@ namespace rpg
         );
         */
         def("hci_get_precip_status", &hci_get_precip_status);
+        def("hci_get_vad_update_flag", &hci_get_vad_update_flag);
+        def("hci_get_model_update_flag", &hci_get_model_update_flag);
+        def("hci_get_prf_mode_status_msg", &hci_get_PRF_Mode_status_msg);
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
         c.staticmethod("hci_get_precip_status");
         //c.staticmethod("hci_up_nb_update_dedicated_user_table");
+        c.staticmethod("hci_get_vad_update_flag");
+        c.staticmethod("hci_get_model_update_flag");
+        c.staticmethod("hci_get_prf_mode_status_msg");
     }
 }
 
