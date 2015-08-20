@@ -53,10 +53,9 @@ $(document).ready(function(){
 <% 
 STATUS_VALS = {}
 error_status = "ERROR: value not retrieved"
-STATUS_VALS.update({"Z_R":{300.0:'Convective',250.0:'Tropical',200.0:'Marshall-Palmer',130.0:'East-Cool Stratiform',75.0:'West-Cool Stratiform'}})
-STATUS_VALS.update({"RS_SUPER_RES":{2:'Enabled',4:'Disabled'}}) 
-STATUS_VALS.update({"RS_CMD":{0:'Disabled',1:'Enabled'}}) 
-STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
+STATUS_VALS.update({"RS_SUPER_RES":{2:'ENABLED',4:'DISABLED'}}) 
+STATUS_VALS.update({"RS_CMD":{0:'DISABLED',1:'ENABLED'}}) 
+STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
 %>
 	 
 
@@ -111,7 +110,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
-  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} kW</td>                 
+  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} W</td>                 
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
@@ -137,22 +136,26 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>Mode Conflict:</td>
-                        <td>Yes *stub*</td>
+			% if context.get("PMD_dict").get("mode_conflict"):
+			<td>YES</td>
+			% else:
+                        <td>NO</td>
+			% endif 
                     </tr>
             	    <tr>
                         <td>Mode Switch Clear Air:</td>
 			%if context.get("RPG_dict").get("auto_mode")[1]:
-                        <td>Auto</td>
+                        <td>AUTO</td>
 			%else:
-			<td>Manual</td>
+			<td>MANUAL</td>
 			%endif
                     </tr>
             	    <tr>
                         <td>Mode Switch Precip:</td>
 			%if context.get("RPG_dict").get("auto_mode")[0]:
-                        <td>Auto</td>
+                        <td>AUTO</td>
 			%else:	
-			<td>Manual</td>
+			<td>MANUAL</td>
 			%endif
                     </tr>
             	    <tr>
@@ -221,18 +224,26 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
                     </tr>
             	    <tr>
                         <td>PRF Mode:</td>
-                        <td>Multi-Storm *stub*</td>
+                        <td>${context.get("PMD_dict").get("prf")}</td>
                     </tr>
             	    <tr>
                         <th><u>Environmental Data</u></th>
                     </tr>
 		    <tr>
 		        <td>VAD Update:</td>
-			<td>On *stub*</td>
+			% if context.get("PMD_dict").get("vad_update"):
+			<td>ON</td>
+			% else:
+			<td>OFF</td>
+			%endif
 		    </tr>
 		    <tr>
 		        <td>Model Update:</td>
-			<td>On *stub*</td>
+			% if context.get("PMD_dict").get("model_update"):
+			<td>ON</td>
+			% else:
+			<td>OFF</td>
+			%endif
 		    </tr>
 		    <tr>
 			<th><u>Algorithm Status/Data</u></th>
@@ -240,9 +251,9 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
             	    <tr>
                         <td>PPS Precipitation Status:</td>
 			% if context.get("PMD_dict").get("current_precip_status"):
-                        <td>Accum</td>
+                        <td>ACCUM</td>
 			% else:
-			<td>No Accum</td>
+			<td>NO ACCUM</td>
 			% endif
                     </tr>
             	    <tr>
@@ -256,9 +267,9 @@ STATUS_VALS.update({"RS_AVSET":{2:'Enabled',4:'Disabled'}})
             	    <tr>
                         <td>Apply RPG Estimated ISDP:</td>
 			% if context.get("ADAPT").get("ISDP"):
-                        <td>No</td>
+                        <td>NO</td>
 			% else:
-			<td>Yes</td>
+			<td>YES</td>
 			% endif
                     </tr>
 		    <tr>

@@ -158,10 +158,10 @@ label.ui-btn {
 }
 .contain-clock {
     position: relative; 
-	top: 0px;
+    top: 0px;
     width: 99%;
     height: 35px;
-	font-size:10px
+    font-size:10px
     background-color: #DCDBD6;
     border: 1px dotted #000602;
 }
@@ -494,7 +494,7 @@ table.no-spacing {
 
 .containing-element-lg .ui-slider-switch { width: 9em }
 .containing-element .ui-slider-switch { width: 8em }
-.radome-selectors .ui-slider-switch { width: 7em }
+.radome-selectors .ui-slider-switch { width: 8em }
 .ui-slider {
 	background-color:#FCFC23 !important;
 }

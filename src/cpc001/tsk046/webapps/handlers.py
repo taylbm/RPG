@@ -55,17 +55,36 @@ def RS():
 	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
 def RPG():
+	allow_sails = {}
+	dir_list_parse = [x for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
+	for vcp in dir_list_parse:
+            fname = vcp_dir+'KLGX_'+vcp
+            try:
+                f = open(fname,'r')
+                text = f.read()
+            except:
+                pass
+            if 'allow_sails' in text:	
+                temp = {vcp.replace('vcp_',''):True}
+            else:
+                temp = {vcp.replace('vcp_',''):False}
+            allow_sails.update(temp)
 	RPG_state_list = [x for x in dir(_rpg.orpgmisc) if 'ORPGMISC' in x]
 	RPG_state = [task.replace('ORPGMISC_IS_RPG_STATUS_','') for task in RPG_state_list if _rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))]
 	if not RPG_state:
 		RPG_state.append("SHUTDOWN")
+	sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
 	auto_mode = [_rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_A,_rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_B]	
 	RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
 	RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]  
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
-	return {'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),'auto_mode':auto_mode}	
+	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
+	return {'sails_cuts':sails_cuts,'allow_sails':allow_sails,'ORPGVST':ORPGVST,'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),'auto_mode':auto_mode}	
 def PMD():
+	model_flag = _rpg.libhci.hci_get_model_update_flag()
+	vad_flag = _rpg.libhci.hci_get_vad_update_flag()
+	prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
 	precip = _rpg.libhci.hci_get_precip_status().current_precip_status
 	pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
 	wx = _rpg.libhci.hci_get_wx_status().mode_select_adapt
@@ -73,9 +92,11 @@ def PMD():
 		perf_color = yellow
 	else: 
 		perf_color = 'white'
+	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
 	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
-	return {"mode_conflict":mode_conflict,"current_precip_status":precip,"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),'v_delta_dbz0':round(pmd.v_delta_dbz0,2),'h_delta_dbz0':round(pmd.h_delta_dbz0,2),"precip_mode_area_thresh":wx.precip_mode_area_thresh,"precip_mode_zthresh":wx.precip_mode_zthresh}
+	return {"model_update":model_flag,"vad_update":vad_flag,"prf":prf_dict[prf],"mode_conflict":mode_conflict,"current_precip_status":precip,"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),'v_delta_dbz0':round(pmd.v_delta_dbz0,2),'h_delta_dbz0':round(pmd.h_delta_dbz0,2),"precip_mode_area_thresh":wx.precip_mode_area_thresh,"precip_mode_zthresh":wx.precip_mode_zthresh}
 def ADAPT():
+	sails_available = _rpg.librpg.deau_get_values('sails.sails_available',1)
 	ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
 	zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
 	zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
@@ -115,15 +136,8 @@ class Button(object):
 
 class VCP_command_control(object):
     def GET(self):
-        dir_list = (os.listdir(vcp_dir))
-        dir_list_parse = []
-        for item in dir_list:
-            newstr = item.split('_')
-            if newstr[0] == 'vcp':
-        		dir_list_parse.append(newstr[1])
-
+	dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
         complete = {}
-
         for vcp in dir_list_parse:	
             fname = vcp_dir+'/KLGX_vcp_'+vcp
             try:

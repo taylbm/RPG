@@ -91,6 +91,44 @@
 
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
+				$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
+				if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
+                                	if (data['RPG_dict']['RPG_SAILS']){
+                                        	$('#RPG_SAILS').val('on').slider('refresh');
+                                       		$('#SAILS_Exception').val('on').slider('refresh');
+						$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+                                	}
+                                	else{
+                                        	$('#RPG_SAILS').val('off').slider('refresh');
+                                        	$('#SAILS_Exception').val('off').slider('refresh');
+                                	}
+                        	}
+      
+                       		if(data['PMD_dict']['model_update']){
+					$('#Model_Update').val('on').slider('refresh')
+				}
+                        	else{
+					$('#Model_Update').val('off').slider('refresh')	
+				}
+                        	if(data['PMD_dict']['vad_update']){
+					$('#VAD_Update').val('on').slider('refresh')
+				}
+                        	else{
+					$('#VAD_Update').val('off').slider('refresh')
+				}
+ 				switch(data['PMD_dict']['prf']){
+                                	case 'CELL_BASED': case 'STORM_BASED':
+                                        	$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+                                        	$('#PRF_Mode').val('on').slider('refresh')
+                                        	break;
+                                	case 'AUTO_PRF':
+                                        	$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                                        	$('#PRF_Mode').val('on').slider('refresh')
+                                        	break;
+                                	case 'MANUAL_PRF':
+                                        	$('#PRF_Mode').val('off').slider('refresh')
+                                        	break;
+                        	}
 				if(data['PMD_dict']['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
 				else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
 				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM').addClass('normal-ops')}
@@ -120,6 +158,10 @@
 		$('#refreshPage').click(function(){
 			location.reload()
 		});
+        	$('#Mode_Conflict_contain').click(function(){
+                	window.location="button?id=hci_mode_status"
+                	window.location="/operations"
+        	});
 		$('#prf_control').click(function(){
 			window.location="/button?id=hci_prf"
 			window.location="/operations"
@@ -180,38 +222,39 @@
 						<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
 					</a>
 				</div>
-	 			<div class="ui-grid-b center">
+	 			<div class="ui-grid-b center" id="PRF_Mode_block">
                                 	<div class="ui-block-a">
                                         	<button type="button" style="height:40px;display:inline-block;font-size:12px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>                                                                </div>
                                 	<div class="ui-block-c">
-                                        	<div style="display:block" class="containing-element">
-                                                	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF Mode" data-role="slider"data-theme="a">
-                                                        	<option select value="off">MANUAL</option>
+                                        	<div id="PRF_Mode_contain" style="display:block" class="containing-element">
+                                                	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a">
+                                                        	<option value="off">MANUAL</option>
                                                         	<option value="on">MULTI</option>
                                                 	</select>
                                        		 </div>
                                		 </div>
                        		 </div>
-				 <div class="ui-grid-a center">
-                                 	<div class="ui-block-a">
-                                        	<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6" data-theme="b">AVSET</button>
-                                        </div>
-                                        <div class="ui-block-b">
-                                        	<div style="display:inline-block" class="containing-element-lg">
-                                                                                <select class="toggle" alt="AVSET Mismatch"  name="flip-min" id="AVSET_Alarm" data-role="slider"data-theme="a"data-mini="true">
+							
+                                                        <div class="ui-grid-a center" id="SAILS_Exception_contain">
+                                                                <div class="ui-block-a">
+                                                                        <button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
+                                                                </div>
+                                                                <div class="ui-block-b">
+                                                                        <div style="display:inline-block" class="containing-element-lg">
+                                                                                <select alt="SAILS Mismatch" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
                                                                                         <option select value="off">DISABLED</option>
                                                                                         <option value="on">ENABLED</option>
                                                                                 </select>
                                                                         </div>
                                                                 </div>
                                                         </div>
-                                                        <div class="ui-grid-a center">
-                                                                <div class="ui-block-a">
-                                                                        <button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
-                                                                </div>
-                                                                <div class="ui-block-b">
-                                                                        <div style="display:inline-block" class="containing-element-lg">
-                                                                                <select alt="SAILS Mismatch" class="toggle" name="flip-min" id="SAILS_Alarm" data-role="slider"data-theme="a"data-mini="true">
+				 			<div class="ui-grid-a center" id="AVSET_Exception_contain">
+                                 				<div class="ui-block-a">
+                                        				<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6" data-theme="b">AVSET</button>
+                                        			</div>
+                                        			<div class="ui-block-b">
+                                        				<div style="display:inline-block" class="containing-element-lg">
+                                                                                <select class="toggle" alt="AVSET Mismatch"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
                                                                                         <option select value="off">DISABLED</option>
                                                                                         <option value="on">ENABLED</option>
                                                                                 </select>
@@ -311,29 +354,29 @@
 								</div>
 							</div>
 
-	 						<div class="ui-grid-a center" id="Model_Update_status">
+	 						<div class="ui-grid-a center" id="Model_Update_contain">
 								<div class="ui-block-a">
-									<button id="Model_Update" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
+									<button id="Model_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
 								</div>
 								<div class="ui-block-b">
-                            						<div id="Model_Update_contain" style="float:left" class="containing-element-lg">
-										<select alt="CMD" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+                            						<div style="float:left" class="containing-element-lg">
+										<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">OFF</option>
-                                							<option select value="on">ON</option>
+                                							<option value="on">ON</option>
                                 						</select>
                             						</div>
 								</div>
 							</div>
 
-	 						<div class="ui-grid-a center" id="VAD_Update_status">
+	 						<div class="ui-grid-a center" id="VAD_Update_contain">
 								<div class="ui-block-a">
-									<button id="VAD_Update" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
+									<button id="VAD_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
 								</div>
 								<div class="ui-block-b">
-                            						<div id="VAD_Update_contain" style="float:left" class="containing-element-lg">
-										<select alt="VAD_update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+                            						<div style="float:left" class="containing-element-lg">
+										<select alt="VAD update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">OFF</option>
-                                							<option select value="on">ON</option>
+                                							<option value="on">ON</option>
                                 						</select>
                             						</div>
 								</div>
