@@ -9,6 +9,7 @@ import _rpg
 import time
 import subprocess
 import commands
+months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 vcp_dir = '/export/home/orpg7/src/cpc001/tsk046/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
@@ -51,7 +52,18 @@ def RS():
 	data_trans = [RS_states['datatrans'][key] for key in RS_states['datatrans'].keys() if (key & RS_dict['RS_DATA_TRANS_ENABLED']) > 0]
 	
 	alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
-	RS_dict.update({'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
+	alarm_status = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_CODE)	
+	latest_alarm_text = _rpg.liborpg.orpgrat_get_alarm_text(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_ALARM))
+	yr = str(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_YEAR))
+	mo = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_MONTH)
+	day = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_DAY)
+	hr = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_HOUR)
+	min = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_MINUTE)
+	sec = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_SECOND)
+	latest_alarm_timestamp = months[mo-1]+' '+str(day)+','+yr[2]+yr[3]+' ['+str(hr)+':'+str(min)+':'+str(sec)+']'
+	latest_alarm = {'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
+	
+	RS_dict.update({'latest_alarm':latest_alarm,'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
 	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
 def RPG():

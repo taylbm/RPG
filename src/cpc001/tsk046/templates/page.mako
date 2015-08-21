@@ -23,12 +23,6 @@
 ###
 
 <div data-role="page" id="${self.attr.page_id}" class="${self.attr.page_classes}">
-
-
-    <div role="main" class="ui-content">
-
-        ${next.body()}
-    </div>
-
+${next.body()}
 </div>
 

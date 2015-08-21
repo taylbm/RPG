@@ -56,97 +56,160 @@
     var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
     var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
     var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
-    RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};
+    RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};	
+    var actionflag = {}
 	$(document).ready(function(){
 		$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 		$(".nav-item").css('background-color','#002060');
 
 		$(".toggle").on('slidestop',function(){		
 			var controlname = $(this).attr("id")
-			var current = $(this).val();	
-			var cancel;var confirmation;
-			if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
-			$("#popup-link").click();
-			var child1 = $(this).find("option:first-child").html()
-			var child2 = $(this).find("option:last-child").html()
-			var displayname = $(this).attr("alt")
-			if (current=="off"){
-			$("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child1+' ?')
-			}
-			else{$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')}
-			$("#pop-cancel").on('click',function(){
-				$("#"+controlname).val(cancel).slider('refresh')
-			});			
-			$("#pop-confirm").on('click',function(){
-				if (current == "off"){
-					if (displayname == "SAILS" || displayname  == "AVSET"){
-					$("#contain"+controlname+" .ui-slider-label-a").text('Pending').attr('style','background-color:#FCFC23 !important')
-					$("#"+controlname).slider('refresh')}
+			if (controlname != "RDA_Messages"){
+				var displayname = $(this).attr("alt")
+				$.getJSON("/update",function(data){
+                        		actionflag[controlname] = data['RPG_dict']['ORPGVST']
+				});
+				var current = $(this).val();	
+				var cancel;var confirmation;
+				if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
+				if (controlname == "PRF_Mode"){
+					$("#prf_control").click();
+				}
+				else{
+					$("#popup-link").click();
+					var child1 = $(this).find("option:first-child").html()
+					var child2 = $(this).find("option:last-child").html()
+					var displayname = $(this).attr("alt")
+					if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
+						if (current=="on"){
+                                			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
+                        			}
+                        			else{
+							$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
+						}
 					}
-				$("#"+controlname).val(confirmation).slider('refresh')	
-			});
+					else{
+						if (current=="off"){
+							$("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child1+' ?')
+						}
+						else{
+							$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')
+						}
+					}
+					$("#pop-cancel").on('click',function(){
+						$("#"+controlname).val(cancel).slider('refresh')
+					});			
+					$("#pop-confirm").on('click',function(){
+						if (current == "on"){
+							if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
+								$("#"+controlname+"_contain .ui-slider-label-a").text('PENDING')
+								if(displayname == "CMD" || displayname =="Super-Res"){
+									$('#'+controlname+'_contain .ui-slider-label-a').removeClass('normal-ops').addClass('minor-alarm')
+								}
+								$("#"+controlname).slider('refresh')
+							}
+						}
+						$("#"+controlname).val(confirmation).slider('refresh')	
+					});
+				}
+			}
 
 		});
         	var item = Object.keys(RS_TOGGLE);
 
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
-				$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
-				if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
-                                	if (data['RPG_dict']['RPG_SAILS']){
-                                        	$('#RPG_SAILS').val('on').slider('refresh');
-                                       		$('#SAILS_Exception').val('on').slider('refresh');
-						$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
-                                	}
-                                	else{
-                                        	$('#RPG_SAILS').val('off').slider('refresh');
-                                        	$('#SAILS_Exception').val('off').slider('refresh');
-                                	}
-                        	}
-      
-                       		if(data['PMD_dict']['model_update']){
-					$('#Model_Update').val('on').slider('refresh')
+				var flags = Object.keys(actionflag)
+				for (flag in flags){
+					if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
+						delete actionflag[flags[flag]]
+					}
 				}
-                        	else{
-					$('#Model_Update').val('off').slider('refresh')	
+				if (Object.keys(actionflag).indexOf('AVSET_Exception') < 0){
+					$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
 				}
-                        	if(data['PMD_dict']['vad_update']){
-					$('#VAD_Update').val('on').slider('refresh')
+				if (Object.keys(actionflag).indexOf('SAILS_Exception') < 0){
+					if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
+                                		if (data['RPG_dict']['RPG_SAILS']){
+                                        		$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+                                        		$('#SAILS_Exception').val('on').slider('refresh');
+                                		}
+                                		else{
+                                        		$('#SAILS_Exception').val('off').slider('refresh');
+                                		}
+                        		}       
+                        		else{
+                                		if(data['RPG_dict']['RPG_SAILS']){
+                                        		$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+                                        		$('#SAILS_Exception').val('on').slider('refresh');
+
+                                		}	
+                                		else{
+                                     			$('#SAILS_Exception').val('off').slider('refresh');
+                                      		}
+
+                        		}
+				 }
+     				if(Object.keys(actionflag).indexOf('Model_Update') < 0){ 
+                       			if(data['PMD_dict']['model_update']){
+						$('#Model_Update').val('on').slider('refresh')
+					}
+                        		else{
+						$('#Model_Update').val('off').slider('refresh')	
+					}
 				}
-                        	else{
-					$('#VAD_Update').val('off').slider('refresh')
+				if(Object.keys(actionflag).indexOf('VAD_Update') < 0){
+                        		if(data['PMD_dict']['vad_update']){
+						$('#VAD_Update').val('on').slider('refresh')
+					}
+                        		else{
+						$('#VAD_Update').val('off').slider('refresh')
+					}
 				}
- 				switch(data['PMD_dict']['prf']){
-                                	case 'CELL_BASED': case 'STORM_BASED':
-                                        	$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
-                                        	$('#PRF_Mode').val('on').slider('refresh')
-                                        	break;
-                                	case 'AUTO_PRF':
-                                        	$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
-                                        	$('#PRF_Mode').val('on').slider('refresh')
-                                        	break;
-                                	case 'MANUAL_PRF':
-                                        	$('#PRF_Mode').val('off').slider('refresh')
-                                        	break;
-                        	}
+				if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
+ 					switch(data['PMD_dict']['prf']){
+                                		case 'CELL_BASED': case 'STORM_BASED':
+                                        		$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+                                        		$('#PRF_Mode').val('on').slider('refresh')
+                                        		break;
+                                		case 'AUTO_PRF':
+                                        		$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                                        		$('#PRF_Mode').val('on').slider('refresh')
+                                        		break;
+                                		case 'MANUAL_PRF':
+                                        		$('#PRF_Mode').val('off').slider('refresh')
+                                        		break;
+                        		}
+				}
 				if(data['PMD_dict']['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
 				else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
-				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM').addClass('normal-ops')}
-				else{$('#Precip_contain').html('NO ACCUM').addClass('minor-alarm')}
-				if (data['RPG_dict']['RPG_SAILS']){$('#RPG_SAILS').val('on').slider('refresh')}
-                        	else{$('#RPG_SAILS').val('off').slider('refresh')}
+				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM')}
+				else{$('#Precip_contain').html('NO ACCUM')}
                         	for (i in item){
                                 	var value = item[i]
-                                	var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
-                			$("#"+value).val(retrieved).slider("refresh")
+					if(Object.keys(actionflag).indexOf(value) < 0){
+                                		var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
+                				$("#"+value).val(retrieved).slider("refresh")
+						$('#'+value+'_status .ui-slider .ui-slider-label-a').text('ENABLED')
+						$('#'+value+'_contain .ui-slider-label-a').removeClass('minor-alarm').addClass('normal-ops')
+					}
                         	}
-
-				if (data['RPG_dict']['RPG_SAILS']){$('#RPG_SAILS').val('on').slider('refresh')}
-				else{$('#RPG_SAILS').val('off').slider('refresh')}
-				if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch').val('on').slider('refresh')}
-				else{$('#Precip_Switch').val('off').slider('refresh')}
-				if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch').val('on').slider('refresh')}
-                                else{$('#Clear_Air_Switch').val('off').slider('refresh')}
+				if(Object.keys(actionflag).indexOf('Precip_Switch') < 0){
+					if(data['RPG_dict']['auto_mode'][0]){
+						$('#Precip_Switch').val('on').slider('refresh')
+					}
+					else{
+						$('#Precip_Switch').val('off').slider('refresh')
+					}
+				}
+				if(Object.keys(actionflag).indexOf('Clear_Air_Switch') < 0){
+					if(data['RPG_dict']['auto_mode'][1]){
+						$('#Clear_Air_Switch').val('on').slider('refresh')
+					}
+                                	else{
+						$('#Clear_Air_Switch').val('off').slider('refresh')
+					}
+				}
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
 			});
@@ -241,7 +304,7 @@
                                                                 </div>
                                                                 <div class="ui-block-b">
                                                                         <div style="display:inline-block" class="containing-element-lg">
-                                                                                <select alt="SAILS Mismatch" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
+                                                                                <select alt="SAILS" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
                                                                                         <option select value="off">DISABLED</option>
                                                                                         <option value="on">ENABLED</option>
                                                                                 </select>
@@ -254,7 +317,7 @@
                                         			</div>
                                         			<div class="ui-block-b">
                                         				<div style="display:inline-block" class="containing-element-lg">
-                                                                                <select class="toggle" alt="AVSET Mismatch"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
+                                                                                <select class="toggle" alt="AVSET"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
                                                                                         <option select value="off">DISABLED</option>
                                                                                         <option value="on">ENABLED</option>
                                                                                 </select>
@@ -280,7 +343,7 @@
 									<button type="button" id="Mode_Conflict" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
 								</div>
 								<div class="ui-block-b" id="Mode_Conflict_status">
-									<button id="Mode_Conflict_contain" type="button" style="font-size:11px;">N/A</button>
+									<button id="Mode_Conflict_contain" type="button" style="font-size:11px;color:black">N/A</button>
 								</div>
 
 							</div>
@@ -291,7 +354,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
-										<select alt="Clear_Air_Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">MANUAL</option>
                                 							<option select value="on">AUTO</option>
                                 						</select>
@@ -304,7 +367,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element">
-										<select alt="Precip_Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">MANUAL</option>
                                 							<option select id="Precip_Switch_label" value="on">AUTO</option>
                                 						</select>
@@ -322,7 +385,7 @@
                                                                         <button id="Precip" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Status</button>
                                                                 </div>
                                                                 <div class="ui-block-b">
-									<button id="Precip_contain" type="button" style="font-size:11px;" data-theme="b">N/A</button>
+									<button class="normal-ops" id="Precip_contain" type="button" style="font-size:11px;color:black" data-theme="b">N/A</button>
                                                                 </div>
                                                         </div>
 	
@@ -333,7 +396,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
-										<select alt="Super Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Super-Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">DISABLED</option>
                                 							<option value="on">ENABLED</option>
                                 						</select>
@@ -385,7 +448,7 @@
                                                                 <div class="ui-block-a">
                                                                         <button id="Load_Shed" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Load Shed</button>                                                               		       </div>
                                                                 <div class="ui-block-b">
-                                                                        <button id="Load_Shed_contain" type="button" style="font-size:11px;background-color:#51FF22" data-theme="b">NORMAL</button>
+                                                                        <button id="Load_Shed_contain" type="button" style="font-size:11px;background-color:#51FF22;color:black" data-theme="b">NORMAL</button>
                                                                 </div>
                                                         </div>
 							<div class="ui-grid-a center" id="RDA_Messages_status">

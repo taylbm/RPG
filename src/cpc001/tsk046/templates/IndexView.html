@@ -57,7 +57,7 @@ var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
 var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
 var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
 RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};
-var actionflag = new Array();
+var actionflag = {} 
 function toRadians(deg) {
 return deg * Math.PI / 180
 }
@@ -116,48 +116,87 @@ maincircle.fillStyle="#FFFFFF";
 	$(".toggle").on('slidestop',function(){		
 		var controlname = $(this).attr("id")
 		var displayname = $(this).attr("alt")
+		$.getJSON("/update",function(data){
+                	actionflag[controlname] = data['RPG_dict']['ORPGVST']
+                });
 		var current = $(this).val();	
 		var cancel;var confirmation;
-		console.log(controlname)
 		if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
-		if (displayname == "SAILS" || displayname == "AVSET"){
-			actionflag.length = 0; 
-			actionflag.push(displayname);
-			var child1 = $(this).find("option:first-child").html()
-			$('#popup-link').click();
-			if (current=="on"){
-                		$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
-                	}
-                	else{$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')}
-                	$("#pop-cancel").on('click',function(){	
-				$('#'+displayname+'_Exception').val(cancel).slider('refresh');
-				actionflag.length = 0;	
-                	});                     
-                	$("#pop-confirm").on('click',function(){
-				if(confirmation == "on"){$('#'+controlname+'_contain .ui-slider .ui-slider-label-a').text('PENDING')}
-                        	$("#"+controlname).val(confirmation).slider('refresh');
-				$('#'+displayname+'_Exception').val(confirmation).slider('refresh');
-				actionflag.length = 0;
-				actionflag.push(displayname);  
-                	});
+		if (controlname == "PRF_Mode"){
+                	$("#prf_control").click();
+                }
+		else {
+			if (['SAILS','AVSET','CMD','Super-Res','SAILS-Exception','AVSET-Exception'].indexOf(displayname) >=0){
+				if(displayname == "CMD" || displayname == "Super-Res"){
+                                	$('#'+controlname+'_contain .ui-slider-label-a').removeClass('normal-ops').addClass('minor-alarm')
+                                }  
+				var child1 = $(this).find("option:first-child").html()
+				$('#popup-link').click();
+				if (current=="on"){
+                			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
+                		}
+                		else{
+					$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
+				}
+                		$("#pop-cancel").on('click',function(){	
+					$('#'+displayname+'_Exception').val(cancel).slider('refresh');
+                		});                     
+                		$("#pop-confirm").on('click',function(){
+					if (displayname=="SAILS" || displayname=="SAILS-Exception"){
+						if (confirmation == "on"){
+							$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+							$('#RPG_SAILS').val('on').slider('refresh')
+							$('#SAILS_Exception').val('on').slider('refresh')
+							$('#SAILS_Exception_contain').addClass('hide')
+							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')	
+						}	
+						else{
+                                                        $('#RPG_SAILS').val('off').slider('refresh')
+                                                        $('#SAILS_Exception').val('off').slider('refresh')
+                                                        $('#SAILS_Exception_contain').removeClass('hide')
+						}
+					}
+					if (displayname=="AVSET" || displayname=="AVSET-Exception"){	
+						if (confirmation=="on"){
+                                        		$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                                                	$('#RS_AVSET').val('on').slider('refresh')
+                                                	$('#AVSET_Exception').val('on').slider('refresh')
+                                                	$('#AVSET_Exception_contain').addClass('hide')
+                                                	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING')        
+                                        	}
+						else{
+							$('#RS_AVSET').val('off').slider('refresh')
+                                                        $('#AVSET_Exception').val('off').slider('refresh')
+                                                        $('#AVSET_Exception_contain').removeClass('hide')
+                                                }
+					}
+
+
+					
+                        		$("#"+controlname).val(confirmation).slider('refresh');
+					$('#'+displayname+'_Exception').val(confirmation).slider('refresh');
+                		});
 
 			
-		}
-		else{
-			$("#popup-link").click();
-			var child1 = $(this).find("option:first-child").html()
-			var child2 = $(this).find("option:last-child").html()
-			if (current=="on"){
-				$("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child2+' ?')
 			}
-			else{$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')}
-			$("#pop-cancel").on('click',function(){
-				$("#"+controlname).val(cancel).slider('refresh')
-			});			
-			$("#pop-confirm").on('click',function(){
-				$("#"+controlname).val(confirmation).slider('refresh')	
-			});
-		    }
+			else{
+				$("#popup-link").click();
+				var child1 = $(this).find("option:first-child").html()
+				var child2 = $(this).find("option:last-child").html()
+				if (current=="on"){
+					$("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child2+' ?')
+				}
+				else{
+					$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')
+				}
+				$("#pop-cancel").on('click',function(){
+					$("#"+controlname).val(cancel).slider('refresh')
+				});			
+				$("#pop-confirm").on('click',function(){
+					$("#"+controlname).val(confirmation).slider('refresh')
+				});
+		    	}
+		}
 
 
 	});
@@ -168,23 +207,38 @@ maincircle.fillStyle="#FFFFFF";
 	});		
 	setInterval(function (){	
 		$.getJSON("/update",function(data){
-			
-			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
-			if(data['PMD_dict']['model_update']){
-				$('#Model_Update').val('on').slider('refresh');
-				$('#Model_Update_contain').addClass('hide')
+			var flags = Object.keys(actionflag)
+                       	for (flag in flags){
+                        	if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
+                                	delete actionflag[flags[flag]]
+                                }
+                        }
+			if (data['RS_dict']['latest_alarm']['alarm_status']){
+				$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
 			}
 			else{
-				$('#Model_Update').val('off').slider('refresh');
-				$('#Model_Update_contain').removeClass('hide')
+				$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
+			}	
+			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
+			if(Object.keys(actionflag).indexOf('Model_Update') < 0){
+				if(data['PMD_dict']['model_update']){
+					$('#Model_Update').val('on').slider('refresh');
+					$('#Model_Update_contain').addClass('hide')
+				}
+				else{
+					$('#Model_Update').val('off').slider('refresh');
+					$('#Model_Update_contain').removeClass('hide')
+				}
 			}
-			if(data['PMD_dict']['vad_update']){
-				$('#VAD_Update').val('on').slider('refresh');
-				$('#VAD_Update_contain').addClass('hide')
-			}
-                        else{
-			$('#VAD_Update').val('off').slider('refresh');
-			$('#VAD_Update_contain').removeClass('hide')
+			if(Object.keys(actionflag).indexOf('VAD_Update') < 0){
+				if(data['PMD_dict']['vad_update']){
+					$('#VAD_Update').val('on').slider('refresh');
+					$('#VAD_Update_contain').addClass('hide')
+				}
+                        	else{
+				$('#VAD_Update').val('off').slider('refresh');
+				$('#VAD_Update_contain').removeClass('hide')
+				}	
 			}
                         if(data['PMD_dict']['mode_conflict']){
 				$("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
@@ -195,32 +249,50 @@ maincircle.fillStyle="#FFFFFF";
 				$("#Mode_Conflict_status").addClass('hide')
 			}
 			var state = Object.keys(data['RS_dict']['RDA_static']);
-			if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']] & actionflag != 'SAILS'){
-				if (data['RPG_dict']['RPG_SAILS']){
-					$('#RPG_SAILS').val('on').slider('refresh');
-					$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ENABLED')
-					$('#SAILS_Exception').val('on').slider('refresh');
-					$('#SAILS_Exception_contain').addClass('hide');
+			if (Object.keys(actionflag).indexOf('SAILS_Exception') >= 0 || Object.keys(actionflag).indexOf('RPG_SAILS') >= 0){}
+			else{
+				if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
+					if (data['RPG_dict']['RPG_SAILS']){
+						$('#RPG_SAILS').val('on').slider('refresh');
+                                                $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+						$('#SAILS_Exception').val('on').slider('refresh');
+						$('#SAILS_Exception_contain').addClass('hide');
+					}
+					else{
+						$('#RPG_SAILS').val('off').slider('refresh');
+						$('#SAILS_Exception').val('off').slider('refresh');
+						$('#SAILS_Exception_contain').removeClass('hide');
+					}
 				}
 				else{
-					$('#RPG_SAILS').val('off').slider('refresh');
-					$('#SAILS_Exception').val('off').slider('refresh');
-					$('#SAILS_Exception_contain').removeClass('hide');
+					if(data['RPG_dict']['RPG_SAILS']){
+						$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+						$('#SAILS_Exception').val('on').slider('refresh');
+                                       		$('#SAILS_Exception_contain').addClass('hide');
+					}
+					else{
+						$('#RPG_SAILS').val('off').slider('refresh');
+                                        	$('#SAILS_Exception').val('off').slider('refresh');
+                                        	$('#SAILS_Exception_contain').addClass('hide');
+					}
 				}
+
 			}	
+		
+			if (Object.keys(actionflag).indexOf('RS_AVSET') >=0 ||Object.keys(actionflag).indexOf('AVSET_Exception') >=0){}
 			else{
-				if(data['RPG_dict']['RPG_SAILS'] & actionflag != 'SAILS'){
-					$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+				$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
+				if(RS_AVSET[data['RS_dict']['RS_AVSET']] =='on'){
+					$('#AVSET_Exception_contain').addClass('hide')
+				}
+				else{
+					$('#AVSET_Exception_contain').removeClass('hide')
 				}
 			}	
-						
-			if(actionflag != 'AVSET'){$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')}	
-			if(RS_AVSET[data['RS_dict']['RS_AVSET']] =='on'){$('#AVSET_Exception_contain').addClass('hide')}
-			else{$('#AVSET_Exception_contain').removeClass('hide')}	
 			for (i in item){
 				var value = item[i]
 				var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
-				if (value == "RS_AVSET" & actionflag == 'AVSET'){
+				if (value == "RS_AVSET" & (Object.keys(actionflag).indexOf('RS_AVSET') >=0 ||Object.keys(actionflag).indexOf('AVSET_Exception') >=0)){
 				}
 				else{
 					if (retrieved == "on"){$("#"+value+"_status").addClass('hide')}
@@ -302,27 +374,40 @@ maincircle.fillStyle="#FFFFFF";
                                         $('#CONTROL_STATUS').html('EITHER')
 					break;
 			}
-			switch(data['PMD_dict']['prf']){
-				case 'CELL_BASED': case 'STORM_BASED':
-					$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
-					$('#PRF_Mode').val('on').slider('refresh')
-					$('#PRF_Mode_block').attr('class','hide')
-					break;
-				case 'AUTO_PRF':
-                                        $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
-                                        $('#PRF_Mode').val('on').slider('refresh')
-					$('#PRF_Mode_block').attr('class','hide')
-					break;
-				case 'MANUAL_PRF':
-					$('#PRF_Mode').val('off').slider('refresh')
-					$('#PRF_Mode_block').attr('class','show')
-					break;
+			if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
+				switch(data['PMD_dict']['prf']){
+					case 'CELL_BASED': case 'STORM_BASED':
+						$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+						$('#PRF_Mode').val('on').slider('refresh')
+						$('#PRF_Mode_block').attr('class','hide')
+						break;
+					case 'AUTO_PRF':
+                                        	$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                                        	$('#PRF_Mode').val('on').slider('refresh')
+						$('#PRF_Mode_block').attr('class','hide')
+						break;
+					case 'MANUAL_PRF':
+						$('#PRF_Mode').val('off').slider('refresh')
+						$('#PRF_Mode_block').attr('class','show')
+						break;
+				}
 			}
-			$('#PRF_Mode').slider('refresh')
-			if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch').val('on').slider('refresh')}
-                        else{$('#Precip_Switch').val('off').slider('refresh')}
-                        if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch').val('on').slider('refresh')}
-                        else{$('#Clear_Air_Switch').val('off').slider('refresh')}
+			if(Object.keys(actionflag).indexOf('Precip_Switch') < 0){
+				if(data['RPG_dict']['auto_mode'][0]){
+					$('#Precip_Switch').val('on').slider('refresh')
+				}
+                        	else{
+					$('#Precip_Switch').val('off').slider('refresh')
+				}
+			}
+			if(Object.keys(actionflag).indexOf('Clear_Air_Switch') < 0){
+                        	if(data['RPG_dict']['auto_mode'][1]){
+					$('#Clear_Air_Switch').val('on').slider('refresh')
+				}
+                        	else{
+					$('#Clear_Air_Switch').val('off').slider('refresh')
+				}
+			}
 			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops')}
 			if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch_status').addClass('hide')}
 			if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch_status').addClass('hide')}	
@@ -727,7 +812,7 @@ maincircle.fillStyle="#FFFFFF";
 							</div>
 							<div class="ui-block-b">
 								<div style="display:inline-block" class="containing-element-lg">
-									<select alt="SAILS Available" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
+									<select alt="SAILS-Exception" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">DISABLED</option>
 										<option value="on">ENABLED</option>
 									</select>
@@ -740,7 +825,7 @@ maincircle.fillStyle="#FFFFFF";
 							</div>
 							<div class="ui-block-b">
 								<div style="display:inline-block" class="containing-element-lg">
-									<select class="toggle" alt="AVSET Exception"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
+									<select class="toggle" alt="AVSET-Exception"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">DISABLED</option>
 										<option value="on">ENABLED</option>
 									</select>
@@ -788,7 +873,7 @@ maincircle.fillStyle="#FFFFFF";
 							</div>
 							<div class="ui-block-b">
 								<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
-									<select alt="Super Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
+									<select alt="Super-Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
 										<option value="off">DISABLED</option>
 										<option value="on">ENABLED</option>
 									</select>
