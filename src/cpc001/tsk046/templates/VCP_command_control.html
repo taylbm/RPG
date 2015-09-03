@@ -203,6 +203,9 @@ $(document).ready(function(){
 
 	})(i);
     }
+                $('#close').click(function(){
+                        window.close();
+                }); 
 
 }
 
@@ -215,7 +218,7 @@ $(document).ready(function(){
 ### body
 ###
             <div data-role="header">
-                <a href="#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
+                <a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
                 <h2>VCP Mode and Control</h2>
             </div>
 	        <div id="content">
@@ -290,7 +293,7 @@ vcp_list.remove("32")
         			    </thead>
         			    </table>
         			<p style="font-size:11px" align="left">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p><p align="left">Update Interval: N/A</p></a>
-                                <a href="#vcp-desc" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${vcp} Sample 				Info</p></a>
+                                <a href="#vcp-desc" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${vcp} Info</p></a>
                 </div>
 
 
@@ -384,7 +387,7 @@ vcp_list.remove("32")
 
                 <div style="display:inline-block">
                     <form>
-                        <fieldset data-role="controlgroup" data-type="horizontal">
+                        <fieldset data-theme="b" data-role="controlgroup" data-type="horizontal">
                             <input type="radio" name="vel-select" id="vel-1" value="on" checked="checked">
                             <label for="vel-1">0.97kts</label>
                             <input type="radio" name="vel-select" id="vel-2" value="off">
@@ -394,7 +397,7 @@ vcp_list.remove("32")
 				</div>	
 				
 				<div style="display:inline-block;float:right"
-	                <div data-role="controlgroup" data-type="horizontal">
+	                <div data-theme="b" data-role="controlgroup" data-type="horizontal">
 	                   <a href="#vcp-def" class="ui-btn ui-corner-all">View RPG VCP Definitions</a>
 	                   <a href="#vcp-def" class="ui-btn ui-corner-all">View Current VCP</a>
 	                   <a href="#" class="ui-btn ui-corner-all">Restart Current VCP</a>

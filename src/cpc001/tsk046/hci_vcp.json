@@ -2,9 +2,7 @@
 		"checkImageName":
 			"checkmark.png",
 		"deleteImageName":
-			"delete.png"
-        "vcpDirPath":
-"/export/home/orpg7/src/cpc001/tsk046/vcp/",
+			"delete.png",
         "testPlotRanges":[
                   0,
                   10,

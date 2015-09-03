@@ -58,26 +58,87 @@ var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
 var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
 RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};
 var actionflag = {} 
+var cookieRaid = {}
+var rpgAlarms = {
+	"CON":"Node Connectivity Failure",
+	"RPGCTLFL":"RPG Control Failure",
+	"DBFL":"Data Base Failure",
+	"MEDIAFL":"Media Failure",
+	"WBDLS":"Wideband Loadshedding",
+	"PRDSTGLS":"Product Storage Loadshedding",
+	"RDAWB":"RDA Wideband Alarm",
+	"RPGRPGFL":"RPG/RPG Link Failure",
+	"REDCHNER":"Redundant Channel Error",
+	"FLACCFL":"File Access Failure",
+	"RDAINLSRDA":"Radial Input Load Shed",
+	"RPGINLSRPG":"Radial Input Load Shed",
+	"RPGTSKFL":"RPG Task Failure",
+	"DISTRI":"Product Distribution",
+	"WBFAILRE":"Wideband Failure"
+}
 function toRadians(deg) {
 return deg * Math.PI / 180
 }
+function getCookie(cname,truthSwitch) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) {
+        	if (truthSwitch){
+                        if (c.substring(name.length,c.length) == "on") return true 
+                        else return false
+                }
+                else{
+                        return c.substring(name.length,c.length)
+                }
+	 }
+    }
+    return "NULL";
+}
+
+
+function deleteAllCookies() {
+    var cookies = document.cookie.split(";");
+
+    for (var i = 0; i < cookies.length; i++) {
+    	var cookie = cookies[i];
+    	var eqPos = cookie.indexOf("=");
+    	var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    	document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+}
+function closest(array,num){
+    var i=0;
+    var minDiff=1000;
+    var ans;
+    for(i in array){
+         var m=Math.abs(num-array[i]);
+         if(m<minDiff){ 
+                minDiff=m; 
+                ans=array[i]; 
+            }
+      }
+    return ans;
+}
+		
 $(document).ready(function(){
+	$.getJSON('static/rpg_alarms.json',function(data){
+		console.log($.parseJSON(data))
+	});
+	
 	$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 	$(".nav-item").css('background-color','#002060');
-
-var canvas=document.getElementById("radome");
-var maincircle=canvas.getContext("2d");
-maincircle.fillStyle="white";maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();
-maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();
-maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2,Math.PI);
-maincircle.lineTo(150,150);
-maincircle.closePath();
-maincircle.fill();
-maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();
-maincircle.fillStyle="#FFFFFF";
-	maincircle.font = "bold 80px Helvetica";
-	maincircle.fillStyle = 'black';
-	maincircle.fillText("0.5",100,120);
+	var canvas=document.getElementById("radome");
+	var maincircle=canvas.getContext("2d");
+	maincircle.fillStyle="white";maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();
+	maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();
+	maincircle.lineTo(150,150);
+	maincircle.closePath();
+	maincircle.fill();
+	maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();
+	maincircle.fillStyle="#FFFFFF";
 	maincircle.strokeRect(60,290,180,54)
 	maincircle.strokeRect(60,344,180,54)
 	maincircle.beginPath();
@@ -113,13 +174,32 @@ maincircle.fillStyle="#FFFFFF";
 	maincircle.lineTo(300,393)
 	maincircle.stroke();
 	document.getElementById("radome").style.zIndex = 1;
-	$(".toggle").on('slidestop',function(){		
+	$.getJSON("/update",function(data){
+        	cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
+        });
+
+	$(".toggle").on('slidestop',function(){
+		var date0 = new Date();
+		date0.setTime(date0.getTime()+900000)		
 		var controlname = $(this).attr("id")
 		var displayname = $(this).attr("alt")
-		$.getJSON("/update",function(data){
-                	actionflag[controlname] = data['RPG_dict']['ORPGVST']
-                });
-		var current = $(this).val();	
+		var current = $(this).val();
+		if(displayname.split('-')[0] == "SAILS"){
+			$.getJSON("/update",function(data){
+                        	actionflag['SAILS'] = data['RPG_dict']['ORPGVST']
+                	});
+		}
+		else if(displayname.split('-')[0] == "AVSET"){
+			$.getJSON("/update",function(data){
+                        	actionflag['AVSET'] = data['RPG_dict']['ORPGVST']
+                	});
+                }
+		else{
+			$.getJSON("/update",function(data){
+                        	actionflag[controlname] = data['RPG_dict']['ORPGVST']
+                	});
+
+		}
 		var cancel;var confirmation;
 		if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
 		if (controlname == "PRF_Mode"){
@@ -127,9 +207,6 @@ maincircle.fillStyle="#FFFFFF";
                 }
 		else {
 			if (['SAILS','AVSET','CMD','Super-Res','SAILS-Exception','AVSET-Exception'].indexOf(displayname) >=0){
-				if(displayname == "CMD" || displayname == "Super-Res"){
-                                	$('#'+controlname+'_contain .ui-slider-label-a').removeClass('normal-ops').addClass('minor-alarm')
-                                }  
 				var child1 = $(this).find("option:first-child").html()
 				$('#popup-link').click();
 				if (current=="on"){
@@ -170,11 +247,17 @@ maincircle.fillStyle="#FFFFFF";
                                                         $('#AVSET_Exception_contain').removeClass('hide')
                                                 }
 					}
-
-
+					if(displayname.split('-')[0] == "SAILS"){
+                        			document.cookie = "SAILS"+"="+current+"; expires="+date0.toUTCString();
+		                	}
+                			else if(displayname.split('-')[0] == "AVSET"){
+                        			document.cookie = "AVSET"+"="+current+"; expires="+date0.toUTCString();
+                			}
+                			else{
+                       	 			document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
+                			}
+				
 					
-                        		$("#"+controlname).val(confirmation).slider('refresh');
-					$('#'+displayname+'_Exception').val(confirmation).slider('refresh');
                 		});
 
 			
@@ -194,6 +277,8 @@ maincircle.fillStyle="#FFFFFF";
 				});			
 				$("#pop-confirm").on('click',function(){
 					$("#"+controlname).val(confirmation).slider('refresh')
+					$('#'+controlname+'_status').addClass('hide')
+					document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
 				});
 		    	}
 		}
@@ -204,41 +289,77 @@ maincircle.fillStyle="#FFFFFF";
 	var item = Object.keys(RS_TOGGLE);
 	$.getJSON("/update",function(data){
 		maincircle.fillText(data['ADAPT']['ICAO'],125,350)
-	});		
+	});
 	setInterval(function (){	
 		$.getJSON("/update",function(data){
+			maincircle.clearRect(0,0,canvas.width,285)
+			maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
+        		maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
+			maincircle.font = "bold 80px Helvetica";
+        		maincircle.fillStyle = 'black';
+       			maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 ,-Math.PI / 2 + toRadians(data['RS_dict']['az']));
+			maincircle.lineTo(150,150);
+       			maincircle.closePath();
+        		maincircle.fill();
+        		maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
+			maincircle.fillStyle="black";
+			var elevation = Math.round(closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el']) * 10) / 10
+			if(elevation % 1 == 0){
+				maincircle.fillText(elevation.toFixed(1),95,105);
+			}
+			else{
+				maincircle.fillText(elevation,95,105);
+			}
+			if(${context.get('last_elev')}[data['RS_dict']['RS_VCP_NUMBER']] == data['RS_dict']['el']){
+				maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
+			}
+			if(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']][closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el'])] == "3"){
+				maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
+			}
+			maincircle.font = "bold 18px Helvetica";
+        		maincircle.fillText("SAILS:",50,160)
+        		maincircle.fillText("AVSET:",50,210)
+
 			var flags = Object.keys(actionflag)
                        	for (flag in flags){
                         	if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
                                 	delete actionflag[flags[flag]]
                                 }
                         }
-			if (data['RS_dict']['latest_alarm']['alarm_status']){
-				$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
+			if(cookieRaid['initial'] != data['RPG_dict']['ORPGVST']){
+				deleteAllCookies();
+				cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
 			}
-			else{
-				$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
-			}	
-			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
-			if(Object.keys(actionflag).indexOf('Model_Update') < 0){
-				if(data['PMD_dict']['model_update']){
-					$('#Model_Update').val('on').slider('refresh');
-					$('#Model_Update_contain').addClass('hide')
+			if(data['RS_dict']['latest_alarm']['valid']){
+				if (data['RS_dict']['latest_alarm']['alarm_status']){
+					$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
 				}
 				else{
-					$('#Model_Update').val('off').slider('refresh');
-					$('#Model_Update_contain').removeClass('hide')
+					$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
 				}
 			}
-			if(Object.keys(actionflag).indexOf('VAD_Update') < 0){
-				if(data['PMD_dict']['vad_update']){
-					$('#VAD_Update').val('on').slider('refresh');
-					$('#VAD_Update_contain').addClass('hide')
+			else{
+				$('#marq3').html('').attr('style','background-color:white')
+			}
+			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
+			exception_list = ['Model_Update','VAD_Update','Precip_Switch','Clear_Air_Switch']
+			for (e in exception_list){
+				var exception = exception_list[e]
+				if(Object.keys(actionflag).indexOf(exception) <0){
+					var cookieCheck = getCookie(exception,1)
+					if (exception == "Model_Update" || exception == "VAD_Update"){var d = 'PMD_dict'}else{var d = 'RPG_dict'}
+					if(cookieCheck == "NULL"){cookieCheck = data[d][exception]}
+					if(cookieCheck){
+                                        	$('#'+exception).val('on').slider('refresh');
+                                        	$('#'+exception+'_status').addClass('hide')
+                                	}
+                                	else{
+                                        	$('#'+exception).val('off').slider('refresh');
+                                        	$('#'+exception+'_status').removeClass('hide')
+                                	}
+
+
 				}
-                        	else{
-				$('#VAD_Update').val('off').slider('refresh');
-				$('#VAD_Update_contain').removeClass('hide')
-				}	
 			}
                         if(data['PMD_dict']['mode_conflict']){
 				$("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
@@ -249,12 +370,18 @@ maincircle.fillStyle="#FFFFFF";
 				$("#Mode_Conflict_status").addClass('hide')
 			}
 			var state = Object.keys(data['RS_dict']['RDA_static']);
-			if (Object.keys(actionflag).indexOf('SAILS_Exception') >= 0 || Object.keys(actionflag).indexOf('RPG_SAILS') >= 0){}
-			else{
-				if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
-					if (data['RPG_dict']['RPG_SAILS']){
+			if (Object.keys(actionflag).indexOf('SAILS') < 0){
+				var cookieCheck = getCookie('SAILS',1)
+				if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
+				if(${context.get('allow_sails')}[data['RS_dict']['RS_VCP_NUMBER']]){
+					if (cookieCheck){
+						if(getCookie('SAILS',1) != "NULL"){
+							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                                                }
+                                                else{
+							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+						}	
 						$('#RPG_SAILS').val('on').slider('refresh');
-                                                $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
 						$('#SAILS_Exception').val('on').slider('refresh');
 						$('#SAILS_Exception_contain').addClass('hide');
 					}
@@ -265,8 +392,14 @@ maincircle.fillStyle="#FFFFFF";
 					}
 				}
 				else{
-					if(data['RPG_dict']['RPG_SAILS']){
-						$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+					if(cookieCheck){
+						if(getCookie('SAILS',1) != "NULL"){
+							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
+						}
+						else{
+							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+						}
+						$('#RPG_SAILS').val('on').slider('refresh')
 						$('#SAILS_Exception').val('on').slider('refresh');
                                        		$('#SAILS_Exception_contain').addClass('hide');
 					}
@@ -279,24 +412,63 @@ maincircle.fillStyle="#FFFFFF";
 
 			}	
 		
-			if (Object.keys(actionflag).indexOf('RS_AVSET') >=0 ||Object.keys(actionflag).indexOf('AVSET_Exception') >=0){}
-			else{
-				$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
-				if(RS_AVSET[data['RS_dict']['RS_AVSET']] =='on'){
+			if (Object.keys(actionflag).indexOf('AVSET') < 0){
+				var cookieCheck = getCookie('AVSET',0)
+				if(cookieCheck == "NULL"){cookieCheck = RS_AVSET[data['RS_dict']['RS_AVSET']]}
+				$('#AVSET_Exception').val(cookieCheck).slider('refresh')
+				if(cookieCheck  =='on'){
 					$('#AVSET_Exception_contain').addClass('hide')
 				}
 				else{
 					$('#AVSET_Exception_contain').removeClass('hide')
 				}
+				
+
 			}	
 			for (i in item){
 				var value = item[i]
-				var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
-				if (value == "RS_AVSET" & (Object.keys(actionflag).indexOf('RS_AVSET') >=0 ||Object.keys(actionflag).indexOf('AVSET_Exception') >=0)){
-				}
-				else{
-					if (retrieved == "on"){$("#"+value+"_status").addClass('hide')}
-					$("#"+value).val(retrieved).slider("refresh")
+				var val = RS_TOGGLE[value][data['RS_dict'][value]]
+				if (val == 'on'){var retrieved = true}else{var retrieved = false}
+				if (value == "RS_AVSET"){
+					if (Object.keys(actionflag).indexOf('AVSET') < 0){
+						var cookieCheck = getCookie('AVSET',0)
+						if(cookieCheck != "NULL"){
+							val = cookieCheck
+							if(val == "on"){
+                                                        	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                                                	}
+						}
+						else{
+							$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
+						}
+						$("#RS_AVSET").val(val).slider('refresh')
+					}
+						
+						
+				}		
+				else{	
+					var cookieCheck = getCookie(value,1)
+                                	if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
+						if(cookieCheck){
+							$("#"+value+"_status").addClass('hide');
+                                                	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
+						}
+						else{
+							$("#"+value+"_status").removeClass('hide');
+                                                	$("#"+value).val('off').slider("refresh")
+                                                	$('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
+						}
+					}
+					else{
+						if(retrieved){
+							$("#"+value+"_status").addClass('hide');
+							$("#"+value).val('on').slider("refresh")
+						}
+						else{
+							$("#"+value+"_status").removeClass('hide');
+							$("#"+value).val('off').slider("refresh")	
+						}
+					}
 				}
 			}
 			
@@ -315,11 +487,15 @@ maincircle.fillStyle="#FFFFFF";
 						break;
 					case 'MAINTENANCE_MAN':
 						$("#grid1").attr('class','major-alarm');
+						$('#grid1title').attr('class','major-alarm');
 						$("#"+value2).attr('class','bar-border2 major-alarm');
+						$('#marq3').attr('class','major-alarm');
 						break;
 					case 'MAINTENANCE_REQ':
 						$("#grid1").attr('class','minor-alarm');
+						$('#grid1title').attr('class','minor-alarm');
 						$("#"+value2).attr('class','bar-border2 minor-alarm');
+						$('#marq3').attr('class','minor-alarm');
 						break;
 					case 'UNKNOWN':
 						$("#"+value2).attr('class','bar-border2 inop-indicator');
@@ -328,6 +504,7 @@ maincircle.fillStyle="#FFFFFF";
 						$('#'+value2).attr('class','bar-border2 inop-indicator');
 						$('#grid1').attr('class','inop');
 						$('#grid1title').attr('class','inop');
+						$('#marq3').attr('class','inop');
 						break;
 					case 'N/A':
 						$('#'+value2).html('N/A');
@@ -374,43 +551,24 @@ maincircle.fillStyle="#FFFFFF";
                                         $('#CONTROL_STATUS').html('EITHER')
 					break;
 			}
-			if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
-				switch(data['PMD_dict']['prf']){
-					case 'CELL_BASED': case 'STORM_BASED':
-						$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
-						$('#PRF_Mode').val('on').slider('refresh')
-						$('#PRF_Mode_block').attr('class','hide')
-						break;
-					case 'AUTO_PRF':
-                                        	$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
-                                        	$('#PRF_Mode').val('on').slider('refresh')
-						$('#PRF_Mode_block').attr('class','hide')
-						break;
-					case 'MANUAL_PRF':
-						$('#PRF_Mode').val('off').slider('refresh')
-						$('#PRF_Mode_block').attr('class','show')
-						break;
-				}
+			switch(data['PMD_dict']['prf']){
+				case 'CELL_BASED': case 'STORM_BASED':
+					$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+					$('#PRF_Mode').val('on').slider('refresh')
+					$('#PRF_Mode_block').attr('class','hide')
+					break;
+				case 'AUTO_PRF':
+                                        $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                                        $('#PRF_Mode').val('on').slider('refresh')
+					$('#PRF_Mode_block').attr('class','hide')
+					break;
+				case 'MANUAL_PRF':
+					$('#PRF_Mode').val('off').slider('refresh')
+					$('#PRF_Mode_block').attr('class','show')
+					break;
 			}
-			if(Object.keys(actionflag).indexOf('Precip_Switch') < 0){
-				if(data['RPG_dict']['auto_mode'][0]){
-					$('#Precip_Switch').val('on').slider('refresh')
-				}
-                        	else{
-					$('#Precip_Switch').val('off').slider('refresh')
-				}
-			}
-			if(Object.keys(actionflag).indexOf('Clear_Air_Switch') < 0){
-                        	if(data['RPG_dict']['auto_mode'][1]){
-					$('#Clear_Air_Switch').val('on').slider('refresh')
-				}
-                        	else{
-					$('#Clear_Air_Switch').val('off').slider('refresh')
-				}
-			}
+			
 			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops')}
-			if(data['RPG_dict']['auto_mode'][0]){$('#Precip_Switch_status').addClass('hide')}
-			if(data['RPG_dict']['auto_mode'][1]){$('#Clear_Air_Switch_status').addClass('hide')}	
 			var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
 			if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
 			$("#gen_level").attr('value',data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl'])	
@@ -493,7 +651,7 @@ maincircle.fillStyle="#FFFFFF";
 			if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
 			else{$('#v_delta_dbz0').addClass('normal-ops')}
 			$('#h_delta_dbz0').html(data['PMD_dict']['h_delta_dbz0']+'dB')			
-			$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')			
+			$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')
 		});
 		
 		
@@ -504,60 +662,59 @@ maincircle.fillStyle="#FFFFFF";
 		location.reload()
 	});
 	$('#Mode_Conflict_contain').click(function(){
-		window.location="button?id=hci_mode_status"
-		window.location="/"
+		window.open("/button?id=hci_mode_status","freeloader")
+		window.open(" ","freeloader")
 	});
 	$('#link').click(function(){
-		window.location="button?id=hci_rda_link"
-		window.location="/"
+		window.open("button?id=hci_rda_link","freeloader")
+		window.open(" ","freeloader")
 	});
 	$('#rda_control').click(function(){
-		window.location="/button?id=hci_rdc_orda"
-		window.location="/"
+		window.open("/button?id=hci_rdc_orda","freeloader")
+		window.open(" ","freeloader")
 	});
-	$('#perf_check_time_link').click(function(){
-		window.location="/button?id=hci_rdc_orda"
-		window.location="/"
-	});
-	$('#rda_perf').click(function(){
-		window.location="/button"
-		window.location="/"
+	$('#perf_check_time').click(function(){
+		window.open("/button?id=hci_rdc_orda","freeloader")
+		window.open(" ","freeloader")
 	});
 	$('#rda_alarms').click(function(){
-		window.location="/button?id=hci_rda_orda"
-		window.location="/"
+		window.open("/button?id=hci_rda_orda","freeloader")
+		window.open(" ","freeloader")
 	});	
-	
 	$('#rpg_control').click(function(){
-		window.location="/button?id=hci_rpc"
-		window.location="/"
+		window.open("/button?id=hci_rpc","freeloader")
+		window.open(" ","freeloader")
 	});	
-
 	$('#rpg_status').click(function(){
-		window.location="/button?id=hci_status"
-		window.location="/"
+		window.open("/button?id=hci_status","freeloader")
+		window.open(" ","freeloader")
 	});	
-		
-
 	$('#user_comms').click(function(){
-		window.location="/button?id=hci_nb"
-		window.location="/"
+		window.open("/button?id=hci_nb","freeloader")
+		window.open(" ","freeloader")
 	});	
-
 	$('#prf_control').click(function(){
-		window.location="/button?id=hci_prf"
-		window.location="/"
+		window.open("/button?id=hci_prf","freeloader")
+		window.open(" ","freeloader")
 	});	
-
 	$('#enviro_data').click(function(){
-		window.location="/button?id=hci_wind"
-		window.location="/"
+		window.open("/button?id=hci_wind","freeloader")
+		window.open(" ","freeloader")
 	});
-	
 	$('#rpg_misc').click(function(){
-		window.location="/button?id=hci_misc"
-		window.location="/"
-	});	
+		window.open("/button?id=hci_misc","freeloader")
+		window.open(" ","freeloader")
+	});
+	$('#88D-ops').click(function(){
+                window.open("/operations","_blank","width = 1024, height = 380");
+        }); 	
+	$('#vcp-button').click(function(){
+		window.open("/VCP","_blank","width= 1024, height = 1024, scrollbars=yes");
+	});
+	$('#shift-change').click(function(){
+                window.open("/shift_change_checklist","_blank","width= 1024, height = 1024, scrollbars=yes");
+        });
+
 });
 </script>
 
@@ -570,11 +727,12 @@ maincircle.fillStyle="#FFFFFF";
 
 
 <div id="content">
+<iframe name="freeloader" style="display:none"></iframe>
 <div data-role="navbar">
 	<ul>
-		<li><div style="font-size:12px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
-		<li><a rel="external" id="88D-ops" style="color:white" class="nav-item control-shadow" href="/operations">WSR-88D Operations</a></li>
-		<li><a rel="external" style="color:white" class="nav-item control-shadow" href="/shift_change_checklist">Shift Change Checklist</a></li>
+		<li><div style="font-size:11px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
+		<li><a data-theme="a" id="88D-ops" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
+		<li><a id="shift-change" style="color:white" class="nav-item control-shadow" href="#">Shift Change Checklist</a></li>
 		<li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
 		<li><a id="enviro_data" style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
 	</ul>
@@ -588,7 +746,7 @@ maincircle.fillStyle="#FFFFFF";
 	</div>
 	<div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
 		<h3 id="id-confirm" class="ui-title"></h3>
-		<a id="pop-cancel"class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="c" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Cancel</a>
+		<a id="pop-cancel"class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="b" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Cancel</a>
 		<a id="pop-confirm" class="ui-btn ui-btn-up-b ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="b" data-transition="flow" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Confirm</a>
 	</div>
 </div>
@@ -737,13 +895,13 @@ maincircle.fillStyle="#FFFFFF";
 						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-ZDR" class="contain-white">N/A</div></div>
 						</div>
 					</div>
-					<div class="ui-grid-a">
-						<a rel="external" class="ui-block-a" style="text-decoration : none; color : #000000;" href="/VCP">
+					<div id="vcp-button" class="ui-grid-a">
+						<div class="ui-block-a" style="text-decoration : none; color : #000000;">
 							<button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
-						</a>
-						<a rel="external" class="ui-block-b" style="text-decoration : none; color : #000000;" href="/VCP">
+						</div>
+						<div class="ui-block-b" style="text-decoration : none; color : #000000;">
 							<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
-						</a>
+						</div>
 					</div>
 					<p id="VCP_start_date" style="font-size:14px;color:black;display:inline-block"></p><p id="VCP_start_time" style="font-size:14px;color:black;display:inline-block"></p>
 					<div class="ui-grid-a center" style="width: 80%;">
@@ -751,7 +909,7 @@ maincircle.fillStyle="#FFFFFF";
 							<div style="font-size:11px"class="bar-border1">Perf. Check in</div>
 						</div>
 						<div class="ui-block-b">
-							<a id="perf_check_time_link" href="#"><div id="perf_check_time" style="font-size:11px"class="bar-border2">-9999</div></a>
+							<div id="perf_check_time" style="font-size:11px"class="bar-border2">-9999</div>
 						</div>
 					</div>
 					<br>
@@ -847,7 +1005,7 @@ maincircle.fillStyle="#FFFFFF";
 							</div>
 							<div class="ui-block-b">
 								<div style="float:left" class="containing-element">
-									<select alt="Clear_Air_Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+									<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">MANUAL</option>
 										<option value="on">AUTO</option>
 									</select>
@@ -860,7 +1018,7 @@ maincircle.fillStyle="#FFFFFF";
 							</div>
 							<div class="ui-block-b">
 								<div style="float:left" class="containing-element">
-									<select alt="Precip_Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+									<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">MANUAL</option>
 										<option id="Precip_Switch_label" value="on">AUTO</option>
 									</select>
@@ -894,7 +1052,7 @@ maincircle.fillStyle="#FFFFFF";
 							</div>
 						</div>
 						<div class="ui-grid-a">
-							<div class="ui-block-a" id="Model_Update_contain">
+							<div class="ui-block-a" id="Model_Update_status">
 								<div class="ui-grid-a">
 									<div class="ui-block-a">
 										<button type="button" id="Model_Update_button" style="font-size:10px;background-color:#DCDBD6" data-theme="b">Model Update</button>
@@ -907,7 +1065,7 @@ maincircle.fillStyle="#FFFFFF";
 									</div>
 								</div>
 							</div>
-							<div class="ui-block-b" id="VAD_Update_contain">
+							<div class="ui-block-b" id="VAD_Update_status">
 								<div class="ui-grid-a" >
 									<div class="ui-block-a">
 										<button type="button" id="VAD_Update_button" style="font-size:10px;background-color:#DCDBD6" data-theme="b">VAD Update</button>

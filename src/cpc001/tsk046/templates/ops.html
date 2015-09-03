@@ -52,6 +52,39 @@
 
 
 <script>
+    function getCookie(cname,truthSwitch) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) {
+		if (truthSwitch){
+                	if (c.substring(name.length,c.length) == "on") return true 
+                	else return false
+		}
+		else{
+			return c.substring(name.length,c.length)
+		}
+	}
+    }
+    return "NULL";
+    }
+    
+
+    function deleteAllCookies() {
+        var cookies = document.cookie.split(";");
+
+        for (var i = 0; i < cookies.length; i++) {
+    	    var cookie = cookies[i];
+     	    var eqPos = cookie.indexOf("=");
+    	    var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    	    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
+    }
+
+
+
     var current_wxstatus = new Array; current_wxstatus[1] = 'B'; current_wxstatus[2] = 'A';
     var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
     var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
@@ -64,8 +97,28 @@
 
 		$(".toggle").on('slidestop',function(){		
 			var controlname = $(this).attr("id")
+			var displayname = $(this).attr("alt")
+			var date0 = new Date();
+                	date0.setTime(date0.getTime()+900000)
+                	if(displayname.split('-')[0] == "SAILS"){
+				$.getJSON("/update",function(data){
+                                        actionflag["SAILS"] = data['RPG_dict']['ORPGVST']
+                                });
+                	}
+                	else if(displayname.split('-')[0] == "AVSET"){
+				$.getJSON("/update",function(data){
+                                        actionflag["AVSET"] = data['RPG_dict']['ORPGVST']
+                                });
+                	}
+                	else{
+				$.getJSON("/update",function(data){
+                                        actionflag[controlname] = data['RPG_dict']['ORPGVST']
+                                });
+
+               		}
+
+
 			if (controlname != "RDA_Messages"){
-				var displayname = $(this).attr("alt")
 				$.getJSON("/update",function(data){
                         		actionflag[controlname] = data['RPG_dict']['ORPGVST']
 				});
@@ -103,13 +156,24 @@
 						if (current == "on"){
 							if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
 								$("#"+controlname+"_contain .ui-slider-label-a").text('PENDING')
-								if(displayname == "CMD" || displayname =="Super-Res"){
-									$('#'+controlname+'_contain .ui-slider-label-a').removeClass('normal-ops').addClass('minor-alarm')
-								}
-								$("#"+controlname).slider('refresh')
 							}
 						}
-						$("#"+controlname).val(confirmation).slider('refresh')	
+						else{
+							if(displayname == 'CMD' || displayname == 'Super-Res'){
+								$("#"+controlname+"_contain .ui-slider-label-b").text('PENDING')
+							}
+						}
+						$("#"+controlname).val(confirmation).slider('refresh')
+						if(displayname.split('-')[0] == "SAILS"){
+                                			document.cookie = "SAILS"+"="+current+"; expires="+date0.toUTCString();
+                        			}
+                        			else if(displayname.split('-')[0] == "AVSET"){
+                                			document.cookie = "AVSET"+"="+current+"; expires="+date0.toUTCString();
+                        			}
+                        			else{
+                                			document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
+                        			}
+	
 					});
 				}
 			}
@@ -125,22 +189,63 @@
 						delete actionflag[flags[flag]]
 					}
 				}
-				if (Object.keys(actionflag).indexOf('AVSET_Exception') < 0){
-					$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
+				exception_list = ['Model_Update','VAD_Update','Precip_Switch','Clear_Air_Switch']
+				for (e in exception_list){
+                                	var exception = exception_list[e]
+                                	if(Object.keys(actionflag).indexOf(exception) <0){
+                                        	var cookieCheck = getCookie(exception,1)
+                                        	if(exception == "Model_Update" || exception == "VAD_Update"){var d = 'PMD_dict'}else{var d = 'RPG_dict'}
+                                        	if(cookieCheck == "NULL"){cookieCheck = data[d][exception]}
+                                        	if(cookieCheck){
+                                                	$('#'+exception).val('on').slider('refresh');
+                                        	}
+                                        	else{
+                                                	$('#'+exception).val('off').slider('refresh');
+                                        	}
+					}
+                        	}
+				if (Object.keys(actionflag).indexOf('AVSET') < 0){
+					var cookieCheck = getCookie('AVSET',1)
+					if(cookieCheck == "NULL"){
+						$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
+					}	
+					else{
+						if(cookieCheck){
+							$('#AVSET_Exception').val('on').slider('refresh')
+							$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+						}
+						else{
+							$('#AVSET_Exception').val('off').slider('refresh')
+						}
+					}
 				}
-				if (Object.keys(actionflag).indexOf('SAILS_Exception') < 0){
-					if(data['RPG_dict']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
-                                		if (data['RPG_dict']['RPG_SAILS']){
-                                        		$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+				if (Object.keys(actionflag).indexOf('SAILS') < 0){
+					var cookieCheck = getCookie('SAILS',1)
+					if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
+					if(${context.get('CFG_dict').get('allow_sails')}[data['RS_dict']['RS_VCP_NUMBER']]){
+                                		if (cookieCheck){
+							if(getCookie('SAILS',1) != "NULL"){
+								$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+							}
+							else{
+								
+                                        			$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+							}
                                         		$('#SAILS_Exception').val('on').slider('refresh');
+							
                                 		}
                                 		else{
                                         		$('#SAILS_Exception').val('off').slider('refresh');
                                 		}
                         		}       
                         		else{
-                                		if(data['RPG_dict']['RPG_SAILS']){
-                                        		$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+                                		if(cookieCheck){
+							if(getCookie('SAILS',1) != "NULL"){
+                                                        	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                                                	}
+                                                	else{
+                                                        	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+                                                	}
                                         		$('#SAILS_Exception').val('on').slider('refresh');
 
                                 		}	
@@ -150,22 +255,6 @@
 
                         		}
 				 }
-     				if(Object.keys(actionflag).indexOf('Model_Update') < 0){ 
-                       			if(data['PMD_dict']['model_update']){
-						$('#Model_Update').val('on').slider('refresh')
-					}
-                        		else{
-						$('#Model_Update').val('off').slider('refresh')	
-					}
-				}
-				if(Object.keys(actionflag).indexOf('VAD_Update') < 0){
-                        		if(data['PMD_dict']['vad_update']){
-						$('#VAD_Update').val('on').slider('refresh')
-					}
-                        		else{
-						$('#VAD_Update').val('off').slider('refresh')
-					}
-				}
 				if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
  					switch(data['PMD_dict']['prf']){
                                 		case 'CELL_BASED': case 'STORM_BASED':
@@ -188,28 +277,24 @@
                         	for (i in item){
                                 	var value = item[i]
 					if(Object.keys(actionflag).indexOf(value) < 0){
-                                		var retrieved = RS_TOGGLE[value][data['RS_dict'][value]]
-                				$("#"+value).val(retrieved).slider("refresh")
-						$('#'+value+'_status .ui-slider .ui-slider-label-a').text('ENABLED')
-						$('#'+value+'_contain .ui-slider-label-a').removeClass('minor-alarm').addClass('normal-ops')
+						var cookieCheck = getCookie(value,1)
+                                		var val = RS_TOGGLE[value][data['RS_dict'][value]]
+						if(cookieCheck != "NULL"){
+							if(cookieCheck){
+                                                        	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
+								$("#"+value).val('on').slider("refresh")
+                                                	}
+                                                	else{
+                                                        	$("#"+value).val('off').slider("refresh")
+                                                        	$('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
+                                                	}
+                                        	}
+                                        	else{
+                                                        	$("#"+value).val(val).slider("refresh")	
+								$('#'+value+'_contain .ui-slider .ui-slider-label-a').text('ENABLED')
+                                        	} 
 					}
                         	}
-				if(Object.keys(actionflag).indexOf('Precip_Switch') < 0){
-					if(data['RPG_dict']['auto_mode'][0]){
-						$('#Precip_Switch').val('on').slider('refresh')
-					}
-					else{
-						$('#Precip_Switch').val('off').slider('refresh')
-					}
-				}
-				if(Object.keys(actionflag).indexOf('Clear_Air_Switch') < 0){
-					if(data['RPG_dict']['auto_mode'][1]){
-						$('#Clear_Air_Switch').val('on').slider('refresh')
-					}
-                                	else{
-						$('#Clear_Air_Switch').val('off').slider('refresh')
-					}
-				}
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
 			});
@@ -217,29 +302,41 @@
 			
 		},1000);
 
-
 		$('#refreshPage').click(function(){
 			location.reload()
 		});
-        	$('#Mode_Conflict_contain').click(function(){
-                	window.location="button?id=hci_mode_status"
-                	window.location="/operations"
+		$('#perf_check_time').click(function(){
+			window.open("/button?id=hci_rdc_orda","freeloader");
+        		window.open(" ","freeloader")
+		});
+		$('#Mode_Conflict_contain').click(function(){
+                	window.open("/button?id=hci_mode_status","freeloader");
+                	window.open(" ","freeloader")
         	});
 		$('#prf_control').click(function(){
-			window.location="/button?id=hci_prf"
-			window.location="/operations"
+			window.open("/button?id=hci_prf","freeloader");
+			window.open(" ","freeloader")
 		});	
 
 		$('#enviro_data').click(function(){
-			window.location="/button?id=hci_wind"
-			window.location="/operations"
+			window.open="/button?id=hci_wind"
+			window.open=(" ","freeloader")
 		});
 		$('#Precip_contain').click(function(){
-			window.location="/button?id=hci_precip_status"
-			window.location="/operations"
+			window.open("/button?id=hci_precip_status","freeloader")
+			window.open(" ","freeloader")
 		});
+		$('#vcp-button').click(function(){
+                	window.open("/VCP","_blank","width= 1024, height = 1400, scrollbars=yes");
+        	});
+		$("#RDA_Messages").val("on").slider("refresh")
+		$('#close').click(function(){
+                	window.close();
+       	 	}); 
+		
 		
 	});
+	
 </script>
 
 </%block>
@@ -249,15 +346,14 @@
 ###
 
 	
-
-    <div id="content">
+    
+    <div id="content">	
+    <iframe name="freeloader" style="display:none"></iframe>
         <div data-role="navbar">
         	<ul>
         		<li><div style="font-size:12px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
-        		<li><a data-rel="back" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="/#">Back</a></li>
-        		<li><a rel="external" style="color:white" class="nav-item control-shadow" href="/shift_change_checklist">Shift Change Checklist</a></li>
-        		<li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
-        		<li><a id="enviro_data" style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
+			<li><a data-theme="a" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
+        		<li><a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="#">Close</a></li>
         	</ul>
         </div>
 
@@ -277,13 +373,13 @@
             <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
             	<div class="ui-grid-b">
 			<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
-				<div class="ui-grid-a">
-					<a rel="external" class="ui-block-a" style="text-decoration : none; color : #000000;" href="/VCP">
+				<div id="vcp-button" class="ui-grid-a">
+					<div class="ui-block-a" style="text-decoration : none; color : #000000;">
 						<button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
-					</a>
-					<a rel="external" class="ui-block-b" style="text-decoration : none; color : #000000;" href="/VCP">
+					</div>
+					<div class="ui-block-b" style="text-decoration : none; color : #000000;">
 						<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
-					</a>
+					</div>
 				</div>
 	 			<div class="ui-grid-b center" id="PRF_Mode_block">
                                 	<div class="ui-block-a">
@@ -417,7 +513,7 @@
 								</div>
 							</div>
 
-	 						<div class="ui-grid-a center" id="Model_Update_contain">
+	 						<div class="ui-grid-a center" id="Model_Update_status">
 								<div class="ui-block-a">
 									<button id="Model_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
 								</div>
@@ -431,7 +527,7 @@
 								</div>
 							</div>
 
-	 						<div class="ui-grid-a center" id="VAD_Update_contain">
+	 						<div class="ui-grid-a center" id="VAD_Update_status">
 								<div class="ui-block-a">
 									<button id="VAD_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
 								</div>
@@ -453,7 +549,7 @@
                                                         </div>
 							<div class="ui-grid-a center" id="RDA_Messages_status">
                                                                 <div class="ui-block-a">
-                                                                        <button id="RDA_Messages" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">RDA Messages</button>
+                                                                        <button id="RDA_Messages_label" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">RDA Messages</button>
                                                                 </div>
                                                                 <div class="ui-block-b">
                                                                         <div id="RDA_Messages_contain" style="float:left" class="containing-element-lg">

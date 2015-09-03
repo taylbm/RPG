@@ -31,6 +31,10 @@ $(document).ready(function(){
 	$('#refreshPage').click(function(){
 		location.reload()
 	});
+	$('#close').click(function(){
+        	window.close();
+        }); 
+
 });
 </script>
 </%block>
@@ -39,7 +43,7 @@ $(document).ready(function(){
 ###
 	
 	<div role="banner" class="ui-header ui-bar-a" data-role="header">
-		<a href="/#" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Back</a>
+		<a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
 		<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
  		<h1 aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1>
 
@@ -90,7 +94,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
                     </tr>
             	    <tr>
                         <td>Aux Power Generator State:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("AUX_GEN_LIST").replace('false','')}</td>
+                        <td>${context.get("RS_dict").get("RDA_static").get("AUX_GEN_LIST").replace('false','').replace('true','')}</td>
                     </tr>
             	    <tr>
                         <td>Super Resolution (SR):</td>
@@ -144,7 +148,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
                     </tr>
             	    <tr>
                         <td>Mode Switch Clear Air:</td>
-			%if context.get("RPG_dict").get("auto_mode")[1]:
+			%if context.get("RPG_dict").get("Clear_Air_Switch"):
                         <td>AUTO</td>
 			%else:
 			<td>MANUAL</td>
@@ -152,7 +156,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
                     </tr>
             	    <tr>
                         <td>Mode Switch Precip:</td>
-			%if context.get("RPG_dict").get("auto_mode")[0]:
+			%if context.get("RPG_dict").get("Precip_Switch"):
                         <td>AUTO</td>
 			%else:	
 			<td>MANUAL</td>
@@ -231,7 +235,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
                     </tr>
 		    <tr>
 		        <td>VAD Update:</td>
-			% if context.get("PMD_dict").get("vad_update"):
+			% if context.get("PMD_dict").get("VAD_Update"):
 			<td>ON</td>
 			% else:
 			<td>OFF</td>
@@ -239,7 +243,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
 		    </tr>
 		    <tr>
 		        <td>Model Update:</td>
-			% if context.get("PMD_dict").get("model_update"):
+			% if context.get("PMD_dict").get("Model_Update"):
 			<td>ON</td>
 			% else:
 			<td>OFF</td>
