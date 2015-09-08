@@ -24,9 +24,9 @@ button,
 .ui-btn {
 	font-size: 1em;
 	line-height: 1.3;
-	  font-family: sans-serif /*{global-font-family}*/;
+	  font-family: 'Arimo', sans-serif; /*{global-font-family}*/;
+	  font-weight: 400;
 }
-
 td .ui-table-cell-label,
 th .ui-table-cell-label {
     display:none;
@@ -143,16 +143,17 @@ label.ui-btn {
 }
 .contain-gray {
     position: relative; 
-    width: 115px;
+    width: 130px;
     height: 20px;
     background-color: #DCDBD6;
     border: 2px solid #000602;
 
 }
 .contain-white {
+    font-size:11px;
     position: relative; 
-    width: 100%;
-    height: 20px;
+    width: 130px;
+    height: 20px ;
     background-color: white;
     border: 2px solid #000602;
 }
@@ -407,7 +408,7 @@ background-color:#51FF22;
 }
 
 }
-
+/
 @-ms-keyframes bounce_squaresWaveG_long{
 0%{
 background-color:#000000;
@@ -449,15 +450,19 @@ background-color:#51FF22;
 	border-width:1px;
 }
 .bar-border1{
+	font-size:12px;
+	font-weight:700;
 	border-style:solid;
 	border-width:2px;
 	background-color:#DCDBD6;
 
 }
 .bar-border2{
-	border-style:solid;
-	border-width:2px;
-	background-color:#FFFFFF
+	text-shadow:none;
+	font-size:12px !important;
+	border-style:solid !important;
+	border-width:2px !important;
+	background-color:#FFFFFF !important;
 
 }
 .rpg-border{
@@ -515,12 +520,33 @@ table.no-spacing {
 	background-color:#51FF22 !important;
 	color:black;
 	}
+.normal-ops-grid {
+	background-color:LimeGreen !important;
+        color:black;
+	border-style: outset;
+	border-width: 5px;
+	border-color: #228B22;
+        }
 .minor-alarm {
 	background-color:#FCFC23 !important;
 }
+.minor-alarm-grid {
+        background-color:#FCFC23 !important;
+        border-style: outset; 
+        border-width: 5px;
+        border-color: #FFD700;
+
+}
 .major-alarm {
 	background-color:#FFA500 !important;
+        border-style: outset;
+        border-width: 5px;
+        border-color: #FF8C00;
 }
+.major-alarm-grid {
+        background-color:#FFA500 !important;
+}
+
 .inop-indicator {
 	background-color:red !important;
 	color: white !important;
@@ -531,6 +557,16 @@ table.no-spacing {
 	color: white !important;
 	text-shadow: none;
 }
+.inop-grid {
+        background-color:red !important; 
+        color: white !important;
+        text-shadow: none;
+        border-style: outset;
+        border-width: 5px;
+        border-color: #8B0000;
+
+}
+
 .rda-alarm-indicator {
 	width:20% !important;
 	font-size:12px !important;
@@ -539,6 +575,10 @@ table.no-spacing {
 .hide { 
 	visibility:hidden !important;
 }
-.show {
-	visibility:visible !important;
+.nav-item{
+	font-size:13px !important;
 }
+.control-item{
+	font-size:16px;
+}
+
