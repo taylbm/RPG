@@ -170,6 +170,7 @@ $(document).ready(function(){
 	maincircle.moveTo(150,285)
 	maincircle.lineTo(150,330)
 	maincircle.shadowColor = "transparent"
+	maincircle.lineWidth = 4;
 	maincircle.moveTo(240,393)
 	maincircle.lineTo(300,393)
 	maincircle.stroke();
@@ -303,19 +304,25 @@ $(document).ready(function(){
         		maincircle.fill();
         		maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
 			maincircle.fillStyle="black";
-			var elevation = Math.round(closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el']) * 10) / 10
+			try {
+				var elevation = Math.round(closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el']) * 10) / 10
+				if(${context.get('last_elev')}[data['RS_dict']['RS_VCP_NUMBER']] == data['RS_dict']['el']){
+					maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
+				}
+				if(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']][closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el'])] == "3"){
+					maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
+				}
+			}
+			catch(err){
+				var elevation = 0.0
+			}
+			maincircle.font = "bold 80px Helvetica";
 			if(elevation % 1 == 0){
-				maincircle.fillText(elevation.toFixed(1),95,105);
-			}
-			else{
-				maincircle.fillText(elevation,95,105);
-			}
-			if(${context.get('last_elev')}[data['RS_dict']['RS_VCP_NUMBER']] == data['RS_dict']['el']){
-				maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
-			}
-			if(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']][closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el'])] == "3"){
-				maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
-			}
+                               	maincircle.fillText(elevation.toFixed(1),95,105);
+                       	}
+                       	else{
+                               	maincircle.fillText(elevation,95,105);
+                        }
 			maincircle.font = "bold 18px Helvetica";
         		maincircle.fillText("SAILS:",50,160)
         		maincircle.fillText("AVSET:",50,210)
@@ -479,21 +486,21 @@ $(document).ready(function(){
 					case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP':
 						$("#"+value2).attr('class','normal-ops bar-border2');
 						$('#'+value2+'_label').attr('class','bar-border1 show');	
-						$('#grid1').attr('class','normal-ops');
-						$('#grid1title').attr('class','normal-ops');
+						$('#grid1').attr('class','normal-ops-grid');
+						$('#grid1title').attr('class','normal-ops-grid');
 						break;
 					case 'NOT_INSTALLED':
 						$('#'+value2).attr('class','bar-border2 hide');$('#'+value2+'_label').attr('class','bar-border1 hide');
 						break;
 					case 'MAINTENANCE_MAN':
-						$("#grid1").attr('class','major-alarm');
-						$('#grid1title').attr('class','major-alarm');
+						$("#grid1").attr('class','major-alarm-grid');
+						$('#grid1title').attr('class','major-alarm-grid');
 						$("#"+value2).attr('class','bar-border2 major-alarm');
 						$('#marq3').attr('class','major-alarm');
 						break;
 					case 'MAINTENANCE_REQ':
-						$("#grid1").attr('class','minor-alarm');
-						$('#grid1title').attr('class','minor-alarm');
+						$("#grid1").attr('class','minor-alarm-grid');
+						$('#grid1title').attr('class','minor-alarm-grid');
 						$("#"+value2).attr('class','bar-border2 minor-alarm');
 						$('#marq3').attr('class','minor-alarm');
 						break;
@@ -502,8 +509,8 @@ $(document).ready(function(){
 						break;
 					case 'INOPERABLE,-9999':
 						$('#'+value2).attr('class','bar-border2 inop-indicator');
-						$('#grid1').attr('class','inop');
-						$('#grid1title').attr('class','inop');
+						$('#grid1').attr('class','inop-grid');
+						$('#grid1title').attr('class','inop-grid');
 						$('#marq3').attr('class','inop');
 						break;
 					case 'N/A':
@@ -568,7 +575,7 @@ $(document).ready(function(){
 					break;
 			}
 			
-			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops')}
+			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
 			var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
 			if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
 			$("#gen_level").attr('value',data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl'])	
@@ -584,19 +591,19 @@ $(document).ready(function(){
 					break;
 				case 'LOADSHED': case 'MAR':
 					$('#RPG_oper').attr('class','minor-alarm bar-border2')
-					$('#grid2').attr('class','minor-alarm')
+					$('#grid2').attr('class','minor-alarm-grid')
 					break;
 				case 'MAM':
 					$('#RPG_oper').attr('class','major-alarm bar-border2')
-					$('#grid2').attr('class','major-alarm')
+					$('#grid2').attr('class','major-alarm-grid')
 					break;
 				case 'ONLINE':
-					if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops')}
+					if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops-grid')}
 					$('#RPG_oper').attr('class','normal-ops bar-border2')
 					break;
 				default:
 					$('#RPG_oper').attr('class','inop-indicator bar-border2')
-					$('#grid2').attr('class','normal-ops')
+					$('#grid2').attr('class','normal-ops-grid')
 			}
 			switch(data['RPG_dict']['RPG_state']){
 			
@@ -730,7 +737,7 @@ $(document).ready(function(){
 <iframe name="freeloader" style="display:none"></iframe>
 <div data-role="navbar">
 	<ul>
-		<li><div style="font-size:11px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
+		<li><div style="font-size:14px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
 		<li><a data-theme="a" id="88D-ops" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
 		<li><a id="shift-change" style="color:white" class="nav-item control-shadow" href="#">Shift Change Checklist</a></li>
 		<li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
@@ -754,14 +761,14 @@ $(document).ready(function(){
     <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
 	<div class="ui-grid-b">
 		<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
-			<div class="ui-grid-a" style="width:100%;float:left">
+			<div class="ui-grid-a" style="width:100%;float:left;position:relative;top:4px">
 				<div class="ui-block-a">
-					<div style="font-size:11px"class="bar-border1">State:</div>
-					<div style="font-size:11px"class="bar-border1">Oper:</div>
+					<div class="bar-border1">State:</div>
+					<div class="bar-border1">Oper:</div>
 				</div>
 				<div class="ui-block-b">
-					<div id ="RDA_STATE" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">UNKNOWN</div>
-					<div id = "OPERABILITY_LIST" style="text-shadow:none;font-size:11px;background-color:red;color:black"class="bar-border2">UNKNOWN</div>
+					<div id ="RDA_STATE" style="background-color:red;color:black;border-color:black"class="bar-border2">UNKNOWN</div>
+					<div id = "OPERABILITY_LIST" style="background-color:red;color:black;border-color:black"class="bar-border2">UNKNOWN</div>
 				</div>
 			</div>
 		<br><br>
@@ -805,8 +812,8 @@ $(document).ready(function(){
 					<button id="TRANSMITTER"class="rda-alarm-indicator">XMT</button>
 					</div>
 				<div style="position:relative;left:10px;margin-top:-142px">
-				<div id="grid1" class="center" style="position:relative;z-index:2;background-color:#51FF22;float:center;display:inline-block;width:56%;height:290px;border:5px outset black">
-						<p id="grid1title" style="color:black">RDA</p>
+				<div id="grid1" class="center normal-ops-grid" style="position:relative;z-index:2;background-color:#228B22;float:center;display:inline-block;width:56%;height:290px;">
+						<p id="grid1title" style="color:black;border:none">RDA</p>
 						<ul data-role="listview" data-inset="true" data-theme="e">
 				<li><a id="rda_control" class="control-item control-shadow" style="color:white;text-align:center" href="#" data-rel="dialog">Control</a></li>
 				<li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Performance<br> Data</a></li>
@@ -815,7 +822,7 @@ $(document).ready(function(){
 
 				</div>
 								
-			<div style="display:inline-block;color:black;position:relative;z-index:4;top:-26px;">
+			<div style="display:inline-block;color:black;position:relative;z-index:4;top:-28px;">
 			    <div id="link_R" style="display:block;width:20px;height:22px;margin-left:-6px;position:relative;text-align:center;top:0px" class="normal-ops link-status-sq">R</div>	
 					
 			    <div id="link_V" style="display:block;width:20px;height:21px;margin-left:-6px;position:relative;text-align:center;top:0px" class="normal-ops link-status-sq">V</div>
@@ -876,62 +883,58 @@ $(document).ready(function(){
 
 			
 	    <div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
-					<br>
-					<div class="center" style="width: 80%;display: table;">
+						
+					<div class="center" style="width:75%;display:table;">
 						<div style="display: table-row">
 						<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
-						<div style="font-size:11px;display: table-cell;"><div id="h_delta_dbz0" style="color:black" class="contain-white">N/A</div></div>
+						<div style="font-size:11px;display: table-cell;"><div id="h_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
 						</div>
 						<div style="display: table-row">
 						<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">V Delta dBZ0:</div></div>
-						<div style="font-size:11px;display: table-cell;"><div id="v_delta_dbz0" style="color:black" class="contain-white">N/A</div></div>
+						<div style="font-size:11px;display: table-cell;"><div id="v_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
 						</div>
 						<div style="display: table-row">
 						<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current Z-R:</div></div>
-						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-R" class="contain-white">N/A</div></div>
+						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-R" class="contain-white">NOT AVAILABLE</div></div>
 						</div>
 						<div style="display: table-row">
 						<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current R(Z,ZDR):</div></div>
-						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-ZDR" class="contain-white">N/A</div></div>
+						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-ZDR" class="contain-white">NOT AVAILABLE</div></div>
 						</div>
 					</div>
 					<div id="vcp-button" class="ui-grid-a">
 						<div class="ui-block-a" style="text-decoration : none; color : #000000;">
-							<button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
+							<button type="button" style="font-size:50px;background-color:#DCDBD6;padding:30px;" data-theme="b">VCP</button>
 						</div>
 						<div class="ui-block-b" style="text-decoration : none; color : #000000;">
-							<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
+							<button id="RS_VCP_NUMBER" type="button" style="font-size:60px;background-color:white;padding:20px;" data-theme="b">N/A</button>
 						</div>
 					</div>
-					<p id="VCP_start_date" style="font-size:14px;color:black;display:inline-block"></p><p id="VCP_start_time" style="font-size:14px;color:black;display:inline-block"></p>
-					<div class="ui-grid-a center" style="width: 80%;">
+					<p id="VCP_start_date" style="font-size:16px;color:black;display:inline-block"></p><p id="VCP_start_time" style="font-size:16px;color:black;display:inline-block"></p>
+					<div class="ui-grid-a center" style="width: 60%;">
 						<div class="ui-block-a">
-							<div style="font-size:11px"class="bar-border1">Perf. Check in</div>
+							<div style="font-size:12px"class="bar-border1">Perf. Check in</div>
 						</div>
 						<div class="ui-block-b">
-							<div id="perf_check_time" style="font-size:11px"class="bar-border2">-9999</div>
+							<div id="perf_check_time" style="font-size:12px"class="bar-border2">-9999</div>
 						</div>
 					</div>
-					<br>
-					
 					
 					<div class="ui-grid-a center" style="width:60%;">
 						<div class="ui-block-a">
-							<div style="font-size:11px"class="bar-border1">State:</div>
-							<div style="font-size:11px"class="bar-border1">Oper:</div>
+							<div class="bar-border1">State:</div>
+							<div class="bar-border1">Oper:</div>
 						</div>
 						<div class="ui-block-b">
-							<div style="text-shadow:none;font-size:11px;background-color:red;color:black" id="RPG_state" class="bar-border2">N/A</div>
-							<div style="font-size:11px;background-color:red;color:black"class="bar-border2"id="RPG_oper">N/A</div>
+							<div style="text-shadow:none;font-size:14px;background-color:red;color:black" id="RPG_state" class="bar-border2">N/A</div>
+							<div style="font-size:14px;background-color:red;color:black"class="bar-border2"id="RPG_oper">N/A</div>
 						</div>
 					</div>
-				<br>	
-
-
+					<br>
 					<div class="ui-grid-c">
 						<div class="ui-block-a"></div>
 						<div class="ui-block-b">
-						<div id="grid2" style="left:-5px;width:200%;position:relative;z-index:2;background-color:#51FF22;display:inline-block;height:325px;border:5px outset black ">
+						<div id="grid2" class="normal-ops-grid" style="left:-5px;width:200%;position:relative;z-index:2;background-color:#228B22;display:inline-block;height:325px;">
 							<p style="color:black">RPG</p>
 							<ul data-role="listview" data-inset="true">
 								<li><a id="rpg_control" style="color:white;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Control</a></li>
@@ -1084,7 +1087,7 @@ $(document).ready(function(){
 
 
 						
-					<div id="grid3" style="position:relative;z-index:2;width:50%;display:inline-block;border:5px outset black;background-color:#51FF22">
+					<div id="grid3" style="position:relative;z-index:2;width:50%;display:inline-block;" class="normal-ops-grid">
 						<p style="color:black">USERS</p>
 						<ul data-role="listview" data-inset="true">
 				<li><a id="user_comms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>

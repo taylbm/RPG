@@ -165,6 +165,15 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
             	    <tr>
                         <td>Mode Change Thresholds:</td>
                         <td>${context.get("PMD_dict").get("precip_mode_area_thresh")} km^2 > ${context.get("PMD_dict").get("precip_mode_zthresh")}dBz</td>
+		    </tr>
+		    <tr>
+                        <th><u>Narrrowband Communications</u></th>
+                    </tr>
+                    <tr>
+                        <td>Dedicated Connected Users:</td>
+                        <td>3 *stub*</td>
+                    </tr>
+
             	</tbody>
             </table>
             <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
@@ -277,15 +286,17 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
 			% endif
                     </tr>
 		    <tr>
+			<td>RPG Estimated ISDP:</td>
+			<td>current value *stub*</td>
+		    </tr>
+		    <tr>
+			<td>MetSignal Processing/Threshold</td>
+			<td>Yes/-9999 *stub*</td>
+		    </tr>
+		    <tr>
 			<td>Default Storm Motion:</td>
-			<td>${context.get("ADAPT").get("default_dir")}@${context.get("ADAPT").get("default_spd")}kts
-            	    <tr>
-                        <th><u>Narrrowband Communications</u></th>
-                    </tr>
-            	    <tr>
-                        <td>Dedicated Connected Users:</td>
-                        <td>3 *stub*</td>
-                    </tr>
+			<td>${context.get("ADAPT").get("default_dir")}@${context.get("ADAPT").get("default_spd")}kts</td>
+		    </tr>
             	</tbody>
             </table>
 	</div>

@@ -10,7 +10,7 @@ import time
 import subprocess
 import commands
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
-vcp_dir = os.path.split(os.path.abspath(__file__))[0].replace('src/cpc001/tsk046/webapps','cfg/vcp/')
+vcp_dir = '/export/home/'+os.getlogin()+'/cfg/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
 
