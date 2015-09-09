@@ -545,6 +545,10 @@ table.no-spacing {
 }
 .major-alarm-grid {
         background-color:#FFA500 !important;
+        border-style: outset;
+        border-width: 5px;
+        border-color: #FF7F00;
+
 }
 
 .inop-indicator {
