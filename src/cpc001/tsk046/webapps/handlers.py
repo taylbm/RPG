@@ -10,7 +10,7 @@ import time
 import subprocess
 import commands
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
-vcp_dir = '/export/home/'+os.getlogin()+'/cfg/vcp/'
+vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
 

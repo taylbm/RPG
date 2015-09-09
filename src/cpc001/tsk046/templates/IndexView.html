@@ -39,7 +39,7 @@
     var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
     if(nmin<=9) nmin="0"+nmin
     if(nsec<=9) nsec="0"+nsec;
-   $('#clockbox-date').html(""+tday[nday]+", "+tmonth[nmonth]+" "+ndate+", "+nyear);
+   $('#clockbox-date').html(""+tday[nday]+" "+tmonth[nmonth]+" "+ndate+", "+nyear);
    $('#clockbox-time').html(""+nhour+":"+nmin+":"+nsec+" "+"UT");
    $('#VCP_start_date').html("VCP START: "+smonth[nmonth]+" "+ndate+", "+nyear+'&nbsp');
 }
@@ -737,7 +737,7 @@ $(document).ready(function(){
 <iframe name="freeloader" style="display:none"></iframe>
 <div data-role="navbar">
 	<ul>
-		<li><div style="font-size:14px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
+		<li><div style="font-size:13px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
 		<li><a data-theme="a" id="88D-ops" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
 		<li><a id="shift-change" style="color:white" class="nav-item control-shadow" href="#">Shift Change Checklist</a></li>
 		<li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
