@@ -15,6 +15,7 @@ namespace rpg
     {
         scope in_lb = class_<lb_ns>("lb");
 
+        in_lb.attr("LB_LATEST") = static_cast<int>(LB_LATEST);
         in_lb.attr("LB_READ") = LB_READ;
         in_lb.attr("LB_WRITE") = LB_WRITE;
         in_lb.attr("LB_CREATE") = LB_CREATE;

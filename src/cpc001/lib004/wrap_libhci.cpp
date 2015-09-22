@@ -10,6 +10,7 @@ using boost::python::scope;
 
 extern "C"
 {
+    #include "hci_basedata.h"
     #include "hci_environmental_wind.h"
     #include "hci_orda_pmd.h"
 //#define class class_variable
@@ -48,26 +49,29 @@ namespace rpg
             return_value_policy<reference_existing_object>()//,    // it's a static C-variable we don't manage
 //            doc1
         );
-        //def("hci_get_wx_status", &hci_get_wx_status, doc2);
         def("hci_get_wx_status", &hci_get_wx_status);
-        /*
-        def(
-            "hci_up_nb_update_dedicated_user_table", 
-            &thinwrap_hci_up_nb_update_dedicated_user_table
-        );
-        */
         def("hci_get_precip_status", &hci_get_precip_status);
         def("hci_get_vad_update_flag", &hci_get_vad_update_flag);
         def("hci_get_model_update_flag", &hci_get_model_update_flag);
         def("hci_get_prf_mode_status_msg", &hci_get_PRF_Mode_status_msg);
+        def("hci_basedata_read_radial", &hci_basedata_read_radial);
+        def("hci_basedata_azimuth_number", &hci_basedata_azimuth_number);
+        def("hci_basedata_azimuth", &hci_basedata_azimuth);
+        def("hci_basedata_elevation", &hci_basedata_elevation);
+
+        c.attr("HCI_BASEDATA_PARTIAL_READ") = HCI_BASEDATA_PARTIAL_READ;
+        c.attr("HCI_BASEDATA_COMPLETE_READ") = HCI_BASEDATA_COMPLETE_READ;
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
         c.staticmethod("hci_get_precip_status");
-        //c.staticmethod("hci_up_nb_update_dedicated_user_table");
         c.staticmethod("hci_get_vad_update_flag");
         c.staticmethod("hci_get_model_update_flag");
         c.staticmethod("hci_get_prf_mode_status_msg");
+        c.staticmethod("hci_basedata_read_radial");
+        c.staticmethod("hci_basedata_azimuth");
+        c.staticmethod("hci_basedata_azimuth_number");
+        c.staticmethod("hci_basedata_elevation");
     }
 }
 

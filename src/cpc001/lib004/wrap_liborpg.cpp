@@ -18,6 +18,7 @@ extern "C"
     #include "orpgda.h"
     #include "orpginfo.h"
     #include "orpgmisc.h"
+    #include "orpgrat.h"
     #include "orpgrda.h"
     #include "orpgsails.h"
     #include "orpgvst.h"
@@ -69,6 +70,11 @@ namespace rpg
         return string(ORPGDA_lbname(data_id));
     }
 
+    string thinwrap_orpgrat_get_alarm_text(int code)
+    {
+        return string(ORPGRAT_get_alarm_text(code));
+    }
+
     void wrap_orpgda()
     {
         def(
@@ -109,6 +115,9 @@ namespace rpg
             args("item"),
             "Using a constant from rdastatus. as 'item' this function will return the value for that status item. This value is also an rdastatus constant."
         );
+        def("orpgrda_read_alarms", &ORPGRDA_read_alarms);
+        def("orpgrda_get_num_alarms", &ORPGRDA_get_num_alarms);
+        def("orpgrda_get_alarm", &ORPGRDA_get_alarm);
     }
 
     void wrap_orpginfo()
@@ -135,11 +144,21 @@ namespace rpg
         );
         def("orpgsails_get_status", &ORPGSAILS_get_status);
         def("orpgsails_init", &ORPGSAILS_init);
+        def("orpgsails_get_num_cuts", &ORPGSAILS_get_num_cuts);
     }
 
     void wrap_orpgvst()
     {
         def("orpgvst_get_volume_time", &ORPGVST_get_volume_time);
+    }
+
+    void wrap_orpgrat()
+    {
+        def(
+            "orpgrat_get_alarm_text", 
+            &thinwrap_orpgrat_get_alarm_text, 
+            args("code")
+        );
     }
 
     void export_liborpg()
@@ -151,11 +170,15 @@ namespace rpg
         wrap_orpgrda();
         wrap_orpgmisc();
         wrap_orpginfo();
+        wrap_orpgrat();
         wrap_orpgvst();
 
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
             .staticmethod("orpgrda_get_status")
+            .staticmethod("orpgrda_read_alarms")
+            .staticmethod("orpgrda_get_num_alarms")
+            .staticmethod("orpgrda_get_alarm")
             .staticmethod("orpgda_lbname")
             .staticmethod("orpgda_open")
             .staticmethod("orpgda_close")
@@ -166,7 +189,9 @@ namespace rpg
             .staticmethod("orpginfo_statefl_get_rpgopst")
             .staticmethod("orpgsails_get_status")
             .staticmethod("orpgsails_init")
-            .staticmethod("orpgvst_get_volume_time");
+            .staticmethod("orpgsails_get_num_cuts")
+            .staticmethod("orpgvst_get_volume_time")
+            .staticmethod("orpgrat_get_alarm_text")
         ;
     }
 }

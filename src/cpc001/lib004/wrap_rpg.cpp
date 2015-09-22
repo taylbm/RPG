@@ -1,6 +1,7 @@
 #include <boost/python.hpp>
 
 #include "wrap_gen_stat_msg.h"
+#include "wrap_lb.h"
 #include "wrap_libhci.h"
 #include "wrap_liborpg.h"
 #include "wrap_librpg.h"
@@ -12,6 +13,7 @@
 #include "wrap_orpg_sails.h"
 #include "wrap_precip_status.h"
 #include "wrap_prfselect_buf.h"
+#include "wrap_rda_alarm_table.h"
 #include "wrap_rda_status.h"
 #include "wrap_rpg_messages.h"
 #include "wrap_rpg_rda.h"
@@ -38,6 +40,8 @@ namespace rpg
         export_orpgdat();
         export_precip_status();
         export_prfselect_buf();
+        export_rda_alarm_table();
+        export_lb();
 
         //
         // RPG stuff

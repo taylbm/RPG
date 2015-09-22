@@ -48,7 +48,8 @@ LIB_CXXSRCS =	wrap_liborpg.cpp \
 		wrap_orpgdat.cpp \
 		wrap_precip_status.cpp \
 		wrap_prfselect_buf.cpp \
-		wrap_lb.cpp
+		wrap_lb.cpp \
+		wrap_rda_alarm_table.cpp
 
 LIB_TARGET = _rpg
 
