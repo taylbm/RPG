@@ -2,12 +2,14 @@
 
 #include "wrap_gen_stat_msg.h"
 #include "wrap_lb.h"
+#include "wrap_liben.h"
 #include "wrap_libhci.h"
 #include "wrap_liborpg.h"
 #include "wrap_librpg.h"
 #include "wrap_mode_select.h"
 #include "wrap_orda_pmd.h"
 #include "wrap_orpgdat.h"
+#include "wrap_orpgevt.h"
 #include "wrap_orpg_info.h"
 #include "wrap_orpg_misc.h"
 #include "wrap_orpg_sails.h"
@@ -38,6 +40,7 @@ namespace rpg
         export_mode_select();
         export_gen_stat_msg();
         export_orpgdat();
+        export_orpgevt();
         export_precip_status();
         export_prfselect_buf();
         export_rda_alarm_table();
@@ -52,6 +55,7 @@ namespace rpg
         export_orpgsails();
         export_rpg_messages();
         export_rda_status();
+        export_liben();
         export_liborpg();
         export_libhci();
         export_librpg();
