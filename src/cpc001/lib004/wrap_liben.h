@@ -4,10 +4,6 @@
 #include <boost/python.hpp>
 using boost::python::object;
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 #include <map>
 using std::map;
 

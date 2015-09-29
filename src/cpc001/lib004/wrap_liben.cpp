@@ -5,9 +5,6 @@ using boost::python::class_;
 using boost::python::def;
 using boost::python::scope;
 
-#include <boost/shared_ptr.hpp>
-using boost::shared_ptr;
-
 #include <map>
 using std::map;
 
@@ -16,11 +13,6 @@ using std::string;
 
 #include <vector>
 using std::vector;
-
-extern "C"
-{
-#include "orpgevt.h"
-}
 
 namespace rpg
 {
