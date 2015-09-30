@@ -22,25 +22,27 @@ extern "C"
 
 namespace rpg
 {
-    tuple thinwrap_deau_get_values(string key, int number_of_values)
+    tuple thinwrap_deau_get_values(const string& key, int number_of_values)
     {
         vector<double> vals(number_of_values);
-        int ret = DEAU_get_values(&key[0], &vals[0], number_of_values);
+        int ret = DEAU_get_values(
+            const_cast<char*>(&key[0]), &vals[0], number_of_values
+        );
 
         return make_tuple(ret, vals);
     }
 
-    tuple thinwrap_deau_get_string_values(string key)
+    tuple thinwrap_deau_get_string_values(const string& key)
     {
         char *tmp;
-        int ret = DEAU_get_string_values(&key[0], &tmp);
+        int ret = DEAU_get_string_values(const_cast<char*>(&key[0]), &tmp);
 
         return make_tuple(ret, string(tmp));
     }
 
-    void thinwrap_deau_lb_name(string name)
+    void thinwrap_deau_lb_name(const string& name)
     {
-        DEAU_LB_name(&name[0]);
+        DEAU_LB_name(const_cast<char*>(&name[0]));
     }
 
     void export_librpg()

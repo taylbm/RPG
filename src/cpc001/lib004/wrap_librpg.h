@@ -11,9 +11,9 @@ namespace rpg
 {
     struct librpg_ns {};    // a dummy class for namespacing
 
-    tuple thinwrap_deau_get_values(string key, int number_of_values);
-    tuple thinwrap_deau_get_string_values(string key);
-    void thinwrap_deau_lb_name(string name);
+    tuple thinwrap_deau_get_values(const string& key, int number_of_values);
+    tuple thinwrap_deau_get_string_values(const string& key);
+    void thinwrap_deau_lb_name(const string& name);
 
     void export_librpg();
 }

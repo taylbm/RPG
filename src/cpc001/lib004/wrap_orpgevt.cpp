@@ -46,7 +46,7 @@ namespace rpg
         ;
     }
 
-    shared_ptr<Orpgevt_radial_acct_t> to_orpgevt_radial_acct_t(string data)
+    shared_ptr<Orpgevt_radial_acct_t> to_orpgevt_radial_acct_t(const string& data)
     {
         if (data.size() != sizeof(Orpgevt_radial_acct_t))
             throw runtime_error("Bad radial info event size!");
@@ -54,7 +54,7 @@ namespace rpg
         shared_ptr<Orpgevt_radial_acct_t> ptr(new Orpgevt_radial_acct_t());
         memcpy(
             ptr.get(), 
-            reinterpret_cast<Orpgevt_radial_acct_t*>(&data[0]), 
+            reinterpret_cast<const Orpgevt_radial_acct_t*>(&data[0]), 
             sizeof(Orpgevt_radial_acct_t)
         );
 
