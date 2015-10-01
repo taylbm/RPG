@@ -9,12 +9,26 @@ import _rpg
 import time
 import subprocess
 import commands
+import struct
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
+moments = {1:'R',2:'V',4:'W',8:'D'}
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
-
-
+event_holder = {}
+##
+# Callback for event handling 
+##
+def callback(event, msg_data):
+        msg = _rpg.orpgevt.to_orpgevt_radial_acct_t(msg_data)
+        event_holder.update({'radial_status':msg.radial_status,'super_res':msg.super_res,'moments':msg.moments,'sails_seq':msg.sails_cut_seq,'az':msg.azimuth,'el':msg.elevation,'start_az':msg.start_elev_azm,'last_elev':msg.last_ele_flag})
+##
+# Register Callback
+##
+_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
+##
+# Utility fxn defs
+##
 def stripList(list1):
 	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
@@ -50,7 +64,7 @@ def RS():
  	aux_gen_list = [RS_states['auxgen'][key].strip('AP_').strip('RS_') for key in RS_states['auxgen'].keys() if (key & RS_dict['RS_AUX_POWER_GEN_STATE']) > 0]
 	if 'GENERATOR_ON' in aux_gen_list:
 		aux_gen_list.append('true')
-	else:	
+	else:
 		aux_gen_list.append('false')
 	data_trans = [RS_states['datatrans'][key] for key in RS_states['datatrans'].keys() if (key & RS_dict['RS_DATA_TRANS_ENABLED']) > 0]
 	
@@ -68,11 +82,14 @@ def RS():
 	    latest_alarm = {'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
 	except:
 	    latest_alarm = {'valid':0}
-	_rpg.libhci.hci_basedata_read_radial(_rpg.lb.LB_LATEST,_rpg.libhci.HCI_BASEDATA_PARTIAL_READ)
-	el = round(_rpg.libhci.hci_basedata_elevation(),1)
-	az = round(_rpg.libhci.hci_basedata_azimuth(),1)
-	az_no = _rpg.libhci.hci_basedata_azimuth_number()
-	RS_dict.update({'el':el,'az':az,'az_no':az_no,'latest_alarm':latest_alarm,'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
+	_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
+	radome_update = event_holder
+	try:
+	    moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
+	    RS_dict.update({'moments':moments_list})
+	except:
+	    RS_dict.update({'moments':['False']})
+	RS_dict.update({'radome_update':radome_update,'latest_alarm':latest_alarm,'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
 	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
 ##
@@ -572,5 +589,3 @@ class Parse_VCPS(object):
 	full = dict(main_dict, **full_label)
 	# python dictionary returned as a json string
 	return json.dumps(full)
-	
-

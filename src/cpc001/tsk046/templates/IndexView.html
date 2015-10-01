@@ -26,7 +26,6 @@
 
 <%block name="extra_header_markup">
 
-
 <script type="text/javascript">
     tday=new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
     tmonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
@@ -52,13 +51,16 @@ setInterval(GetClock,1000);
 
 
 <script>
+var moments = ['R','V','W','D'];
 var current_wxstatus = new Array; current_wxstatus[1] = 'B'; current_wxstatus[2] = 'A';
 var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
 var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
 var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
 RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};
+var sails_seq = {1:'1st SAILS',2:'2nd SAILS',3:'3rd SAILS'}
 var actionflag = {} 
 var cookieRaid = {}
+var stopCheck = {'action':0}
 var rpgAlarms = {
 	"CON":"Node Connectivity Failure",
 	"RPGCTLFL":"RPG Control Failure",
@@ -122,8 +124,19 @@ function closest(array,num){
       }
     return ans;
 }
-		
+function anim(action){
+	var i;
+        var j;
+        for (i = 1; i<9; i++){
+		var group = document.getElementsByName("squaresWaveG_long_"+i)
+		for(j = 0; j<group.length; j++){
+                	group[j].style.animationPlayState = action
+                }
+        }
+}    
 $(document).ready(function(){
+	var animcheck = document.getElementById("squaresWaveG_long_1")
+	animcheck.style.animationPlayState = "running"
 	$.getJSON('static/rpg_alarms.json',function(data){
 		console.log($.parseJSON(data))
 	});
@@ -298,30 +311,36 @@ $(document).ready(function(){
         		maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
 			maincircle.font = "bold 80px Helvetica";
         		maincircle.fillStyle = 'black';
-       			maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 ,-Math.PI / 2 + toRadians(data['RS_dict']['az']));
+       			maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['start_az']/10),-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['az']/10));
 			maincircle.lineTo(150,150);
        			maincircle.closePath();
         		maincircle.fill();
         		maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
 			maincircle.fillStyle="black";
+			if(data['RS_dict']['radome_update']['last_elev']){
+                        	maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
+                        }
+			if(data['RS_dict']['radome_update']['sails_seq']>0){
+                                maincircle.font = "bold 30px Helvetica";maincircle.fillText(sails_seq[data['RS_dict']['radome_update']['sails_seq']],115,132)
+                        }
+
 			try {
-				var elevation = Math.round(closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el']) * 10) / 10
-				if(${context.get('last_elev')}[data['RS_dict']['RS_VCP_NUMBER']] == data['RS_dict']['el']){
-					maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
-				}
-				if(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']][closest(Object.keys(${context.get('super_res')}[data['RS_dict']['RS_VCP_NUMBER']]),data['RS_dict']['el'])] == "3"){
+				var elevation = data['RS_dict']['radome_update']['el'] / 10
+				if(data['RS_dict']['radome_update']['super_res'] > 0){
 					maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
 				}
 			}
 			catch(err){
 				var elevation = 0.0
 			}
-			maincircle.font = "bold 80px Helvetica";
+			maincircle.font = "bold 80px Helvetica";	
+			if (elevation < 10){var elevx = 95;var elevy = 105;}
+			else{var elevx = 70; var elevy = 105;} 
 			if(elevation % 1 == 0){
-                               	maincircle.fillText(elevation.toFixed(1),95,105);
+                               	maincircle.fillText(elevation.toFixed(1),elevx,elevy);
                        	}
                        	else{
-                               	maincircle.fillText(elevation,95,105);
+                               	maincircle.fillText(elevation,elevx,elevy);
                         }
 			maincircle.font = "bold 18px Helvetica";
         		maincircle.fillText("SAILS:",50,160)
@@ -621,8 +640,8 @@ $(document).ready(function(){
 					break;		
 			};
 			if (data['RS_dict']['RDA_static']['WIDEBAND'] == "CONNECTED"){
-				if ($('#squaresWaveG_long').html() != link){
-					var links = data['RS_dict']['RDA_static']['DATA_TRANS']
+				if ($('#squaresWaveG_long').html() != link && data['RS_dict']['active_moments'] == []){
+					var links = data['RS_dict']['moments']
 					for (l in links){
 						var letter = links[l]
 						$('.link-status'+letter).removeClass('major-alarm');
@@ -631,8 +650,28 @@ $(document).ready(function(){
 						$('#link_'+letter).html(letter).attr('class','link-status-sq normal-ops');
 					}
 				 }
+				 else{
+					var letter = data['RS_dict']['moments']
+                                        for (l in moments){
+						var mom = moments[l]
+						if(letter.indexOf(mom) < 0){
+                                                	$('.link-status'+mom).html('').removeClass('normal-ops').addClass('null-ops');
+                                                	$('#link_'+mom).html(mom).removeClass('normal-ops').addClass('null-ops');
+						}
+					}
+					for (j in moments){
+						var mom = moments[j]
+						if($('.link-status'+mom).html() == '' && letter.indexOf(mom) >= 0 ){
+							$('.link-status'+mom).html(link).removeClass('null-ops').addClass('normal-ops');
+							$('#link_'+mom).html(mom).removeClass('null-ops').addClass('normal-ops');
+							var yank = $('#link').html()
+							$('#link').html(yank)
+						}
+					}
+								
+                                    }
 			}
-
+	
 			else{
 				switch (data['RS_dict']['RDA_static']['WIDEBAND']){
 					case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
@@ -653,6 +692,14 @@ $(document).ready(function(){
 						$('.link-status-sq').html('X').addClass('minor-alarm')
 				}
 			}
+				
+			if(stopCheck['action'] != data['RS_dict']['radome_update']['az']){
+                                	anim("running")
+                        }
+			else{
+                                	anim("paused")
+			}
+			stopCheck['action'] = data['RS_dict']['radome_update']['az']
 			if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
 			else{$('#h_delta_dbz0').addClass('normal-ops')}
 			if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
@@ -660,9 +707,9 @@ $(document).ready(function(){
 			$('#h_delta_dbz0').html(data['PMD_dict']['h_delta_dbz0']+'dB')			
 			$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')
 		});
+	
 		
-		
-	},1000);
+	},500);
 
 
 	$('#refreshPage').click(function(){
@@ -822,14 +869,14 @@ $(document).ready(function(){
 
 				</div>
 								
-			<div style="display:inline-block;color:black;position:relative;z-index:4;top:-28px;">
-			    <div id="link_R" style="display:block;width:20px;height:22px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">R</div>	
+			<div style="display:inline-block;color:black;position:relative;z-index:4;top:-26px;">
+			    <div id="link_R" style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">R</div>	
 					
-			    <div id="link_V" style="display:block;width:20px;height:21px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">V</div>
+			    <div id="link_V" style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">V</div>
 					
-			    <div id="link_W" style="display:block;width:20px;height:21px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">W</div>
+			    <div id="link_W" style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">W</div>
 					
-			    <div id="link_D" style="display:block;width:20px;height:22px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">D</div>
+			    <div id="link_D" style="display:block;width:20px;height:20px;margin-left:-6px;position:relative;text-align:center;top:0px;border:none" class="normal-ops link-status-sq">D</div>
 			</div>
 
 				</div>
@@ -838,44 +885,44 @@ $(document).ready(function(){
 				<div class="rpg-border" style="margin-left:-2px;position:relative;z-index:6"></div>
 					<br><br><br><br><br><br>
 					<div style="text-align:center;border:solid 1px" class="bar-border link-statusR link-status status0" id="squaresWaveG_long">
-							<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+							<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
 					</div>
 					<div style="text-align:center;border:solid 1px" class="bar-border link-statusV link-status status1" id="squaresWaveG_long">
-							<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+							<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
 					</div>	
 					<div style="text-align:center;border:solid 1px" class="bar-border link-statusW link-status status2" id="squaresWaveG_long">
-							<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+							<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
 					</div>   
 					<div style="text-align:center;border:solid 1px" class="bar-border link-statusD link-status status3" id="squaresWaveG_long">
-							<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
-							<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div> 
+							<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
+							<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
 					</div>
 				</div>
 
