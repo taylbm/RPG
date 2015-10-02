@@ -1,0 +1,585 @@
+###
+### index.mako - this is the main page for the dashboard
+###
+
+<%!
+    inherit_layout = True 
+    layout_name = "layout.mako" 
+    page_id = 'main-page'
+    page_title = 'demo-page'
+    page_classes = ''
+%>
+
+###
+### inheritence chain
+###
+
+<%inherit file="page.mako" />
+
+###
+### namespaces
+###
+
+###
+### blocks
+###
+
+<%block name="extra_header_markup">
+
+
+<script type="text/javascript">
+    tday=new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
+    tmonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
+
+    function GetClock(){
+    var d=new Date();
+    var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+    if(nyear<1000) nyear+=1900;
+    var d=new Date();
+    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+    if(nmin<=9) nmin="0"+nmin
+    if(nsec<=9) nsec="0"+nsec;
+
+    $('#clockbox-date').html(""+tday[nday]+", "+tmonth[nmonth]+" "+ndate+", "+nyear);
+    $('#clockbox-time').html(""+nhour+":"+nmin+":"+nsec+" "+"UT");
+    }
+
+    window.onload=function(){
+    GetClock();
+    setInterval(GetClock,1000);
+    }
+</script>
+
+
+<script>
+    function getCookie(cname,truthSwitch) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) {
+		if (truthSwitch){
+                	if (c.substring(name.length,c.length) == "on") return true 
+                	else return false
+		}
+		else{
+			return c.substring(name.length,c.length)
+		}
+	}
+    }
+    return "NULL";
+    }
+    
+
+    function deleteAllCookies() {
+        var cookies = document.cookie.split(";");
+
+        for (var i = 0; i < cookies.length; i++) {
+    	    var cookie = cookies[i];
+     	    var eqPos = cookie.indexOf("=");
+    	    var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    	    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
+    }
+
+
+
+    var current_wxstatus = new Array; current_wxstatus[1] = 'B'; current_wxstatus[2] = 'A';
+    var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
+    var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
+    var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
+    RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};	
+    var actionflag = {}
+	$(document).ready(function(){
+		$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
+		$(".nav-item").css('background-color','#002060');
+
+		$(".toggle").on('slidestop',function(){		
+			var controlname = $(this).attr("id")
+			var displayname = $(this).attr("alt")
+			var date0 = new Date();
+                	date0.setTime(date0.getTime()+900000)
+                	if(displayname.split('-')[0] == "SAILS"){
+				$.getJSON("/update",function(data){
+                                        actionflag["SAILS"] = data['RPG_dict']['ORPGVST']
+                                });
+                	}
+                	else if(displayname.split('-')[0] == "AVSET"){
+				$.getJSON("/update",function(data){
+                                        actionflag["AVSET"] = data['RPG_dict']['ORPGVST']
+                                });
+                	}
+                	else{
+				$.getJSON("/update",function(data){
+                                        actionflag[controlname] = data['RPG_dict']['ORPGVST']
+                                });
+
+               		}
+
+
+			if (controlname != "RDA_Messages"){
+				$.getJSON("/update",function(data){
+                        		actionflag[controlname] = data['RPG_dict']['ORPGVST']
+				});
+				var current = $(this).val();	
+				var cancel;var confirmation;
+				if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
+				if (controlname == "PRF_Mode"){
+					$("#prf_control").click();
+				}
+				else{
+					$("#popup-link").click();
+					var child1 = $(this).find("option:first-child").html()
+					var child2 = $(this).find("option:last-child").html()
+					var displayname = $(this).attr("alt")
+					if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
+						if (current=="on"){
+                                			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
+                        			}
+                        			else{
+							$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
+						}
+					}
+					else{
+						if (current=="off"){
+							$("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child1+' ?')
+						}
+						else{
+							$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')
+						}
+					}
+					$("#pop-cancel").on('click',function(){
+						$("#"+controlname).val(cancel).slider('refresh')
+					});			
+					$("#pop-confirm").on('click',function(){
+						if (current == "on"){
+							if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
+								$("#"+controlname+"_contain .ui-slider-label-a").text('PENDING')
+							}
+						}
+						else{
+							if(displayname == 'CMD' || displayname == 'Super-Res'){
+								$("#"+controlname+"_contain .ui-slider-label-b").text('PENDING')
+							}
+						}
+						$("#"+controlname).val(confirmation).slider('refresh')
+						if(displayname.split('-')[0] == "SAILS"){
+                                			document.cookie = "SAILS"+"="+current+"; expires="+date0.toUTCString();
+                        			}
+                        			else if(displayname.split('-')[0] == "AVSET"){
+                                			document.cookie = "AVSET"+"="+current+"; expires="+date0.toUTCString();
+                        			}
+                        			else{
+                                			document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
+                        			}
+	
+					});
+				}
+			}
+
+		});
+        	var item = Object.keys(RS_TOGGLE);
+
+		setInterval(function (){	
+			$.getJSON("/update",function(data){
+				var flags = Object.keys(actionflag)
+				for (flag in flags){
+					if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
+						delete actionflag[flags[flag]]
+					}
+				}
+				exception_list = ['Model_Update','VAD_Update','Precip_Switch','Clear_Air_Switch']
+				for (e in exception_list){
+                                	var exception = exception_list[e]
+                                	if(Object.keys(actionflag).indexOf(exception) <0){
+                                        	var cookieCheck = getCookie(exception,1)
+                                        	if(exception == "Model_Update" || exception == "VAD_Update"){var d = 'PMD_dict'}else{var d = 'RPG_dict'}
+                                        	if(cookieCheck == "NULL"){cookieCheck = data[d][exception]}
+                                        	if(cookieCheck){
+                                                	$('#'+exception).val('on').slider('refresh');
+                                        	}
+                                        	else{
+                                                	$('#'+exception).val('off').slider('refresh');
+                                        	}
+					}
+                        	}
+				if (Object.keys(actionflag).indexOf('AVSET') < 0){
+					var cookieCheck = getCookie('AVSET',1)
+					if(cookieCheck == "NULL"){
+						$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
+					}	
+					else{
+						if(cookieCheck){
+							$('#AVSET_Exception').val('on').slider('refresh')
+							$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+						}
+						else{
+							$('#AVSET_Exception').val('off').slider('refresh')
+						}
+					}
+				}
+				if (Object.keys(actionflag).indexOf('SAILS') < 0){
+					var cookieCheck = getCookie('SAILS',1)
+					if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
+					if(${context.get('CFG_dict').get('allow_sails')}[data['RS_dict']['RS_VCP_NUMBER']]){
+                                		if (cookieCheck){
+							if(getCookie('SAILS',1) != "NULL"){
+								$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+							}
+							else{
+								
+                                        			$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+							}
+                                        		$('#SAILS_Exception').val('on').slider('refresh');
+							
+                                		}
+                                		else{
+                                        		$('#SAILS_Exception').val('off').slider('refresh');
+                                		}
+                        		}       
+                        		else{
+                                		if(cookieCheck){
+							if(getCookie('SAILS',1) != "NULL"){
+                                                        	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                                                	}
+                                                	else{
+                                                        	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+                                                	}
+                                        		$('#SAILS_Exception').val('on').slider('refresh');
+
+                                		}	
+                                		else{
+                                     			$('#SAILS_Exception').val('off').slider('refresh');
+                                      		}
+
+                        		}
+				 }
+				if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
+ 					switch(data['PMD_dict']['prf']){
+                                		case 'CELL_BASED': case 'STORM_BASED':
+                                        		$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+                                        		$('#PRF_Mode').val('on').slider('refresh')
+                                        		break;
+                                		case 'AUTO_PRF':
+                                        		$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                                        		$('#PRF_Mode').val('on').slider('refresh')
+                                        		break;
+                                		case 'MANUAL_PRF':
+                                        		$('#PRF_Mode').val('off').slider('refresh')
+                                        		break;
+                        		}
+				}
+				if(data['PMD_dict']['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
+				else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
+				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM')}
+				else{$('#Precip_contain').html('NO ACCUM')}
+                        	for (i in item){
+                                	var value = item[i]
+					if(Object.keys(actionflag).indexOf(value) < 0){
+						var cookieCheck = getCookie(value,1)
+                                		var val = RS_TOGGLE[value][data['RS_dict'][value]]
+						if(cookieCheck != "NULL"){
+							if(cookieCheck){
+                                                        	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
+								$("#"+value).val('on').slider("refresh")
+                                                	}
+                                                	else{
+                                                        	$("#"+value).val('off').slider("refresh")
+                                                        	$('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
+                                                	}
+                                        	}
+                                        	else{
+                                                        	$("#"+value).val(val).slider("refresh")	
+								$('#'+value+'_contain .ui-slider .ui-slider-label-a').text('ENABLED')
+                                        	} 
+					}
+                        	}
+				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
+				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
+			});
+			
+			
+		},1000);
+
+		$('#refreshPage').click(function(){
+			location.reload()
+		});
+		$('#perf_check_time').click(function(){
+			window.open("/button?id=hci_rdc_orda","freeloader");
+        		window.open(" ","freeloader")
+		});
+		$('#Mode_Conflict_contain').click(function(){
+                	window.open("/button?id=hci_mode_status","freeloader");
+                	window.open(" ","freeloader")
+        	});
+		$('#prf_control').click(function(){
+			window.open("/button?id=hci_prf","freeloader");
+			window.open(" ","freeloader")
+		});	
+
+		$('#enviro_data').click(function(){
+			window.open="/button?id=hci_wind"
+			window.open=(" ","freeloader")
+		});
+		$('#Precip_contain').click(function(){
+			window.open("/button?id=hci_precip_status","freeloader")
+			window.open(" ","freeloader")
+		});
+		$('#vcp-button').click(function(){
+                	window.open("/VCP","_blank","width= 1024, height = 1400, scrollbars=yes");
+        	});
+		$("#RDA_Messages").val("on").slider("refresh")
+		$('#close').click(function(){
+                	window.close();
+       	 	}); 
+		
+		
+	});
+	
+</script>
+
+</%block>
+
+###
+### body
+###
+
+	
+    
+    <div id="content">	
+    <iframe name="freeloader" style="display:none"></iframe>
+        <div data-role="navbar">
+        	<ul>
+        		<li><div style="font-size:14px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
+			<li><a data-theme="a" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
+        		<li><a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="#">Close</a></li>
+        	</ul>
+        </div>
+
+	
+	<a id="popup-link" data-transition="pop" href="#popupDialog" data-rel="popup" data-position-to="window"></a>
+	<div data-role="popup" id="popupDialog" data-dismissible="false">
+		<div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+			<h1 class="ui-title" role="heading">Confirm Action</h1>
+	
+		</div>
+		<div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
+			<h3 id="id-confirm" class="ui-title">Are you sure you want to change?</h3>
+			<a id="pop-cancel"class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="c" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Cancel</a>
+			<a id="pop-confirm" class="ui-btn ui-btn-up-b ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="b" data-transition="flow" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Confirm</a>
+		</div>
+	</div>
+            <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
+            	<div class="ui-grid-b">
+			<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+				<div id="vcp-button" class="ui-grid-a">
+					<div class="ui-block-a" style="text-decoration : none; color : #000000;">
+						<button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
+					</div>
+					<div class="ui-block-b" style="text-decoration : none; color : #000000;">
+						<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
+					</div>
+				</div>
+	 			<div class="ui-grid-b center" id="PRF_Mode_block">
+                                	<div class="ui-block-a">
+                                        	<button type="button" style="height:40px;display:inline-block;font-size:12px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>                                                                </div>
+                                	<div class="ui-block-c">
+                                        	<div id="PRF_Mode_contain" style="display:block" class="containing-element">
+                                                	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a">
+                                                        	<option value="off">MANUAL</option>
+                                                        	<option value="on">MULTI</option>
+                                                	</select>
+                                       		 </div>
+                               		 </div>
+                       		 </div>
+							
+                                                        <div class="ui-grid-a center" id="SAILS_Exception_contain">
+                                                                <div class="ui-block-a">
+                                                                        <button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
+                                                                </div>
+                                                                <div class="ui-block-b">
+                                                                        <div style="display:inline-block" class="containing-element-lg">
+                                                                                <select alt="SAILS" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
+                                                                                        <option select value="off">DISABLED</option>
+                                                                                        <option value="on">ENABLED</option>
+                                                                                </select>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+				 			<div class="ui-grid-a center" id="AVSET_Exception_contain">
+                                 				<div class="ui-block-a">
+                                        				<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6" data-theme="b">AVSET</button>
+                                        			</div>
+                                        			<div class="ui-block-b">
+                                        				<div style="display:inline-block" class="containing-element-lg">
+                                                                                <select class="toggle" alt="AVSET"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
+                                                                                        <option select value="off">DISABLED</option>
+                                                                                        <option value="on">ENABLED</option>
+                                                                                </select>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+
+						
+
+						<div class="ui-grid-a center" style="width:80%;">
+							<div class="ui-block-a">
+								<div style="font-size:11px"class="bar-border1">Perf. Check in</div>
+							</div>
+							<div class="ui-block-b">
+								<div id="perf_check_time" style="font-size:11px"class="bar-border2">-9999</div>
+							</div>
+						</div>
+			</div>	
+                    	<div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+
+							<div class="ui-grid-a center">
+								<div class="ui-block-a">
+									<button type="button" id="Mode_Conflict" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
+								</div>
+								<div class="ui-block-b" id="Mode_Conflict_status">
+									<button id="Mode_Conflict_contain" type="button" style="font-size:11px;color:black">N/A</button>
+								</div>
+
+							</div>
+ 
+							<div class="ui-grid-a center" id="Clear_Air_Switch_status">
+								<div class="ui-block-a">
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
+								</div>
+								<div class="ui-block-b">
+                            						<div style="float:left" class="containing-element">
+										<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+                                							<option value="off">MANUAL</option>
+                                							<option select value="on">AUTO</option>
+                                						</select>
+                            						</div>
+								</div>
+							</div>
+	 						<div class="ui-grid-a center" id="Precip_Switch_status">
+								<div class="ui-block-a">
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
+								</div>
+								<div class="ui-block-b">
+                            						<div style="float:left" class="containing-element">
+										<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+                                							<option value="off">MANUAL</option>
+                                							<option select id="Precip_Switch_label" value="on">AUTO</option>
+                                						</select>
+                            						</div>
+								</div>
+							</div>
+							 <button type="button" style="font-size:14px;background-color:#002060;color:white;text-shadow:none" data-theme="b">Data Quality Dashboard</button>
+
+
+						
+		    </div>				
+                    <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+
+							 <div class="ui-grid-a center" id="Precip_status">
+                                                                <div class="ui-block-a">
+                                                                        <button id="Precip" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Status</button>
+                                                                </div>
+                                                                <div class="ui-block-b">
+									<button class="normal-ops" id="Precip_contain" type="button" style="font-size:11px;color:black" data-theme="b">N/A</button>
+                                                                </div>
+                                                        </div>
+	
+
+	 						<div class="ui-grid-a center" id="RS_SUPER_RES_status">
+								<div class="ui-block-a">
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Super Res</button>
+								</div>
+								<div class="ui-block-b">
+                            						<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
+										<select alt="Super-Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
+                                							<option value="off">DISABLED</option>
+                                							<option value="on">ENABLED</option>
+                                						</select>
+                            						</div>
+								</div>
+							</div>
+	 						<div class="ui-grid-a center" id="RS_CMD_status">
+								<div class="ui-block-a">
+									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">CMD</button>
+								</div>
+								<div class="ui-block-b">
+                            						<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
+										<select alt="CMD" class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
+                                							<option value="off">DISABLED</option>
+                                							<option select value="on">ENABLED</option>
+                                						</select>
+                            						</div>
+								</div>
+							</div>
+
+	 						<div class="ui-grid-a center" id="Model_Update_status">
+								<div class="ui-block-a">
+									<button id="Model_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
+								</div>
+								<div class="ui-block-b">
+                            						<div style="float:left" class="containing-element-lg">
+										<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+                                							<option value="off">OFF</option>
+                                							<option value="on">ON</option>
+                                						</select>
+                            						</div>
+								</div>
+							</div>
+
+	 						<div class="ui-grid-a center" id="VAD_Update_status">
+								<div class="ui-block-a">
+									<button id="VAD_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
+								</div>
+								<div class="ui-block-b">
+                            						<div style="float:left" class="containing-element-lg">
+										<select alt="VAD update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+                                							<option value="off">OFF</option>
+                                							<option value="on">ON</option>
+                                						</select>
+                            						</div>
+								</div>
+							</div>
+							<div class="ui-grid-a center" id="Load_Shed_status">
+                                                                <div class="ui-block-a">
+                                                                        <button id="Load_Shed" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Load Shed</button>                                                               		       </div>
+                                                                <div class="ui-block-b">
+                                                                        <button id="Load_Shed_contain" type="button" style="font-size:11px;background-color:#51FF22;color:black" data-theme="b">NORMAL</button>
+                                                                </div>
+                                                        </div>
+							<div class="ui-grid-a center" id="RDA_Messages_status">
+                                                                <div class="ui-block-a">
+                                                                        <button id="RDA_Messages_label" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">RDA Messages</button>
+                                                                </div>
+                                                                <div class="ui-block-b">
+                                                                        <div id="RDA_Messages_contain" style="float:left" class="containing-element-lg">
+                                                                                <select alt="RDA_Messages" class="toggle" name="flip-min" id="RDA_Messages" data-role="slider"data-theme="a"data-mini="true">
+                                                                                        <option value="off">DISABLED</option>
+                                                                                        <option select value="on">ENABLED</option>
+                                                                                </select>
+                                                                        </div>
+                                                                </div>
+                                                        </div>
+
+	
+
+
+
+
+    							
+                				</div>
+					</div>
+
+					
+                </div>
+            </div>
+	
+	</div>
+	
+
+
+
+	
+
+

@@ -29,6 +29,21 @@ namespace rpg
             in_orpgrda.attr("COM4_VEL_RESO") = COM4_VEL_RESO;
             in_orpgrda.attr("COM4_HEARTBEATLB") = COM4_HEARTBEATLB;
             in_orpgrda.attr("COM4_PBD_TEST") = COM4_PBD_TEST;
+            in_orpgrda.attr("ORPGRDA_DATA_NOT_FOUND") = ORPGRDA_DATA_NOT_FOUND;
+
+            //
+            // alarm elements
+            //
+
+            in_orpgrda.attr("ORPGRDA_ALARM_MONTH") = static_cast<int>(ORPGRDA_ALARM_MONTH);
+            in_orpgrda.attr("ORPGRDA_ALARM_DAY") = static_cast<int>(ORPGRDA_ALARM_DAY);
+            in_orpgrda.attr("ORPGRDA_ALARM_YEAR") = static_cast<int>(ORPGRDA_ALARM_YEAR);
+            in_orpgrda.attr("ORPGRDA_ALARM_HOUR") = static_cast<int>(ORPGRDA_ALARM_HOUR);
+            in_orpgrda.attr("ORPGRDA_ALARM_MINUTE") = static_cast<int>(ORPGRDA_ALARM_MINUTE);
+            in_orpgrda.attr("ORPGRDA_ALARM_SECOND") = static_cast<int>(ORPGRDA_ALARM_SECOND);
+            in_orpgrda.attr("ORPGRDA_ALARM_CODE") = static_cast<int>(ORPGRDA_ALARM_CODE);
+            in_orpgrda.attr("ORPGRDA_ALARM_ALARM") = static_cast<int>(ORPGRDA_ALARM_ALARM);
+            in_orpgrda.attr("ORPGRDA_ALARM_CHANNEL") = static_cast<int>(ORPGRDA_ALARM_CHANNEL);
     }
 }
 

@@ -2,6 +2,9 @@
 using boost::python::args;
 using boost::python::class_;
 using boost::python::def;
+using boost::python::make_tuple;
+using boost::python::reference_existing_object;
+using boost::python::return_value_policy;
 using boost::python::scope;
 
 #include <string>
@@ -12,9 +15,13 @@ using std::vector;
 
 extern "C"
 {
+    #include "orpgda.h"
+    #include "orpginfo.h"
     #include "orpgmisc.h"
+    #include "orpgrat.h"
     #include "orpgrda.h"
     #include "orpgsails.h"
+    #include "orpgvst.h"
 }
 
 #include "wrap_liborpg.h"
@@ -40,6 +47,44 @@ namespace rpg
             return ORPGRDA_send_cmd(
                 cmd, who_sent_it, param1, param2, param3, param4, param5, &msg[0]
             );
+    }
+
+    tuple thinwrap_orpginfo_statefl_get_rpgalrm()
+    {
+        unsigned int rval = 9999;
+        bool success = ORPGINFO_statefl_get_rpgalrm(&rval) == 0;
+
+        return make_tuple(success, rval);
+    }
+
+    tuple thinwrap_orpginfo_statefl_get_rpgopst()
+    {
+        unsigned int rval = 9999;
+        bool success = ORPGINFO_statefl_get_rpgopst(&rval) == 0;
+
+        return make_tuple(success, rval);
+    }
+
+    string thinwrap_orpgda_lbname(int data_id)
+    {
+        return string(ORPGDA_lbname(data_id));
+    }
+
+    string thinwrap_orpgrat_get_alarm_text(int code)
+    {
+        return string(ORPGRAT_get_alarm_text(code));
+    }
+
+    void wrap_orpgda()
+    {
+        def(
+            "orpgda_lbname", 
+            &thinwrap_orpgda_lbname, 
+            args("data_id")
+        );
+
+        def("orpgda_open", &ORPGDA_open, args("data_id", "flags"));
+        def("orpgda_close", &ORPGDA_close, args("data_id"));
     }
 
     void wrap_orpgrda()
@@ -70,6 +115,24 @@ namespace rpg
             args("item"),
             "Using a constant from rdastatus. as 'item' this function will return the value for that status item. This value is also an rdastatus constant."
         );
+        def("orpgrda_read_alarms", &ORPGRDA_read_alarms);
+        def("orpgrda_get_num_alarms", &ORPGRDA_get_num_alarms);
+        def("orpgrda_get_alarm", &ORPGRDA_get_alarm);
+    }
+
+    void wrap_orpginfo()
+    {
+
+        def("orpginfo_is_sails_enabled", &ORPGINFO_is_sails_enabled);
+        def("orpginfo_is_avest_enabled", &ORPGINFO_is_avset_enabled);
+        def(
+            "orpginfo_statefl_get_rpgalrm", 
+            &thinwrap_orpginfo_statefl_get_rpgalrm 
+        );
+        def(
+            "orpginfo_statefl_get_rpgopst",
+            &thinwrap_orpginfo_statefl_get_rpgopst
+        );
     }
 
     void wrap_orpgmisc()
@@ -81,6 +144,21 @@ namespace rpg
         );
         def("orpgsails_get_status", &ORPGSAILS_get_status);
         def("orpgsails_init", &ORPGSAILS_init);
+        def("orpgsails_get_num_cuts", &ORPGSAILS_get_num_cuts);
+    }
+
+    void wrap_orpgvst()
+    {
+        def("orpgvst_get_volume_time", &ORPGVST_get_volume_time);
+    }
+
+    void wrap_orpgrat()
+    {
+        def(
+            "orpgrat_get_alarm_text", 
+            &thinwrap_orpgrat_get_alarm_text, 
+            args("code")
+        );
     }
 
     void export_liborpg()
@@ -88,15 +166,32 @@ namespace rpg
         class_<liborpg_ns> c("liborpg");
         scope in_liborpg = c;
 
+        wrap_orpgda();
         wrap_orpgrda();
         wrap_orpgmisc();
+        wrap_orpginfo();
+        wrap_orpgrat();
+        wrap_orpgvst();
 
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
             .staticmethod("orpgrda_get_status")
+            .staticmethod("orpgrda_read_alarms")
+            .staticmethod("orpgrda_get_num_alarms")
+            .staticmethod("orpgrda_get_alarm")
+            .staticmethod("orpgda_lbname")
+            .staticmethod("orpgda_open")
+            .staticmethod("orpgda_close")
             .staticmethod("orpgmisc_is_rpg_status")
+            .staticmethod("orpginfo_is_sails_enabled")
+            .staticmethod("orpginfo_is_avest_enabled")
+            .staticmethod("orpginfo_statefl_get_rpgalrm")
+            .staticmethod("orpginfo_statefl_get_rpgopst")
             .staticmethod("orpgsails_get_status")
             .staticmethod("orpgsails_init")
+            .staticmethod("orpgsails_get_num_cuts")
+            .staticmethod("orpgvst_get_volume_time")
+            .staticmethod("orpgrat_get_alarm_text")
         ;
     }
 }

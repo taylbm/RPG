@@ -15,6 +15,14 @@ namespace rpg
         class_<Mode_select_entry_t>("Mode_select_entry_t")
             .def_readwrite("auto_mode_A", &Mode_select_entry_t::auto_mode_A)
             .def_readwrite("auto_mode_B", &Mode_select_entry_t::auto_mode_B)
+            .def_readwrite(
+                "precip_mode_area_thresh", 
+                &Mode_select_entry_t::precip_mode_area_thresh
+            )
+            .def_readwrite(
+                "precip_mode_zthresh", 
+                &Mode_select_entry_t::precip_mode_zthresh
+            )
         ;
     }
 }

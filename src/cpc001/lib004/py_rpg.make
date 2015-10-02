@@ -39,10 +39,19 @@ LIB_CXXSRCS =	wrap_liborpg.cpp \
 		wrap_rda_status.cpp \
 		wrap_orda_pmd.cpp \
 		wrap_orpg_misc.cpp \
+		wrap_orpg_info.cpp \
 		wrap_libhci.cpp \
 		wrap_gen_stat_msg.cpp \
 		wrap_mode_select.cpp \
-		wrap_orpg_sails.cpp
+		wrap_orpg_sails.cpp \
+		wrap_librpg.cpp \
+		wrap_orpgdat.cpp \
+		wrap_precip_status.cpp \
+		wrap_prfselect_buf.cpp \
+		wrap_lb.cpp \
+		wrap_rda_alarm_table.cpp \
+		wrap_liben.cpp \
+		wrap_orpgevt.cpp
 
 LIB_TARGET = _rpg
 

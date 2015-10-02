@@ -10,6 +10,7 @@ namespace rpg
     struct alarmsummary_ns {};
     struct tps_ns {};
     struct auxgen_ns {};
+    struct controlstatus_ns {};
 
     void export_rda_status();
 }

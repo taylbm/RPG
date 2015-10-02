@@ -39,7 +39,7 @@
             <div id ="vcpDef" role="main" class="ui-content">
 	    	<div id="radioContain">            	
 				<form>
-	    			<fieldset  id="vcpselector" class="ui-controlgroup ui-controlgroup-horizontal ui-corner-all" data-role="controlgroup" data-type="horizontal">
+	    			<fieldset data-theme="b" id="vcpselector" class="ui-controlgroup ui-controlgroup-horizontal ui-corner-all" data-role="controlgroup" data-type="horizontal">
 					<legend>VCP:</legend><div class="ui-controlgroup-controls">			
     					<div class="ui-radio">
     						%for vcp in vcp_list:
@@ -96,7 +96,11 @@
                 <td style="text-align:center;">${Elev_num.get("elev_ang_deg")}</td>
                 <td style="text-align:center;">${Elev_num.get("scan_rate_dps")}</td>
                 <td style="text-align:center;">${Elev_num.get("dual_pol")}</td>
-                <td style="text-align:center;">${Elev_num.get("super_res")}</td>
+		% if Elev_num.get("super_res") == 3.0:
+			<td style="text-align:center;">Yes</td>
+		% else:
+			<td style="text-align:center;">No</td>
+		% endif
                 <td style="text-align:center;">${Elev_num.get("waveform_type")}</td>
         	% if Elev_num.get("waveform_type") == "CS": 
         	
