@@ -735,10 +735,10 @@ $(document).ready(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");
         }); 	
 	$('#vcp-button').click(function(){
-		window.open("/VCP","_blank","width= 1024, height = 1024, scrollbars=yes");
+		window.open("http://0.0.0.0:3142","_blank","width= 1024, height = 1024, scrollbars=yes");
 	});
 	$('#shift-change').click(function(){
-                window.open("/shift_change_checklist","_blank","width= 1024, height = 1024, scrollbars=yes");
+                window.open("http://0.0.0.0:4235","_blank","width= 1024, height = 1024, scrollbars=yes");
         });
 
 });
