@@ -590,4 +590,7 @@ table.no-spacing {
 .control-item{
 	font-size:16px;
 }
-
+.interval{
+	margin-top:-10px;
+	margin-bottom:0px;
+}
