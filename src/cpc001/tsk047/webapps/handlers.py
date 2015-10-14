@@ -1,8 +1,15 @@
 import simplejson as json
 import os
 import web
+import sys
+
+HOME = os.getenv("HOME")
+sys.path.insert(0,HOME+'/src/cpc001/lib004')
+sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
+import _rpg
+
 from templating import LOOKUP
-vcp_dir = os.environ['HOME']+'/cfg/vcp/'
+vcp_dir = HOME+'/cfg/vcp/'
 ##
 # Utility fxn defs
 ##
@@ -10,6 +17,12 @@ def stripList(list1):
         return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
         return any(char.isdigit() for char in inputString)
+##
+# Retrieves current VCP 
+##
+class Current_VCP(object):
+    def GET(self):
+        return json.dumps(_rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER))
 ##
 # Retrieves VCP list from cfg directory
 ##

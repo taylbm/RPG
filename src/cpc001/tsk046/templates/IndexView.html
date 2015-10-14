@@ -200,7 +200,7 @@
 						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-R" class="contain-white">NOT AVAILABLE</div></div>
 						</div>
 						<div style="display: table-row">
-						<div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current R(Z,ZDR):</div></div>
+						<div style="font-size:11px;width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">Current R(Z,ZDR):</div></div>
 						<div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-ZDR" class="contain-white">NOT AVAILABLE</div></div>
 						</div>
 					</div>
@@ -256,12 +256,12 @@
 				</div>
 	    <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="margin-top:-230px;background-color:#4bacc6">
 	
-		<div id="PRF_Mode_block" class="ui-grid-b center">
+		<div id="PRF_Mode_block" class="ui-grid-a center button-line">
 			<div class="ui-block-a">
-				<button type="button" style="height:40px;display:inline-block;font-size:12px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>										</div>
-			<div class="ui-block-c">	
-				<div id="PRF_Mode_contain" style="display:block" class="containing-element">
-					<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a">
+				<button type="button" class="display-button"style="font-size:14px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>										</div>
+			<div class="ui-block-b">	
+				<div id="PRF_Mode_contain" style="display:inline-block" class="containing-element-lg">
+					<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a" data-mini="true">
 						<option value="off">MANUAL</option>
 						<option value="on">MULTI</option>
 					</select>
@@ -269,9 +269,9 @@
 			</div>
 		</div>
 
-						<div class="ui-grid-a center" id="SAILS_Exception_contain">
+						<div class="ui-grid-a center button-line" id="SAILS_Exception_contain">
 							<div class="ui-block-a">
-								<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
+								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
 							</div>
 							<div class="ui-block-b">
 								<div style="display:inline-block" class="containing-element-lg">
@@ -282,9 +282,9 @@
 								</div>
 							</div>
 						</div>
-						<div class="ui-grid-a center" id="AVSET_Exception_contain">
+						<div class="ui-grid-a center button-line" id="AVSET_Exception_contain">
 							<div class="ui-block-a">
-								<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6" data-theme="b">AVSET</button>
+								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">AVSET</button>
 							</div>
 							<div class="ui-block-b">
 								<div style="display:inline-block" class="containing-element-lg">
@@ -295,21 +295,22 @@
 								</div>
 							</div>
 						</div>
-						<div class="ui-grid-a center" id="Mode_Conflict_status">
+						<div class="ui-grid-a center button-line" id="Mode_Conflict_status">
 							<div class="ui-block-a">
-								<button id="Mode_Conflict" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>                                                                                 </div>
+								<button id="Mode_Conflict" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>                                                                                 
+							</div>
 							<div class="ui-block-b">
-								<button id="Mode_Conflict_contain" type="button" style="font-size:11px;" data-theme="b">N/A</button>
+								<button id="Mode_Conflict_contain" class="display-button" type="button" style="font-size:14px;" data-theme="b">N/A</button>
 							</div>
 						</div>
 
 
-						<div class="ui-grid-a center" id="Clear_Air_Switch_status">
+						<div class="ui-grid-a center button-line" id="Clear_Air_Switch_status">
 							<div class="ui-block-a">
-								<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
+								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
 							</div>
 							<div class="ui-block-b">
-								<div style="float:left" class="containing-element">
+								<div style="float:left" class="containing-element-lg">
 									<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">MANUAL</option>
 										<option value="on">AUTO</option>
@@ -317,12 +318,12 @@
 								</div>
 							</div>
 						</div>
-						<div class="ui-grid-a center" id="Precip_Switch_status">
+						<div class="ui-grid-a center button-line" id="Precip_Switch_status">
 							<div class="ui-block-a">
-								<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
+								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
 							</div>
 							<div class="ui-block-b">
-								<div style="float:left" class="containing-element">
+								<div style="float:left" class="containing-element-lg">
 									<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">MANUAL</option>
 										<option id="Precip_Switch_label" value="on">AUTO</option>
@@ -330,9 +331,9 @@
 								</div>
 							</div>
 						</div>
-						<div class="ui-grid-a center" id="RS_SUPER_RES_status">
+						<div class="ui-grid-a center button-line" id="RS_SUPER_RES_status">
 							<div class="ui-block-a">
-								<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Super Res</button>
+								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Super Res</button>
 							</div>
 							<div class="ui-block-b">
 								<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
@@ -343,9 +344,9 @@
 								</div>
 							</div>
 						</div>
-						<div class="ui-grid-a center" id="RS_CMD_status">
+						<div class="ui-grid-a center button-line" id="RS_CMD_status">
 							<div class="ui-block-a">
-								<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">CMD</button>
+								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">CMD</button>
 							</div>
 							<div class="ui-block-b">
 								<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
@@ -357,10 +358,10 @@
 							</div>
 						</div>
 						<div class="ui-grid-a">
-							<div class="ui-block-a" id="Model_Update_status">
+							<div class="ui-block-a small-button" id="Model_Update_status">
 								<div class="ui-grid-a">
 									<div class="ui-block-a">
-										<button type="button" id="Model_Update_button" style="font-size:10px;background-color:#DCDBD6" data-theme="b">Model Update</button>
+										<button type="button" class="display-button" id="Model_Update_button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
 									</div>
 									<div class="ui-block-b">
 										<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
@@ -370,10 +371,11 @@
 									</div>
 								</div>
 							</div>
-							<div class="ui-block-b" id="VAD_Update_status">
+							
+							<div class="ui-block-b small-button" id="VAD_Update_status">
 								<div class="ui-grid-a" >
 									<div class="ui-block-a">
-										<button type="button" id="VAD_Update_button" style="font-size:10px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
+										<button type="button" class="display-button" id="VAD_Update_button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
 									</div>
 									<div class="ui-block-b">
 										<select alt="VAD Update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">

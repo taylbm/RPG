@@ -3,6 +3,9 @@ from templating import LOOKUP
 import sys
 import os
 import web
+HOME = os.getenv("HOME")
+sys.path.insert(0,HOME+'/src/cpc001/lib004')
+sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
 import _rpg
 import time
 import subprocess

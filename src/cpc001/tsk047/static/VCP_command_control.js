@@ -13,11 +13,6 @@ if (!String.prototype.format) {
   };
 }
 var RefractiveIndex = 1.21, EarthRadius = 6371.0;
-function bool(test)
-{
-	if (Boolean(test)){val=check_url}else{val=x_url}
-	return val
-}
 function beamHeight(elevation, slantRange)
 {
 	return (slantRange * Math.sin(elevation * 3.14159 / 180.0) + (slantRange * slantRange) / (2 * RefractiveIndex * EarthRadius)) * 3280.84;
@@ -41,8 +36,15 @@ $(document).ready(function(){
 	$(".vcp-button").on("click", function() {
 	    vcp = $(this).attr("id")		
 	    $("#TableContain").html($("#vcpTable-"+vcp).html())
-
 	});
+	$('#current-vcp').on("click", function() {
+	    $.getJSON("/current_vcp", function(attr){
+	        $('#vcp-def-link').click();
+	        $("#TableContain").html($("#vcpTable-"+attr).html())
+		$('.v'+attr).addClass('ui-btn-active');
+    	    });
+	});
+
     $(document).bind('IssuesReceived',IssuesReceived)
     $.getJSON("/list_vcps", function(attr){
         $.each(attr, function(i,field){

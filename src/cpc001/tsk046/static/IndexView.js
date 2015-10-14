@@ -553,16 +553,16 @@ $(document).ready(function(){
 				case 'CELL_BASED': case 'STORM_BASED':
 					$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
 					$('#PRF_Mode').val('on').slider('refresh')
-					$('#PRF_Mode_block').attr('class','hide')
+					/*$('#PRF_Mode_block').attr('class','hide')*/
 					break;
 				case 'AUTO_PRF':
                                         $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
                                         $('#PRF_Mode').val('on').slider('refresh')
-					$('#PRF_Mode_block').attr('class','hide')
+					/*$('#PRF_Mode_block').attr('class','hide')*/
 					break;
 				case 'MANUAL_PRF':
 					$('#PRF_Mode').val('off').slider('refresh')
-					$('#PRF_Mode_block').attr('class','show')
+					/*$('#PRF_Mode_block').attr('class','show')*/
 					break;
 			}
 			

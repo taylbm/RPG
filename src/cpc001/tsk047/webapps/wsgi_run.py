@@ -1,5 +1,8 @@
 import os
 import sys
+HOME = os.getenv("HOME")
+sys.path.insert(0,HOME+'/src/cpc001/lib004/')
+sys.path.insert(0,HOME+'/RPG-ecp-0634p/src/cpc001/lib004/')
 import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir
 PARENT = os.path.split(HERE)[0]
@@ -18,7 +21,8 @@ from handlers import *
 
 SESSION_DIR = '/tmp/HCI_vcp'            # change "my_app_name" to your application name
 URLS = (
-    			            # you can list other handlers here
+
+'/current_vcp','handlers.Current_VCP',   # you can list other handlers here
 '/list_vcps','handlers.List_VCPS',
 '/parse_vcps','handlers.Parse_VCPS',
 '/','handlers.VCP_command_control'

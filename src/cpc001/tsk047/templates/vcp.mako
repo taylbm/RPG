@@ -26,7 +26,7 @@
         <%
 
         vcp_list = [x for x in context.keys() if x.isdigit()]
-
+	
         %>
 
         ${next.body()}
@@ -44,7 +44,7 @@
     					<div class="ui-radio">
     						%for vcp in vcp_list:
     						<input type="radio" name="vcp-choice" id="${vcp}" value="off">
-    						<label id="${vcp}" class="vcp-button ui-btn ui-corner-all ui-btn-inherit ui-radio-off" for="${vcp}">${vcp}</label>
+    						<label id="${vcp}" class="v${vcp} vcp-button ui-btn ui-corner-all ui-btn-inherit ui-radio-off" for="${vcp}">${vcp}</label>
     						%endfor
     					</div>
 					</fieldset>

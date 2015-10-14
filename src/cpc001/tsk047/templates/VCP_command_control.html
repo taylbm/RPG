@@ -1,5 +1,5 @@
 ###
-### vcp.mako - this is the main page for the dashboard
+### vcp.mako - this is the main page for the VCP GUI
 ###
 
 <%!
@@ -28,7 +28,6 @@
 
 <%block name="extra_header_markup">
 <script src="/static/VCP_command_control.js"></script>
-
 </%block>
 
 ###
@@ -38,6 +37,7 @@
                 <a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
                 <h2>VCP Mode and Control</h2>
             </div>
+	    <a id="vcp-def-link" href="#vcp-def"></a>
 	        <div id="content">
                 <div data-role="popup" id="vcp-desc">
                     <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
@@ -91,14 +91,14 @@ x_url = "delete"
                     vcp_list.remove(master)
 		    other_vcp = master
             %>
-
+	    
 	    <div class="ui-body ui-body-a ui-corner-all" style="height:120px;">
                 <div class="ui-grid-b">
                     <div class="ui-block-a">
                         <div class="ui-grid-a">
                             <ul data-role="listview" data-inset="true" class="ui-block-a ui-listview ui-listview-inset ui-corner-all ui-shadow">
-                                <li class="ui-first-child" data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${vcp}"href="#vcp-confirm" data-rel="popup">VCP ${vcp}</a></li>
-                                <li class="ui-last-child" data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${other_vcp}"href="#vcp-confirm" data-rel="popup">VCP ${other_vcp}</a></li>
+                                <li class="item${vcp} ui-first-child" data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${vcp}"href="#vcp-confirm" data-rel="popup">VCP ${vcp}</a></li>
+                                <li class="item${other_vcp} ui-last-child" data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${other_vcp}"href="#vcp-confirm" data-rel="popup">VCP ${other_vcp}</a></li>
                             </ul>
                             <a class="vcp-page-click ui-block-b" href="#vcp-${master}-page"><div id="vcp${master}-draw-overview" style="height:80px; width:160px;"></div></a>            
                         </div>
@@ -107,23 +107,13 @@ x_url = "delete"
                     <table data-role="table" data-mode="reflow" class="ui-responsive ui-table ui-table-reflow">
                         <thead>
                             <tr>
-                            	% if context.get(vcp).get("avset"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">AVSET</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">AVSET</a></th>
-                                % endif
-
-                                % if context.get(vcp).get("sails"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">SAILS</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">SAILS</a></th>
-                                % endif
-                                        
-                                % if context.get(vcp).get("sz2"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">SZ2</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">SZ2</a></th>
-                                % endif
+				% for strat in context.get(vcp).get("strategies").keys():
+                            	    % if context.get(vcp).get("strategies").get(strat):
+                                        <th><img src="/static/${check_url}.png" class="ui-li-icon">${strat}</th>
+                                    % else:
+                                        <th><img src="/static/${x_url}.png" class="ui-li-icon">${strat}</th>
+                                    % endif
+				% endfor
 
 			    </tr>
                         </thead>
@@ -131,23 +121,13 @@ x_url = "delete"
                     <table data-role="table" data-mode="reflow" class="ui-responsive ui-table ui-table-reflow">
                         <thead>
                             <tr>
-                                % if context.get(other_vcp).get("avset"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">AVSET</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">AVSET</a></th>
-                                % endif
-
-                                % if context.get(other_vcp).get("sails"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">SAILS</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">SAILS</a></th>
-                                % endif
-
-                                % if context.get(other_vcp).get("sz2"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">SZ2</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">SZ2</a></th>
-                                % endif
+				% for strat in context.get(other_vcp).get("strategies").keys():
+                                    % if context.get(other_vcp).get("strategies").get(strat):
+                                        <th><img src="/static/${check_url}.png" class="ui-li-icon">${strat}</th>
+                                    % else:
+                                        <th><img src="/static/${x_url}.png" class="ui-li-icon">${strat}</th>
+                                    % endif
+                                % endfor
 
 			    </tr>
                         </thead>
@@ -170,32 +150,23 @@ x_url = "delete"
         		    <a class="vcp-page-click ui-block-b" href="#vcp-${vcp}-page"><div id="vcp${vcp}-draw-overview" style="height:80px; width:160px;"></div></a>	
         		</div>
         	    </div>
-                    <a class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all">
+                    <div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all">
         	    <table data-role="table" data-mode="reflow" class="ui-responsive ui-table ui-table-reflow">
         	        <thead>
         	            <tr>
-				% if context.get(vcp).get("avset"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">AVSET</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">AVSET</a></th>
-                                % endif
-				
-				% if context.get(vcp).get("sails"):
-        	                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">SAILS</a></th>
-        		        % else:
-				    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">SAILS</a></th>
-				% endif
-					
-				% if context.get(vcp).get("sz2"):
-                                    <th><a href="#"><img src="/static/${check_url}.png" class="ui-li-icon">SZ2</a></th>
-                                % else:
-                                    <th><a href="#"><img src="/static/${x_url}.png" class="ui-li-icon">SZ2</a></th>
-                                % endif
+				% for strat in context.get(vcp).get("strategies").keys():
+                                    % if context.get(vcp).get("strategies").get(strat):
+                                        <th><img src="/static/${check_url}.png" class="ui-li-icon">${strat}</th>
+                                    % else:
+                                        <th><img src="/static/${x_url}.png" class="ui-li-icon">${strat}</th>
+                                    % endif
+                                % endfor
 	
         	            </tr>
         	        </thead>
         	    </table>
-        	    <p style="font-size:12px">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p><p class="interval">Update Interval: N/A</p></a>
+        	    <p style="font-size:12px">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p><p class="interval">Update Interval: N/A</p>
+		    </div>
                     <a href="#vcp-desc" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${vcp} Info</p></a>
                 </div>
     	    </div>
@@ -257,7 +228,7 @@ x_url = "delete"
 				<div style="display:inline-block;float:right"
 	                <div data-theme="b" data-role="controlgroup" data-type="horizontal">
 	                   <a href="#vcp-def" class="ui-btn ui-corner-all">View RPG VCP Definitions</a>
-	                   <a href="#vcp-def" class="ui-btn ui-corner-all">View Current VCP</a>
+	                   <a id="current-vcp" href="#" class="ui-btn ui-corner-all">View Current VCP</a>
 	                   <a href="#" class="ui-btn ui-corner-all">Restart Current VCP</a>
 	                </div>
                 </div>

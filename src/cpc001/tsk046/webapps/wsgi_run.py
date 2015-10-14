@@ -1,7 +1,10 @@
 import os
 import sys
-import _rpg
 import signal
+HOME = os.getenv("HOME")
+sys.path.insert(0,HOME+'/src/cpc001/lib004')
+sys.path.insert(0,HOME+'/RPG-ecp-0634p/src/cpc001/lib004')
+import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir
 PARENT = os.path.split(HERE)[0]
 MODULE_CACHE_DIR = '/tmp/HCI/mako_modules'      # change "my_app_name" to your application name
@@ -16,7 +19,6 @@ Configure(
 )
 
 from handlers import *
-
 SESSION_DIR = '/tmp/HCI'            # change "my_app_name" to your application name
 URLS = (
     '/',    'handlers.IndexView',            # you can list other handlers here

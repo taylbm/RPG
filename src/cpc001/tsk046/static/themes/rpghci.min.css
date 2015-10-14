@@ -147,10 +147,10 @@ label.ui-btn {
     height: 20px;
     background-color: #DCDBD6;
     border: 2px solid #000602;
-
+    font-size:14px;
 }
 .contain-white {
-    font-size:11px;
+    font-size:14px;
     position: relative; 
     width: 130px;
     height: 20px ;
@@ -495,8 +495,8 @@ table.no-spacing {
 	z-index:1;
 }
 
-.containing-element-lg .ui-slider-switch { width: 9em }
-.containing-element .ui-slider-switch { width: 8em }
+.containing-element-lg .ui-slider-switch { width: 10em}
+.containing-element .ui-slider-switch { width: 9em }
 .radome-selectors .ui-slider-switch { width: 8em }
 .ui-slider {
 	background-color:#FCFC23 !important;
@@ -587,7 +587,19 @@ table.no-spacing {
 .nav-item{
 	font-size:13px !important;
 }
+.table-item{
+	font-size:14px !important;
+}
 .control-item{
 	font-size:16px;
 }
-
+.display-button{
+	height:30px;
+	padding: 0 !important;
+}
+.button-line{
+	width:255px;
+}
+.small-button{
+	width:155px !important;
+}
