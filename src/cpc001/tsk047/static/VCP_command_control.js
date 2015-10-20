@@ -12,6 +12,18 @@ if (!String.prototype.format) {
     });
   };
 }
+smonth=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
+function timeStamp(){
+    var d=new Date();
+    var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+    if(nyear<1000) nyear+=1900;
+    var d=new Date();
+    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+    if(nmin<=9) nmin="0"+nmin
+    if(nsec<=9) nsec="0"+nsec;
+    return smonth[nmonth]+" "+ndate+","+nyear%100+" "+"["+nhour+":"+nmin+":"+nsec+"]";
+}
+
 var RefractiveIndex = 1.21, EarthRadius = 6371.0;
 function beamHeight(elevation, slantRange)
 {
@@ -26,8 +38,10 @@ var full_dataset = [];
 
 $(document).ready(function(){
 	$(".vcp-confirm").on("click", function(){
-	    $(".vcp-prompt").html("Are you sure you want to send VCP "+$(this).attr("id")+" to the RDA?")
-	    $(".final-vcp-confirm").html("Send VCP "+$(this).attr("id")+" to RDA?")
+	    delete vcp 
+	    vcp = $(this).attr("id")
+	    $("#vcp-num").html(vcp)
+	    $(".final-vcp-confirm").html(vcp)
 	});
 	$(".vcp-desc").on("click", function() {
 	    $(".vcp-desc-title").html("VCP "+$(this).attr("id")+" Description") 
@@ -44,6 +58,20 @@ $(document).ready(function(){
 		$('.v'+attr).addClass('ui-btn-active');
     	    });
 	});
+	
+	$('#restart-vcp-confirm').on("click",function() {
+	    $.post('/send_cmd',{COM:'RESTART_VCP',INPUT:'NULL'});
+	    var date0 = new Date();
+            date0.setTime(date0.getTime()+900000)
+            document.cookie = "RESTART_VCP="+timeStamp()+" >> Requesting the VCP to be restarted; expires="+date0.toUTCString();
+	});
+	$('.vcp-dload-confirm').on("click",function(){
+            $.post('/send_cmd',{COM:'DLOAD_VCP',INPUT:$(".final-vcp-confirm").html()});
+	    var date0 = new Date();
+            date0.setTime(date0.getTime()+900000)
+            document.cookie = "DLOAD_VCP="+timeStamp()+" >> Requesting the download of RPG VCP "+$(".final-vcp-confirm").html()+"; expires="+date0.toUTCString();
+        });
+
 
     $(document).bind('IssuesReceived',IssuesReceived)
     $.getJSON("/list_vcps", function(attr){

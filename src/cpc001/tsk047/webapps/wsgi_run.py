@@ -22,6 +22,7 @@ from handlers import *
 SESSION_DIR = '/tmp/HCI_vcp'            # change "my_app_name" to your application name
 URLS = (
 
+'/send_cmd','handlers.Send_RDACOM',
 '/current_vcp','handlers.Current_VCP',   # you can list other handlers here
 '/list_vcps','handlers.List_VCPS',
 '/parse_vcps','handlers.Parse_VCPS',

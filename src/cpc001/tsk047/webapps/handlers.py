@@ -2,14 +2,17 @@ import simplejson as json
 import os
 import web
 import sys
-
 HOME = os.getenv("HOME")
 sys.path.insert(0,HOME+'/src/cpc001/lib004')
 sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
 import _rpg
 
+import web
+import cgi
+
 from templating import LOOKUP
 vcp_dir = HOME+'/cfg/vcp/'
+commands = {'RESTART_VCP':{'cmd':_rpg.orpgrda.COM4_RDACOM,'who_sent_it':1,'CRDA':16},'DLOAD_VCP':{'cmd':_rpg.orpgrda.COM4_DLOADVCP,'who_sent_it':-700}}
 ##
 # Utility fxn defs
 ##
@@ -23,6 +26,18 @@ def hasNumbers(inputString):
 class Current_VCP(object):
     def GET(self):
         return json.dumps(_rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER))
+##
+# Sends RDA Commands 
+##
+class Send_RDACOM(object):
+    def POST(self):
+	data = cgi.parse_qs(web.data())
+	req = commands[data['COM'][0]]
+	if data['COM'][0] == 'DLOAD_VCP':
+	    req['CRDA'] = int(data['INPUT'][0])
+	print req['CRDA']	
+	cmd = _rpg.liborpg.orpgrda_send_cmd(req['cmd'],req['who_sent_it'],req['CRDA'],0,0,0,0,_rpg.CharVector())
+	return json.dumps(cmd)
 ##
 # Retrieves VCP list from cfg directory
 ##

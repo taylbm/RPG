@@ -1,7 +1,7 @@
 
     tday=new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
     tmonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
-    smonth=new Array("Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec");
+    smonth=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
     function GetClock(){
     var d=new Date();
     var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
@@ -13,7 +13,17 @@
    $('#clockbox-date').html(""+tday[nday]+" "+tmonth[nmonth]+" "+ndate+", "+nyear);
    $('#clockbox-time').html(""+nhour+":"+nmin+":"+nsec+" "+"UT");
    $('#VCP_start_date').html("VCP START: "+smonth[nmonth]+" "+ndate+", "+nyear+'&nbsp');
-}
+   }
+   function timeStamp(){
+    var d=new Date();
+    var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+    if(nyear<1000) nyear+=1900;
+    var d=new Date();
+    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+    if(nmin<=9) nmin="0"+nmin
+    if(nsec<=9) nsec="0"+nsec;
+   return smonth[nmonth]+" "+ndate+","+nyear%100+" "+"["+nhour+":"+nmin+":"+nsec+"]";
+   }
 
 window.onload=function(){
 GetClock();
@@ -368,6 +378,12 @@ $(document).ready(function(){
 				$("#Mode_Conflict_status").addClass('hide')
 			}
 			var state = Object.keys(data['RS_dict']['RDA_static']);
+			if (getCookie('DLOAD_VCP') != "NULL"){
+			    $('#marq1').html(getCookie('DLOAD_VCP'))
+			}
+			if (getCookie('RESTART_VCP') != "NULL"){
+			    $('#marq1').html(getCookie('RESTART_VCP'))
+		   	}
 			if (Object.keys(actionflag).indexOf('SAILS') < 0){
 				var cookieCheck = getCookie('SAILS',1)
 				if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
@@ -553,16 +569,16 @@ $(document).ready(function(){
 				case 'CELL_BASED': case 'STORM_BASED':
 					$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
 					$('#PRF_Mode').val('on').slider('refresh')
-					/*$('#PRF_Mode_block').attr('class','hide')*/
+					$('#PRF_Mode_block').attr('class','hide')
 					break;
 				case 'AUTO_PRF':
                                         $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
                                         $('#PRF_Mode').val('on').slider('refresh')
-					/*$('#PRF_Mode_block').attr('class','hide')*/
+					$('#PRF_Mode_block').attr('class','hide')
 					break;
 				case 'MANUAL_PRF':
 					$('#PRF_Mode').val('off').slider('refresh')
-					/*$('#PRF_Mode_block').attr('class','show')*/
+					$('#PRF_Mode_block').attr('class','show')
 					break;
 			}
 			

@@ -54,12 +54,13 @@
                 </div>
 	        <div data-role="popup" id="vcp-confirm" data-dismissable="true" style="padding:25px;">
                     <div data-role="header">
-                        <h1 class="vcp-prompt"></h1>
+                        <h1 class="vcp-prompt">Confirmation</h1>
                     </div>
                     <div role="main" class="ui-content">
-                        <h3 class ="final-vcp-confirm"></h3>
+                        <div style="display:inline-block"><h3 style="display:inline-block">Send VCP</h3> <h3 style="display:inline-block" class ="final-vcp-confirm"></h3> <h3 style="display:inline-block"> to RDA?</h3></div>
+			<br>
                         <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
-                        <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Send</a>
+                        <a href="#" class="vcp-dload-confirm ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Send</a>
                     </div>
     
 
@@ -229,8 +230,19 @@ x_url = "delete"
 	                <div data-theme="b" data-role="controlgroup" data-type="horizontal">
 	                   <a href="#vcp-def" class="ui-btn ui-corner-all">View RPG VCP Definitions</a>
 	                   <a id="current-vcp" href="#" class="ui-btn ui-corner-all">View Current VCP</a>
-	                   <a href="#" class="ui-btn ui-corner-all">Restart Current VCP</a>
-	                </div>
+	                   <a href="#restart-pop" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all">Restart Current VCP</a>
+        		   <div data-role="popup" id="restart-pop" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="max-width:400px;">
+        		       <div data-role="header" data-theme="a">
+                                   <h1>Restart VCP?</h1>
+         		       </div>
+        		       <div role="main" class="ui-content">
+                	           <h3 class="ui-title">Are you sure you want to restart VCP?</h3>
+                		   <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back">Cancel</a>
+                		   <a href="#" id="restart-vcp-confirm" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back" data-transition="flow">Restart</a>
+        		      </div>
+        		</div>
+
+			</div>
                 </div>
 
 </div>
