@@ -2,6 +2,7 @@ import simplejson as json
 import os
 import web
 import sys
+import datetime
 HOME = os.getenv("HOME")
 sys.path.insert(0,HOME+'/src/cpc001/lib004')
 sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
@@ -12,7 +13,8 @@ import cgi
 
 from templating import LOOKUP
 vcp_dir = HOME+'/cfg/vcp/'
-commands = {'RESTART_VCP':{'cmd':_rpg.orpgrda.COM4_RDACOM,'who_sent_it':1,'CRDA':16},'DLOAD_VCP':{'cmd':_rpg.orpgrda.COM4_DLOADVCP,'who_sent_it':-700}}
+RDACOM = _rpg.orpgrda.COM4_RDACOM
+commands = {'RESTART_VCP':{'cmd':RDACOM,'who_sent_it':1,'CRDA':16},'DLOAD_VCP':{'cmd':_rpg.orpgrda.COM4_DLOADVCP,'who_sent_it':-700},'VEL_RESO':{'cmd':_rpg.orpgrda.COM4_VEL_RESO,'who_sent_it':-100},'ENABLE_SR':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':31},'DISABLE_SR':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':32}}
 ##
 # Utility fxn defs
 ##
@@ -35,7 +37,8 @@ class Send_RDACOM(object):
 	req = commands[data['COM'][0]]
 	if data['COM'][0] == 'DLOAD_VCP':
 	    req['CRDA'] = int(data['INPUT'][0])
-	print req['CRDA']	
+	if data['COM'][0] == 'VEL_RESO':
+            req['CRDA'] = int(data['INPUT'][0])
 	cmd = _rpg.liborpg.orpgrda_send_cmd(req['cmd'],req['who_sent_it'],req['CRDA'],0,0,0,0,_rpg.CharVector())
 	return json.dumps(cmd)
 ##
@@ -222,7 +225,9 @@ class VCP_command_control(object):
 	        multi_helper = ("212","12") 
 	    avset = len(elev_list) > 8
 	    multi = {'bool':unique_elevs == 5 or sails,'multi_helper':multi_helper}
-            main_dict.update({"unique_elevs":unique_elevs,"num_batch_cuts":num_batch_cuts,"num_split_cuts":num_split_cuts,"multi":multi,"strategies":{"SAILS":sails,"SZ2":sz2,"AVSET":avset}})
+	    scan_rate_sum = sum(360/float(stripList(x.replace('scan_rate_dps',''))) for x in text_lines if 'scan_rate_dps' in x)
+	    update_interval = str(datetime.timedelta(seconds=int(scan_rate_sum)))[2:]
+            main_dict.update({"update_interval":update_interval,"unique_elevs":unique_elevs,"num_batch_cuts":num_batch_cuts,"num_split_cuts":num_split_cuts,"multi":multi,"strategies":{"SAILS":sails,"SZ2":sz2,"AVSET":avset}})
             full = dict(main_dict, **full_label)
             # python dictionary returned 
             temp_fulldict = {vcp:full}

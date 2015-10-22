@@ -10,10 +10,14 @@ import _rpg
 import time
 import subprocess
 import commands
+import cgi
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
-wapps_commands = {'VCP':['0.0.0.0:3142','PYTHONPATH='+main_path+'tsk048/deps python '+main_path+'tsk048/webapps/wsgi_run.py 3142'],'Shift_Change_Checklist':['0.0.0.0:4235','PYTHONPATH=/export/home/$USER/src/cpc001/tsk048/deps python webapps/wsgi_run.py 4235']}
+
+RDACOM = _rpg.orpgrda.COM4_RDACOM
+RDA_commands = {'RS_SUPER_RES_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':31},'RS_SUPER_RES_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':32},'RS_CMD_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':33},'RS_CMD_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':34}}
+
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
@@ -35,6 +39,18 @@ def stripList(list1):
 	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
 	return any(char.isdigit() for char in inputString)
+
+##
+# Sends RDA Commands 
+##
+class Send_RDACOM(object):
+    def POST(self):
+        data = cgi.parse_qs(web.data())
+        req = RDA_commands[data['COM'][0]]
+	print data['COM'][0]
+        cmd = _rpg.liborpg.orpgrda_send_cmd(req['cmd'],req['who_sent_it'],req['CRDA'],0,0,0,0,_rpg.CharVector())
+        return json.dumps(cmd)
+
 ##
 # Method for retrieving RDA data 
 ##

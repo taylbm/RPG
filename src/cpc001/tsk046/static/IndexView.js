@@ -117,6 +117,51 @@ function anim(action){
         }
 }    
 $(document).ready(function(){
+	function toggleHandler(self,date0,newVal){
+	    if (newVal.confirmation == "on"){
+                $.post('/send_cmd',{COM:self.attr('id')+'_ENABLE',INPUT:'NULL'});
+            }
+            else{
+                $.post('/send_cmd',{COM:self.attr('id')+'_DISABLE',INPUT:'NULL'});
+            }
+	    if (self.attr('alt')=="SAILS" || self.attr('alt')=="SAILS-Exception"){
+                if (self.attr('id') == "on"){
+                    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                    $('#RPG_SAILS').val('on').slider('refresh')
+                    $('#SAILS_Exception').val('on').slider('refresh')
+                    $('#SAILS_Exception_contain').addClass('hide')
+                    $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                }
+                else{
+                    $('#RPG_SAILS').val('off').slider('refresh')
+                    $('#SAILS_Exception').val('off').slider('refresh')
+                    $('#SAILS_Exception_contain').removeClass('hide')
+                }
+            }
+            if (self.attr('alt')=="AVSET" || self.attr('alt')=="AVSET-Exception"){
+                if (self.attr('id')=="on"){
+                    $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                    $('#RS_AVSET').val('on').slider('refresh')
+                    $('#AVSET_Exception').val('on').slider('refresh')
+                    $('#AVSET_Exception_contain').addClass('hide')
+                    $('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING')
+                }
+                else{
+                    $('#RS_AVSET').val('off').slider('refresh')
+                    $('#AVSET_Exception').val('off').slider('refresh')
+                    $('#AVSET_Exception_contain').removeClass('hide')
+                }
+            }
+            if(self.attr('alt').split('-')[0] == "SAILS"){
+                document.cookie = "SAILS"+"="+self.val()+"; expires="+date0.toUTCString();
+            }
+            else if(self.attr('alt').split('-')[0] == "AVSET"){
+                document.cookie = "AVSET"+"="+self.val()+"; expires="+date0.toUTCString();
+            }
+            else{
+                document.cookie = self.attr('id')+"="+self.val()+"; expires="+date0.toUTCString();
+            }
+	}
 	var animcheck = document.getElementById("squaresWaveG_long_1")
 	animcheck.style.animationPlayState = "running"
 	$.getJSON('static/rpg_alarms.json',function(data){
@@ -171,13 +216,15 @@ $(document).ready(function(){
 	maincircle.stroke();
 	document.getElementById("radome").style.zIndex = 1;
 	$.getJSON("/update",function(data){
-        	cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
+        	cookieRaid['i)))ial'] = data['RPG_dict']['ORPGVST']
         });
 
 	$(".toggle").on('slidestop',function(){
+		$('#popupDialog').popup('open')
 		var date0 = new Date();
 		date0.setTime(date0.getTime()+900000)		
 		var controlname = $(this).attr("id")
+	        self = $(this)	
 		var displayname = $(this).attr("alt")
 		var current = $(this).val();
 		if(displayname.split('-')[0] == "SAILS"){
@@ -196,70 +243,27 @@ $(document).ready(function(){
                 	});
 
 		}
-		var cancel;var confirmation;
-		if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
+		if (current=="on"){newVal = {cancel:"off",confirmation:"on"}}else{newVal = {cancel:"on",confirmation:"off"}}
 		if (controlname == "PRF_Mode"){
                 	$("#prf_control").click();
                 }
 		else {
-			if (['SAILS','AVSET','CMD','Super-Res','SAILS-Exception','AVSET-Exception'].indexOf(displayname) >=0){
+			console.log(self.attr('alt'))
+			if (['SAILS','AVSET','CMD','Super-Res','SAILS-Exception','AVSET-Exception'].indexOf(self.attr('alt')) >=0){
 				var child1 = $(this).find("option:first-child").html()
-				$('#popup-link').click();
 				if (current=="on"){
-                			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
+                			$("#id-confirm").html('You are about to enable '+self.attr('alt')+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
                 		}
                 		else{
-					$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
+					$("#id-confirm").html('Are you sure you want to change '+self.attr('alt')+' to '+child1+' ?')
 				}
                 		$("#pop-cancel").on('click',function(){	
-					$('#'+displayname+'_Exception').val(cancel).slider('refresh');
-                		});                     
-                		$("#pop-confirm").on('click',function(){
-					if (displayname=="SAILS" || displayname=="SAILS-Exception"){
-						if (confirmation == "on"){
-							$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
-							$('#RPG_SAILS').val('on').slider('refresh')
-							$('#SAILS_Exception').val('on').slider('refresh')
-							$('#SAILS_Exception_contain').addClass('hide')
-							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')	
-						}	
-						else{
-                                                        $('#RPG_SAILS').val('off').slider('refresh')
-                                                        $('#SAILS_Exception').val('off').slider('refresh')
-                                                        $('#SAILS_Exception_contain').removeClass('hide')
-						}
-					}
-					if (displayname=="AVSET" || displayname=="AVSET-Exception"){	
-						if (confirmation=="on"){
-                                        		$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
-                                                	$('#RS_AVSET').val('on').slider('refresh')
-                                                	$('#AVSET_Exception').val('on').slider('refresh')
-                                                	$('#AVSET_Exception_contain').addClass('hide')
-                                                	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING')        
-                                        	}
-						else{
-							$('#RS_AVSET').val('off').slider('refresh')
-                                                        $('#AVSET_Exception').val('off').slider('refresh')
-                                                        $('#AVSET_Exception_contain').removeClass('hide')
-                                                }
-					}
-					if(displayname.split('-')[0] == "SAILS"){
-                        			document.cookie = "SAILS"+"="+current+"; expires="+date0.toUTCString();
-		                	}
-                			else if(displayname.split('-')[0] == "AVSET"){
-                        			document.cookie = "AVSET"+"="+current+"; expires="+date0.toUTCString();
-                			}
-                			else{
-                       	 			document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
-                			}
-				
-					
+					$('#'+self.attr('alt')+'_Exception').val(newVal.cancel).slider('refresh');
+					$('#pop-cancel').off()
                 		});
-
-			
+				$('#pop-confirm').bind('click',{self:self,date0:date0,newVal:newVal},function(event){toggleHandler(event.data.self,event.data.date0,event.data.newVal);$('#pop-confirm').unbind()});
 			}
 			else{
-				$("#popup-link").click();
 				var child1 = $(this).find("option:first-child").html()
 				var child2 = $(this).find("option:last-child").html()
 				if (current=="on"){
@@ -269,12 +273,14 @@ $(document).ready(function(){
 					$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')
 				}
 				$("#pop-cancel").on('click',function(){
-					$("#"+controlname).val(cancel).slider('refresh')
+					$("#"+controlname).val(newVal.cancel).slider('refresh')
+					$('#pop-cancel').off()
 				});			
 				$("#pop-confirm").on('click',function(){
-					$("#"+controlname).val(confirmation).slider('refresh')
+					$("#"+controlname).val(newVal.confirmation).slider('refresh')
 					$('#'+controlname+'_status').addClass('hide')
 					document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
+					$('#pop-confirm').off()
 				});
 		    	}
 		}
@@ -704,48 +710,37 @@ $(document).ready(function(){
 		location.reload()
 	});
 	$('#Mode_Conflict_contain').click(function(){
-		window.open("/button?id=hci_mode_status","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_mode_status")
 	});
 	$('#link').click(function(){
-		window.open("button?id=hci_rda_link","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_rda_link")
 	});
 	$('#rda_control').click(function(){
-		window.open("/button?id=hci_rdc_orda","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_rdc_orda")
 	});
 	$('#perf_check_time').click(function(){
-		window.open("/button?id=hci_rdc_orda","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_rdc_orda")
 	});
 	$('#rda_alarms').click(function(){
-		window.open("/button?id=hci_rda_orda","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_rda_orda")
 	});	
 	$('#rpg_control').click(function(){
-		window.open("/button?id=hci_rpc","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_rpc")
 	});	
 	$('#rpg_status').click(function(){
-		window.open("/button?id=hci_status","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_status")
 	});	
 	$('#user_comms').click(function(){
-		window.open("/button?id=hci_nb","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_nb")
 	});	
 	$('#prf_control').click(function(){
-		window.open("/button?id=hci_prf","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_prf")
 	});	
 	$('#enviro_data').click(function(){
-		window.open("/button?id=hci_wind","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_wind")
 	});
 	$('#rpg_misc').click(function(){
-		window.open("/button?id=hci_misc","freeloader")
-		window.open(" ","freeloader")
+		$.get("/button?id=hci_misc")
 	});
 	$('#88D-ops').click(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");

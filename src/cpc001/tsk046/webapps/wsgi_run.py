@@ -24,7 +24,8 @@ URLS = (
     '/',    'handlers.IndexView',            # you can list other handlers here
 '/update','handlers.Updater',
 '/button','handlers.Button',
-'/operations','handlers.Operations')
+'/operations','handlers.Operations',
+'/send_cmd','handlers.Send_RDACOM')
 def session_hook_for_sub_apps():
     n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA) 
     _rpg.librpg.deau_lb_name(n)
