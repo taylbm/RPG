@@ -70,7 +70,8 @@ rntarget:
 
 # We don't need to install this library anymore
 
-#libinstall::
+libinstall::
+	cp $(ARCH)/_rpg.so $(LIBDIR)/_rpg.so
 #	$(RM) $(LIBDIR)/lib$(LIB_TARGET).*
 
 -include $(DEPENDFILE)
