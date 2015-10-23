@@ -16,7 +16,7 @@ moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
 
 RDACOM = _rpg.orpgrda.COM4_RDACOM
-RDA_commands = {'RS_SUPER_RES_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':31},'RS_SUPER_RES_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':32},'RS_CMD_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':33},'RS_CMD_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':34}}
+RDA_commands = {'RS_SUPER_RES_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':31},'RS_SUPER_RES_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':32},'RS_CMD_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':33},'RS_CMD_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':34},'RS_AVSET_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':36},'RS_AVSET_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':35}}
 
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 yellow ='#FCFC23'
