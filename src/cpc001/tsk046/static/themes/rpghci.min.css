@@ -147,10 +147,10 @@ label.ui-btn {
     height: 20px;
     background-color: #DCDBD6;
     border: 2px solid #000602;
-
+    font-size:14px;
 }
 .contain-white {
-    font-size:11px;
+    font-size:14px;
     position: relative; 
     width: 130px;
     height: 20px ;
@@ -290,7 +290,7 @@ height:20px;
 .squaresWaveG_long{
 position:absolute;
 top:0;
-background-color:#000000;
+background-color:#51FF22;
 width:20px;
 height:20px;
 -moz-animation-name:bounce_squaresWaveG_long;
@@ -389,58 +389,56 @@ animation-delay:1.43s;
 
 @-moz-keyframes bounce_squaresWaveG_long{
 0%{
-background-color:#000000;
+background-color:#FFFFFF;
 }
 
 100%{
-background-color:#51FF22;
+background-color:#FFFFFF;
 }
 
 }
 
 @-webkit-keyframes bounce_squaresWaveG_long{
 0%{
-background-color:#000000;
+background-color:#FFFFFF;
 }
 
 100%{
-background-color:#51FF22;
+background-color:#FFFFFF;
 }
 
 }
 /
 @-ms-keyframes bounce_squaresWaveG_long{
 0%{
-background-color:#000000;
+background-color:#FFFFFF;
 }
 
 100%{
-background-color:#51FF22;
+background-color:#FFFFFF;
 }
 
 }
 
 @-o-keyframes bounce_squaresWaveG_long{
 0%{
-background-color:#000000;
+background-color:#FFFFFF;
 }
 
 100%{
-background-color:#51FF22;
+background-color:#FFFFFF;
 }
 
 }
-
 @keyframes bounce_squaresWaveG_long{
 0%{
 background-color:#000000;
 }
-
 100%{
 background-color:#51FF22;
 }
+}
 
-} 
 .box-border{
 	border-style:solid;
 	border-width:3px;
@@ -497,8 +495,8 @@ table.no-spacing {
 	z-index:1;
 }
 
-.containing-element-lg .ui-slider-switch { width: 9em }
-.containing-element .ui-slider-switch { width: 8em }
+.containing-element-lg .ui-slider-switch { width: 10em}
+.containing-element .ui-slider-switch { width: 9em }
 .radome-selectors .ui-slider-switch { width: 8em }
 .ui-slider {
 	background-color:#FCFC23 !important;
@@ -514,8 +512,15 @@ table.no-spacing {
 	text-shadow:2px 2px 4px #000000 !important;
 }
 .link-status {
+	background-color:#51FF22 !important;
 	text-align:left;
 }
+.link-status-sq{
+	border: 1px solid black !important;
+}
+.null-ops {
+        background-color:#FFFFFF !important;
+        }
 .normal-ops { 
 	background-color:#51FF22 !important;
 	color:black;
@@ -582,7 +587,19 @@ table.no-spacing {
 .nav-item{
 	font-size:13px !important;
 }
+.table-item{
+	font-size:14px !important;
+}
 .control-item{
 	font-size:16px;
 }
-
+.display-button{
+	height:30px;
+	padding: 0 !important;
+}
+.button-line{
+	width:255px;
+}
+.small-button{
+	width:155px !important;
+}

@@ -1,0 +1,17 @@
+{
+	"CON":"Node Connectivity Failure",
+	"RPGCTLFL":"RPG Control Failure",
+	"DBFL:"Data Base Failure",
+	"MEDIAFL":"Media Failure",
+	"WBDLS":"Wideband Loadshedding",
+	"PRDSTGLS":"Product Storage Loadshedding",
+	"RDAWB":"RDA Wideband Alarm",
+	"RPGRPGFL":"RPG/RPG Link Failure",
+	"REDCHNER":"Redundant Channel Error",
+	"FLACCFL":"File Access Failure",
+	"RDAINLSRDA":"Radial Input Load Shed",
+	"RPGINLSRPG":"Radial Input Load Shed",
+	"RPGTSKFL":"RPG Task Failure",
+	"DISTRI":"Product Distribution",
+	"WBFAILRE":"Wideband Failure"
+}

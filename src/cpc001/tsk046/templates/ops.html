@@ -92,12 +92,50 @@
     RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};	
     var actionflag = {}
 	$(document).ready(function(){
+		function toggleHandler(attr,switchval){	
+		    switch(switchval){
+		    case 1:
+			if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
+		    	if (attr.current == "on"){
+                            $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
+                    	}
+                   	 else{
+                            $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',INPUT:'NULL'});
+                    	}
+                    	if (attr.confirmation == "on"){
+                            if (['SAILS','AVSET','CMD','Super-Res'].indexOf(attr.displayname) >=0){
+                            	$("#"+attr.controlname+"_contain .ui-slider-label-a").text('PENDING')
+                            }
+                        }
+                        else{
+                            if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
+                                $("#"+attr.controlname+"_contain .ui-slider-label-b").text('PENDING')
+                            }
+                    	}
+                    	$("#"+attr.controlname).val(attr.current).slider('refresh')
+                    	if(attr.displayname.split('-')[0] == "SAILS"){
+                            document.cookie = "SAILS"+"="+attr.current+"; expires="+attr.date0.toUTCString();
+                    	}
+                    	else if(attr.displayname.split('-')[0] == "AVSET"){
+                            document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
+                    	}
+                   	else{
+                            document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
+                    	}
+			break;
+		    case 2:
+			console.log(attr.controlname)
+			$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
+			break;
+		    }			
+		};
 		$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 		$(".nav-item").css('background-color','#002060');
 
-		$(".toggle").on('slidestop',function(){		
+		$(".toggle").on('slidestop',function(){
 			var controlname = $(this).attr("id")
 			var displayname = $(this).attr("alt")
+			var current = $(this).val();
 			var date0 = new Date();
                 	date0.setTime(date0.getTime()+900000)
                 	if(displayname.split('-')[0] == "SAILS"){
@@ -117,22 +155,20 @@
 
                		}
 
-
 			if (controlname != "RDA_Messages"){
 				$.getJSON("/update",function(data){
                         		actionflag[controlname] = data['RPG_dict']['ORPGVST']
 				});
-				var current = $(this).val();	
-				var cancel;var confirmation;
-				if (current=="on"){cancel = "off";confirmation = "on"}else{cancel="on";confirmation="off"}
+				if (current=="on"){newVal = {cancel:"off",confirmation:"on"}}else{newVal = {cancel:"on",confirmation:"off"}}
+				attr = {controlname:controlname,displayname:displayname,date0:date0,newVal:newVal,current:current}
 				if (controlname == "PRF_Mode"){
 					$("#prf_control").click();
+					$('#PRF_Mode').val(newVal.cancel).slider('refresh')
 				}
 				else{
 					$("#popup-link").click();
-					var child1 = $(this).find("option:first-child").html()
-					var child2 = $(this).find("option:last-child").html()
-					var displayname = $(this).attr("alt")
+					child1 = $(this).find("option:first-child").html()
+					child2 = $(this).find("option:last-child").html()
 					if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
 						if (current=="on"){
                                 			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
@@ -149,32 +185,17 @@
 							$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')
 						}
 					}
-					$("#pop-cancel").on('click',function(){
-						$("#"+controlname).val(cancel).slider('refresh')
-					});			
-					$("#pop-confirm").on('click',function(){
-						if (current == "on"){
-							if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
-								$("#"+controlname+"_contain .ui-slider-label-a").text('PENDING')
-							}
-						}
-						else{
-							if(displayname == 'CMD' || displayname == 'Super-Res'){
-								$("#"+controlname+"_contain .ui-slider-label-b").text('PENDING')
-							}
-						}
-						$("#"+controlname).val(confirmation).slider('refresh')
-						if(displayname.split('-')[0] == "SAILS"){
-                                			document.cookie = "SAILS"+"="+current+"; expires="+date0.toUTCString();
-                        			}
-                        			else if(displayname.split('-')[0] == "AVSET"){
-                                			document.cookie = "AVSET"+"="+current+"; expires="+date0.toUTCString();
-                        			}
-                        			else{
-                                			document.cookie = controlname+"="+current+"; expires="+date0.toUTCString();
-                        			}
-	
+					$("#pop-cancel").bind('click',{attr},function(event){
+						toggleHandler(event.data.attr,2)
+                                                $('#pop-confirm').unbind();
+                                                $('#pop-cancel').unbind();						
 					});
+					$("#pop-confirm").bind('click',{attr},function(event){
+						toggleHandler(event.data.attr,1);
+						$('#pop-confirm').unbind();
+						$('#pop-cancel').unbind();
+					});
+	
 				}
 			}
 
@@ -306,28 +327,23 @@
 			location.reload()
 		});
 		$('#perf_check_time').click(function(){
-			window.open("/button?id=hci_rdc_orda","freeloader");
-        		window.open(" ","freeloader")
+			$.get("/button?id=hci_rdc_orda");
 		});
 		$('#Mode_Conflict_contain').click(function(){
-                	window.open("/button?id=hci_mode_status","freeloader");
-                	window.open(" ","freeloader")
+                	$.get("/button?id=hci_mode_status");
         	});
 		$('#prf_control').click(function(){
-			window.open("/button?id=hci_prf","freeloader");
-			window.open(" ","freeloader")
+			$.get("/button?id=hci_prf");
 		});	
 
 		$('#enviro_data').click(function(){
-			window.open="/button?id=hci_wind"
-			window.open=(" ","freeloader")
+			$.get("/button?id=hci_wind");
 		});
 		$('#Precip_contain').click(function(){
-			window.open("/button?id=hci_precip_status","freeloader")
-			window.open(" ","freeloader")
+			$.get("/button?id=hci_precip_status")
 		});
 		$('#vcp-button').click(function(){
-                	window.open("/VCP","_blank","width= 1024, height = 1400, scrollbars=yes");
+                	window.open("http://localhost:3142","_blank","width= 1024, height = 1024, scrollbars=yes");
         	});
 		$("#RDA_Messages").val("on").slider("refresh")
 		$('#close').click(function(){
@@ -347,7 +363,8 @@
 
 	
     
-    <div id="content">	
+    <div id="content">
+		
     <iframe name="freeloader" style="display:none"></iframe>
         <div data-role="navbar">
         	<ul>
@@ -357,7 +374,7 @@
         	</ul>
         </div>
 
-	
+	<a id="prf_control" style="color:white" class="nav-item control-shadow" href="#"></a>	
 	<a id="popup-link" data-transition="pop" href="#popupDialog" data-rel="popup" data-position-to="window"></a>
 	<div data-role="popup" id="popupDialog" data-dismissible="false">
 		<div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
@@ -381,12 +398,12 @@
 						<button id="RS_VCP_NUMBER" type="button" style="font-size:40px;background-color:white" data-theme="b">N/A</button>
 					</div>
 				</div>
-	 			<div class="ui-grid-b center" id="PRF_Mode_block">
+	 			<div class="ui-grid-a center button-line" id="PRF_Mode_block">
                                 	<div class="ui-block-a">
-                                        	<button type="button" style="height:40px;display:inline-block;font-size:12px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>                                                                </div>
-                                	<div class="ui-block-c">
-                                        	<div id="PRF_Mode_contain" style="display:block" class="containing-element">
-                                                	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a">
+                                        	<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>                                                                </div>
+                                	<div class="ui-block-b">
+                                        	<div id="PRF_Mode_contain" style="display:block" class="containing-element-lg">
+                                                	<select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a" data-mini="true">
                                                         	<option value="off">MANUAL</option>
                                                         	<option value="on">MULTI</option>
                                                 	</select>
@@ -394,9 +411,9 @@
                                		 </div>
                        		 </div>
 							
-                                                        <div class="ui-grid-a center" id="SAILS_Exception_contain">
+                                                        <div class="ui-grid-a center button-line" id="SAILS_Exception_contain">
                                                                 <div class="ui-block-a">
-                                                                        <button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
+                                                                        <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
                                                                 </div>
                                                                 <div class="ui-block-b">
                                                                         <div style="display:inline-block" class="containing-element-lg">
@@ -407,9 +424,9 @@
                                                                         </div>
                                                                 </div>
                                                         </div>
-				 			<div class="ui-grid-a center" id="AVSET_Exception_contain">
+				 			<div class="ui-grid-a center button-line" id="AVSET_Exception_contain">
                                  				<div class="ui-block-a">
-                                        				<button type="button" style="display:inline-block;font-size:11px;background-color:#DCDBD6" data-theme="b">AVSET</button>
+                                        				<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">AVSET</button>
                                         			</div>
                                         			<div class="ui-block-b">
                                         				<div style="display:inline-block" class="containing-element-lg">
@@ -434,22 +451,22 @@
 			</div>	
                     	<div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
 
-							<div class="ui-grid-a center">
+							<div class="ui-grid-a center button-line">
 								<div class="ui-block-a">
-									<button type="button" id="Mode_Conflict" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
+									<button type="button" class="display-button" id="Mode_Conflict" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
 								</div>
 								<div class="ui-block-b" id="Mode_Conflict_status">
-									<button id="Mode_Conflict_contain" type="button" style="font-size:11px;color:black">N/A</button>
+									<button id="Mode_Conflict_contain" class="display-button" type="button" style="font-size:14px;color:black">N/A</button>
 								</div>
 
 							</div>
  
-							<div class="ui-grid-a center" id="Clear_Air_Switch_status">
+							<div class="ui-grid-a center button-line" id="Clear_Air_Switch_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
+									<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
 								</div>
 								<div class="ui-block-b">
-                            						<div style="float:left" class="containing-element">
+                            						<div style="float:left" class="containing-element-lg">
 										<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">MANUAL</option>
                                 							<option select value="on">AUTO</option>
@@ -457,12 +474,12 @@
                             						</div>
 								</div>
 							</div>
-	 						<div class="ui-grid-a center" id="Precip_Switch_status">
+	 						<div class="ui-grid-a center button-line" id="Precip_Switch_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
+									<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
 								</div>
 								<div class="ui-block-b">
-                            						<div style="float:left" class="containing-element">
+                            						<div style="float:left" class="containing-element-lg">
 										<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">MANUAL</option>
                                 							<option select id="Precip_Switch_label" value="on">AUTO</option>
@@ -477,9 +494,9 @@
 		    </div>				
                     <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
 
-							 <div class="ui-grid-a center" id="Precip_status">
+							 <div class="ui-grid-a center button-line" id="Precip_status">
                                                                 <div class="ui-block-a">
-                                                                        <button id="Precip" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Precip Status</button>
+                                                                        <button id="Precip" class="display-button"type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Status</button>
                                                                 </div>
                                                                 <div class="ui-block-b">
 									<button class="normal-ops" id="Precip_contain" type="button" style="font-size:11px;color:black" data-theme="b">N/A</button>
@@ -487,9 +504,9 @@
                                                         </div>
 	
 
-	 						<div class="ui-grid-a center" id="RS_SUPER_RES_status">
+	 						<div class="ui-grid-a center button-line" id="RS_SUPER_RES_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Super Res</button>
+									<button type="button"class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Super Res</button>
 								</div>
 								<div class="ui-block-b">
                             						<div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
@@ -500,9 +517,9 @@
                             						</div>
 								</div>
 							</div>
-	 						<div class="ui-grid-a center" id="RS_CMD_status">
+	 						<div class="ui-grid-a center button-line" id="RS_CMD_status">
 								<div class="ui-block-a">
-									<button type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">CMD</button>
+									<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">CMD</button>
 								</div>
 								<div class="ui-block-b">
                             						<div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
@@ -514,9 +531,9 @@
 								</div>
 							</div>
 
-	 						<div class="ui-grid-a center" id="Model_Update_status">
+	 						<div class="ui-grid-a center button-line" id="Model_Update_status">
 								<div class="ui-block-a">
-									<button id="Model_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
+									<button id="Model_Update_button" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Model Update</button>
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element-lg">
@@ -528,9 +545,9 @@
 								</div>
 							</div>
 
-	 						<div class="ui-grid-a center" id="VAD_Update_status">
+	 						<div class="ui-grid-a center button-line" id="VAD_Update_status">
 								<div class="ui-block-a">
-									<button id="VAD_Update_button" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
+									<button id="VAD_Update_button" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element-lg">
@@ -541,16 +558,16 @@
                             						</div>
 								</div>
 							</div>
-							<div class="ui-grid-a center" id="Load_Shed_status">
+							<div class="ui-grid-a center button-line" id="Load_Shed_status">
                                                                 <div class="ui-block-a">
-                                                                        <button id="Load_Shed" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Load Shed</button>                                                               		       </div>
+                                                                        <button id="Load_Shed" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Load Shed</button>                                                               		       </div>
                                                                 <div class="ui-block-b">
                                                                         <button id="Load_Shed_contain" type="button" style="font-size:11px;background-color:#51FF22;color:black" data-theme="b">NORMAL</button>
                                                                 </div>
                                                         </div>
-							<div class="ui-grid-a center" id="RDA_Messages_status">
+							<div class="ui-grid-a center button-line" id="RDA_Messages_status">
                                                                 <div class="ui-block-a">
-                                                                        <button id="RDA_Messages_label" type="button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">RDA Messages</button>
+                                                                        <button id="RDA_Messages_label" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">RDA Messages</button>
                                                                 </div>
                                                                 <div class="ui-block-b">
                                                                         <div id="RDA_Messages_contain" style="float:left" class="containing-element-lg">
