@@ -5,7 +5,7 @@ import sys
 import datetime
 HOME = os.getenv("HOME")
 sys.path.insert(0,HOME+'/lib/lnux_x86')
-sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
+sys.path.insert(0,HOME+'/RPG-ecp0634p/src/cpc001/lib004')
 import _rpg
 
 import web

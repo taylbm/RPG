@@ -10,10 +10,8 @@ import _rpg
 import time
 import subprocess
 import commands
-import cgi
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 moments = {1:'R',2:'V',4:'W',8:'D'}
-main_path = '/export/home/$USER/src/cpc001/'
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
@@ -35,19 +33,6 @@ def stripList(list1):
 	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
 	return any(char.isdigit() for char in inputString)
-
-##
-# Sends RDA Commands 
-##
-class Send_RDACOM(object):
-    def POST(self):
-        data = cgi.parse_qs(web.data())
-        req = data['COM'][0]
-	print req
-	CRDA = {'RS_SUPER_RES_ENABLE':_rpg.orpgrda.CRDA_SR_ENAB,'RS_SUPER_RES_DISABLE':_rpg.orpgrda.CRDA_SR_DISAB,'RS_CMD_ENABLE':_rpg.orpgrda.CRDA_CMD_ENAB,'RS_CMD_DISABLE':_rpg.orpgrda.CRDA_CMD_DISAB,'RS_AVSET_DISABLE':_rpg.orpgrda.CRDA_AVSET_DISAB,'RS_AVSET_ENABLE':_rpg.orpgrda.CRDA_AVSET_ENAB}
-        commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req],0,0,0,0,_rpg.CharVector())
-        return json.dumps(commanded)
-
 ##
 # Method for retrieving RDA data 
 ##
@@ -97,13 +82,13 @@ def RS():
 	    latest_alarm = {'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
 	except:
 	    latest_alarm = {'valid':0}
+	_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
 	radome_update = event_holder
 	try:
 	    moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
 	    RS_dict.update({'moments':moments_list})
 	except:
 	    RS_dict.update({'moments':['False']})
-        _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
 	RS_dict.update({'radome_update':radome_update,'latest_alarm':latest_alarm,'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
 	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
 	return RS_dict
@@ -170,7 +155,7 @@ def CFG():
                 text_lines = list(f)
             except:
                 pass
-	    if [x for x in text_lines if 'allow_sails' in x]:            
+            if 'allow_sails' in text_lines:
                 temp = {vcp.replace('vcp_',''):1}
             else:
                 temp = {vcp.replace('vcp_',''):0}
@@ -182,29 +167,10 @@ def CFG():
 	CFG_dict = {'allow_sails':allow_sails,'last_elev':last_elev,'super_res':super_res}
 	return CFG_dict 
 ##
-# Renders the main HCI 
-##
-class IndexView(object):
+# Renders the Shift Change Checklist 
+##	
+class Shift_change_checklist(object):
     def GET(self):
-        return LOOKUP.IndexView(**CFG())
-##
-# Refreshes the data in the HCI 
-##
-class Updater(object):
-    def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT(),'CFG':CFG()})
-##
-# Operations Sub-Menu
-##
-class Operations(object):
-    def GET(self):
-	return LOOKUP.ops(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'CFG_dict':CFG()})
-##
-# Spawns subtasks
-##
-class Button(object):
-    def GET(self):
-	selected_button = web.input(id=None)
-	if selected_button.id not in commands.getoutput('ps -A'):
-	    return subprocess.Popen(selected_button.id).wait()
+        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
+
 

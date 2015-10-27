@@ -31,6 +31,36 @@ namespace rpg
             in_orpgrda.attr("COM4_PBD_TEST") = COM4_PBD_TEST;
             in_orpgrda.attr("ORPGRDA_DATA_NOT_FOUND") = ORPGRDA_DATA_NOT_FOUND;
 
+
+            //
+            // RDA Command Codes 
+            //
+    
+            in_orpgrda.attr("CRDA_SR_ENAB") = CRDA_SR_ENAB;
+	    in_orpgrda.attr("CRDA_SR_DISAB") = CRDA_SR_DISAB;
+	    in_orpgrda.attr("CRDA_CMD_ENAB") = CRDA_CMD_ENAB;
+	    in_orpgrda.attr("CRDA_CMD_DISAB") = CRDA_CMD_DISAB;
+	    in_orpgrda.attr("CRDA_AVSET_ENAB") = CRDA_AVSET_ENAB;
+	    in_orpgrda.attr("CRDA_AVSET_DISAB") = CRDA_AVSET_DISAB;
+	    in_orpgrda.attr("CRDA_RESTART_VCP") = CRDA_RESTART_VCP;
+	    in_orpgrda.attr("CRDA_SELECT_VCP") = CRDA_SELECT_VCP;	   
+ 
+	    //
+   	    // originators of RDA Commands
+   	    //
+
+	    in_orpgrda.attr("HCI_INITIATED_RDA_CTRL_CMD") = HCI_INITIATED_RDA_CTRL_CMD;
+	    in_orpgrda.attr("MSF_INITIATED_RDA_CTRL_CMD") = MSF_INITIATED_RDA_CTRL_CMD;
+	    in_orpgrda.attr("HCI_VCP_INITIATED_RDA_CTRL_CMD") = HCI_VCP_INITIATED_RDA_CTRL_CMD;
+
+            //
+            // Velocity Resolution codes
+            //
+
+            in_orpgrda.attr("CRDA_VEL_RESO_LOW") = CRDA_VEL_RESO_LOW;
+            in_orpgrda.attr("CRDA_VEL_RESO_HIGH") = CRDA_VEL_RESO_HIGH;
+
+
             //
             // alarm elements
             //
@@ -44,6 +74,7 @@ namespace rpg
             in_orpgrda.attr("ORPGRDA_ALARM_CODE") = static_cast<int>(ORPGRDA_ALARM_CODE);
             in_orpgrda.attr("ORPGRDA_ALARM_ALARM") = static_cast<int>(ORPGRDA_ALARM_ALARM);
             in_orpgrda.attr("ORPGRDA_ALARM_CHANNEL") = static_cast<int>(ORPGRDA_ALARM_CHANNEL);
+
     }
 }
 
