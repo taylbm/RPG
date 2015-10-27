@@ -121,7 +121,6 @@ $(document).ready(function(){
 	    switch(switchval){
 	    case 1:
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-	    	console.log(attr.controlname)
 	    	if (attr.newVal.confirmation == "on"){
                 	$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
             	}
@@ -422,7 +421,7 @@ $(document).ready(function(){
 			if (Object.keys(actionflag).indexOf('SAILS') < 0){
 				var cookieCheck = getCookie('SAILS',1)
 				if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
-				if(data['RS_dict']['radome_update']['sails_seq']>0){
+				if(data['CFG']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
 					if (cookieCheck){
 						if(getCookie('SAILS',1) != "NULL"){
 							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
@@ -497,7 +496,10 @@ $(document).ready(function(){
 				}		
 				else{	
 					var cookieCheck = getCookie(value,1)
-                                	if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
+					console.log(Object.keys(actionflag).indexOf(value))
+					console.log(cookieCheck)
+					if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) <= 0){
+						console.log(value)
 						if(cookieCheck){
 							$("#"+value+"_status").addClass('hide');
                                                 	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
@@ -775,7 +777,7 @@ $(document).ready(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");
         }); 	
 	$('#vcp-button').click(function(){
-		window.open("http://0.0.0.0:3142","_blank","width= 1024, height = 1024, scrollbars=yes");
+		window.open("http://0.0.0.0:3142","_blank","width= 1024, height = 720, scrollbars=yes");
 	});
 	$('#shift-change').click(function(){
                 window.open("http://0.0.0.0:4235","_blank","width= 1024, height = 1024, scrollbars=yes");

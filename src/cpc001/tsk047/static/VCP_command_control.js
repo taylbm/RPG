@@ -60,13 +60,13 @@ $(document).ready(function(){
 	});
 	
 	$('#restart-vcp-confirm').on("click",function() {
-	    $.post('/send_cmd',{COM:'RESTART_VCP',INPUT:'NULL'});
+	    $.post('/send_cmd',{COM:'COM4_RDACOM',INPUT:'CRDA_RESTART_VCP'});
 	    var date0 = new Date();
             date0.setTime(date0.getTime()+900000)
             document.cookie = "RESTART_VCP="+timeStamp()+" >> Requesting the VCP to be restarted; expires="+date0.toUTCString();
 	});
 	$('.vcp-dload-confirm').on("click",function(){
-            $.post('/send_cmd',{COM:'DLOAD_VCP',INPUT:$(".final-vcp-confirm").html()});
+            $.post('/send_cmd',{COM:'COM4_DLOADVCP',INPUT:$(".final-vcp-confirm").html()});
 	    var date0 = new Date();
             date0.setTime(date0.getTime()+900000)
             document.cookie = "DLOAD_VCP="+timeStamp()+" >> Requesting the download of RPG VCP "+$(".final-vcp-confirm").html()+"; expires="+date0.toUTCString();

@@ -1,7 +1,7 @@
 import os
 import sys
 HOME = os.getenv("HOME")
-sys.path.insert(0,HOME+'/src/cpc001/lib004/')
+sys.path.insert(0,HOME+'/lib/lnux_x86/')
 sys.path.insert(0,HOME+'/RPG-ecp-0634p/src/cpc001/lib004/')
 import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir

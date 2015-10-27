@@ -4,7 +4,7 @@ import web
 import sys
 import datetime
 HOME = os.getenv("HOME")
-sys.path.insert(0,HOME+'/src/cpc001/lib004')
+sys.path.insert(0,HOME+'/lib/lnux_x86')
 sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
 import _rpg
 
@@ -13,8 +13,7 @@ import cgi
 
 from templating import LOOKUP
 vcp_dir = HOME+'/cfg/vcp/'
-RDACOM = _rpg.orpgrda.COM4_RDACOM
-commands = {'RESTART_VCP':{'cmd':RDACOM,'who_sent_it':1,'CRDA':16},'DLOAD_VCP':{'cmd':_rpg.orpgrda.COM4_DLOADVCP,'who_sent_it':-700},'VEL_RESO':{'cmd':_rpg.orpgrda.COM4_VEL_RESO,'who_sent_it':-100},'ENABLE_SR':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':31},'DISABLE_SR':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':32}}
+
 ##
 # Utility fxn defs
 ##
@@ -34,13 +33,15 @@ class Current_VCP(object):
 class Send_RDACOM(object):
     def POST(self):
 	data = cgi.parse_qs(web.data())
-	req = commands[data['COM'][0]]
-	if data['COM'][0] == 'DLOAD_VCP':
-	    req['CRDA'] = int(data['INPUT'][0])
-	if data['COM'][0] == 'VEL_RESO':
-            req['CRDA'] = int(data['INPUT'][0])
-	cmd = _rpg.liborpg.orpgrda_send_cmd(req['cmd'],req['who_sent_it'],req['CRDA'],0,0,0,0,_rpg.CharVector())
-	return json.dumps(cmd)
+	cmd = data['COM'][0]
+	input = data['INPUT'][0]
+	if cmd == 'COM4_DLOADVCP':
+	    p1 = int(input)
+	else:
+	    p1 = getattr(_rpg.orpgrda,input)
+	who_sent_it = {'COM4_RDACOM':1,'COM4_DLOADVCP':_rpg.orpgrda.HCI_VCP_INITIATED_RDA_CTRL_CMD,'COM4_VEL_RES':_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD}
+	commanded = _rpg.liborpg.orpgrda_send_cmd(getattr(_rpg.orpgrda,cmd),who_sent_it.get(cmd),p1,0,0,0,0,_rpg.CharVector())
+	return json.dumps(commanded)
 ##
 # Retrieves VCP list from cfg directory
 ##
@@ -221,10 +222,10 @@ class VCP_command_control(object):
             sz2 = filter(lambda x: 'phase' in x, text_lines) != []
 	    if unique_elevs == 5:
 	        multi_helper = ("32","31")
-	    if sails:
+	    if len(elev_list) == 17:
 	        multi_helper = ("212","12") 
 	    avset = len(elev_list) > 8
-	    multi = {'bool':unique_elevs == 5 or sails,'multi_helper':multi_helper}
+	    multi = {'bool':unique_elevs == 5 or len(elev_list) == 17,'multi_helper':multi_helper}
 	    scan_rate_sum = sum(360/float(stripList(x.replace('scan_rate_dps',''))) for x in text_lines if 'scan_rate_dps' in x)
 	    update_interval = str(datetime.timedelta(seconds=int(scan_rate_sum)))[2:]
             main_dict.update({"update_interval":update_interval,"unique_elevs":unique_elevs,"num_batch_cuts":num_batch_cuts,"num_split_cuts":num_split_cuts,"multi":multi,"strategies":{"SAILS":sails,"SZ2":sz2,"AVSET":avset}})

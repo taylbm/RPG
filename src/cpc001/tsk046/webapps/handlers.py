@@ -4,7 +4,7 @@ import sys
 import os
 import web
 HOME = os.getenv("HOME")
-sys.path.insert(0,HOME+'/src/cpc001/lib004')
+sys.path.insert(0,HOME+'/lib/lnux_x86')
 sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
 import _rpg
 import time
@@ -14,10 +14,6 @@ import cgi
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
-
-RDACOM = _rpg.orpgrda.COM4_RDACOM
-RDA_commands = {'RS_SUPER_RES_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':31},'RS_SUPER_RES_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':32},'RS_CMD_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':33},'RS_CMD_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':34},'RS_AVSET_DISABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':36},'RS_AVSET_ENABLE':{'cmd':RDACOM,'who_sent_it':-400,'CRDA':35}}
-
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 yellow ='#FCFC23'
 green = '#51FF22'
@@ -46,10 +42,11 @@ def hasNumbers(inputString):
 class Send_RDACOM(object):
     def POST(self):
         data = cgi.parse_qs(web.data())
-        req = RDA_commands[data['COM'][0]]
-	print data['COM'][0]
-        cmd = _rpg.liborpg.orpgrda_send_cmd(req['cmd'],req['who_sent_it'],req['CRDA'],0,0,0,0,_rpg.CharVector())
-        return json.dumps(cmd)
+        req = data['COM'][0]
+	print req
+	CRDA = {'RS_SUPER_RES_ENABLE':_rpg.orpgrda.CRDA_SR_ENAB,'RS_SUPER_RES_DISABLE':_rpg.orpgrda.CRDA_SR_DISAB,'RS_CMD_ENABLE':_rpg.orpgrda.CRDA_CMD_ENAB,'RS_CMD_DISABLE':_rpg.orpgrda.CRDA_CMD_DISAB,'RS_AVSET_DISABLE':_rpg.orpgrda.CRDA_AVSET_DISAB,'RS_AVSET_ENABLE':_rpg.orpgrda.CRDA_AVSET_ENAB}
+        commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req],0,0,0,0,_rpg.CharVector())
+        return json.dumps(commanded)
 
 ##
 # Method for retrieving RDA data 
@@ -173,7 +170,7 @@ def CFG():
                 text_lines = list(f)
             except:
                 pass
-            if 'allow_sails' in text_lines:
+	    if [x for x in text_lines if 'allow_sails' in x]:            
                 temp = {vcp.replace('vcp_',''):1}
             else:
                 temp = {vcp.replace('vcp_',''):0}
@@ -195,7 +192,7 @@ class IndexView(object):
 ##
 class Updater(object):
     def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
+	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT(),'CFG':CFG()})
 ##
 # Operations Sub-Menu
 ##

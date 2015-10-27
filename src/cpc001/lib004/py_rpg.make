@@ -71,6 +71,7 @@ rntarget:
 # We don't need to install this library anymore
 
 libinstall::
+	mv $(ARCH)/lib_rpg.so $(ARCH)/_rpg.so
 	cp $(ARCH)/_rpg.so $(LIBDIR)/_rpg.so
 #	$(RM) $(LIBDIR)/lib$(LIB_TARGET).*
 
