@@ -96,14 +96,26 @@
 		    switch(switchval){
 		    case 1:
 			if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-		    	if (attr.current == "on"){
-                            $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
-                    	}
-                   	 else{
-                            $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',INPUT:'NULL'});
-                    	}
+		    	if(attr.displayname != 'SAILS' && attr.displayname != 'SAILS-Exception'){
+			    if (attr.newVal.confirmation == "on"){
+                                $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
+                    	    }
+                   	    else{
+                                $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',INPUT:'NULL'});
+                    	    }
+			}
+			else{
+                            if (attr.newVal.confirmation == "on"){
+                                $.post('/sails',{NUM_CUTS:attr.num_cuts});
+                                delete actionflag.SAILS
+                    	    }
+                            else{
+                                $.post('/sails',{NUM_CUTS:0});
+                                delete actionflag.SAILS
+                            }
+                	}
                     	if (attr.confirmation == "on"){
-                            if (['SAILS','AVSET','CMD','Super-Res'].indexOf(attr.displayname) >=0){
+                            if (['AVSET','CMD','Super-Res'].indexOf(attr.displayname) >=0){
                             	$("#"+attr.controlname+"_contain .ui-slider-label-a").text('PENDING')
                             }
                         }
@@ -113,10 +125,7 @@
                             }
                     	}
                     	$("#"+attr.controlname).val(attr.current).slider('refresh')
-                    	if(attr.displayname.split('-')[0] == "SAILS"){
-                            document.cookie = "SAILS"+"="+attr.current+"; expires="+attr.date0.toUTCString();
-                    	}
-                    	else if(attr.displayname.split('-')[0] == "AVSET"){
+                    	if(attr.displayname.split('-')[0] == "AVSET"){
                             document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
                     	}
                    	else{
@@ -172,6 +181,15 @@
 					if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
 						if (current=="on"){
                                 			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
+							if(displayname == 'SAILS'){
+							    console.log('hello')
+                                            		    $("#sails-insert").html($('#sails-form').html())
+                                            		    $('#popupDialog').trigger('create')
+                                            		    attr['num_cuts'] = $('#select-choice-0').val()
+                                        		}
+                                        		else{
+                                            		    $("#sails-insert").html('')
+                                        		} 
                         			}
                         			else{
 							$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
@@ -241,40 +259,18 @@
 					}
 				}
 				if (Object.keys(actionflag).indexOf('SAILS') < 0){
-					var cookieCheck = getCookie('SAILS',1)
-					if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
-					if(${context.get('CFG_dict').get('allow_sails')}[data['RS_dict']['RS_VCP_NUMBER']]){
-                                		if (cookieCheck){
-							if(getCookie('SAILS',1) != "NULL"){
-								$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
-							}
-							else{
-								
-                                        			$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
-							}
-                                        		$('#SAILS_Exception').val('on').slider('refresh');
-							
-                                		}
-                                		else{
-                                        		$('#SAILS_Exception').val('off').slider('refresh');
-                                		}
-                        		}       
+					if(data['RPG_dict']['RPG_SAILS']){
+					    $('#SAILS_Exception').val('on').slider('refresh');
+					    if(data['RPG_dict']['sails_allowed']){
+					        $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+					    }
+					    else{
+                                		$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+					    }
+                        		}   
                         		else{
-                                		if(cookieCheck){
-							if(getCookie('SAILS',1) != "NULL"){
-                                                        	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
-                                                	}
-                                                	else{
-                                                        	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
-                                                	}
-                                        		$('#SAILS_Exception').val('on').slider('refresh');
-
-                                		}	
-                                		else{
-                                     			$('#SAILS_Exception').val('off').slider('refresh');
-                                      		}
-
-                        		}
+		                            $('#SAILS_Exception').val('off').slider('refresh');
+					}
 				 }
 				if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
  					switch(data['PMD_dict']['prf']){
@@ -381,7 +377,8 @@
 			<h1 class="ui-title" role="heading">Confirm Action</h1>
 	
 		</div>
-		<div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
+		<div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">	
+			<div id="sails-insert"></div>
 			<h3 id="id-confirm" class="ui-title">Are you sure you want to change?</h3>
 			<a id="pop-cancel"class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="c" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Cancel</a>
 			<a id="pop-confirm" class="ui-btn ui-btn-up-b ui-shadow ui-btn-corner-all-ui-btn-inline" data-theme="b" data-transition="flow" data-rel="back" data-inline="true" data-role="button" href="#" data-corners="true" data-shadows="true" data-iconshadow="true" data-wrapperrels="span">Confirm</a>

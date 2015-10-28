@@ -603,3 +603,7 @@ table.no-spacing {
 .small-button{
 	width:155px !important;
 }
+.sails-title{
+	font-size:18px;
+	text-align:center;
+}

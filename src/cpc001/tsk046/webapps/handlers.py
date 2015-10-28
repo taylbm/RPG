@@ -4,8 +4,8 @@ import sys
 import os
 import web
 HOME = os.getenv("HOME")
-sys.path.insert(0,HOME+'/lib/lnux_x86')
 sys.path.insert(0,HOME+'/RPG-ecp0634p/src/cpc001/lib004')
+sys.path.insert(0,HOME+'/lib/lnux_x86')
 import _rpg
 import time
 import subprocess
@@ -23,7 +23,16 @@ event_holder = {}
 ##
 def callback(event, msg_data):
         msg = _rpg.orpgevt.to_orpgevt_radial_acct_t(msg_data)
-        event_holder.update({'radial_status':msg.radial_status,'super_res':msg.super_res,'moments':msg.moments,'sails_seq':msg.sails_cut_seq,'az':msg.azimuth,'el':msg.elevation,'start_az':msg.start_elev_azm,'last_elev':msg.last_ele_flag})
+        event_holder.update({
+			    'radial_status':msg.radial_status,
+			    'super_res':msg.super_res,
+			    'moments':msg.moments,
+			    'sails_seq':msg.sails_cut_seq,
+			    'az':msg.azimuth,
+			    'el':msg.elevation,
+			    'start_az':msg.start_elev_azm,
+			    'last_elev':msg.last_ele_flag
+			    })
 ##
 # Register Callback for Event Notification
 ##
@@ -37,6 +46,28 @@ def hasNumbers(inputString):
 	return any(char.isdigit() for char in inputString)
 
 ##
+# Flag setting function
+##
+
+class Set_Flag(object):
+    def POST(self):
+	data = cgi.parse_qs(web.data())
+	type = data['TYPE'][0]
+	flag = int(data['FLAG'][0])
+	set_flag = getattr(_rpg.libhci,type)(flag)
+	return json.dumps(set_flag)
+
+##
+# Sets number of SAILS cuts 
+##
+class ORPGSAILS_set(object):
+    def POST(self):
+	data = cgi.parse_qs(web.data())
+	cuts = int(data['NUM_CUTS'][0])
+	commanded_cuts = _rpg.liborpg.orpgsails_set_req_num_cuts(cuts)
+	return json.dumps(commanded_cuts)
+
+##
 # Sends RDA Commands 
 ##
 class Send_RDACOM(object):
@@ -44,7 +75,14 @@ class Send_RDACOM(object):
         data = cgi.parse_qs(web.data())
         req = data['COM'][0]
 	print req
-	CRDA = {'RS_SUPER_RES_ENABLE':_rpg.orpgrda.CRDA_SR_ENAB,'RS_SUPER_RES_DISABLE':_rpg.orpgrda.CRDA_SR_DISAB,'RS_CMD_ENABLE':_rpg.orpgrda.CRDA_CMD_ENAB,'RS_CMD_DISABLE':_rpg.orpgrda.CRDA_CMD_DISAB,'RS_AVSET_DISABLE':_rpg.orpgrda.CRDA_AVSET_DISAB,'RS_AVSET_ENABLE':_rpg.orpgrda.CRDA_AVSET_ENAB}
+	CRDA = {
+		'RS_SUPER_RES_ENABLE':_rpg.orpgrda.CRDA_SR_ENAB,
+		'RS_SUPER_RES_DISABLE':_rpg.orpgrda.CRDA_SR_DISAB,
+		'RS_CMD_ENABLE':_rpg.orpgrda.CRDA_CMD_ENAB,
+		'RS_CMD_DISABLE':_rpg.orpgrda.CRDA_CMD_DISAB,
+		'RS_AVSET_DISABLE':_rpg.orpgrda.CRDA_AVSET_DISAB,
+		'RS_AVSET_ENABLE':_rpg.orpgrda.CRDA_AVSET_ENAB
+		}
         commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req],0,0,0,0,_rpg.CharVector())
         return json.dumps(commanded)
 
@@ -104,8 +142,21 @@ def RS():
 	except:
 	    RS_dict.update({'moments':['False']})
         _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
-	RS_dict.update({'radome_update':radome_update,'latest_alarm':latest_alarm,'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
-	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
+	RS_dict.update({
+			'radome_update':radome_update,
+			'latest_alarm':latest_alarm,
+			'RDA_static':{
+				'DATA_TRANS':data_trans,
+				'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
+				'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
+				'OPERABILITY_LIST':",".join(oper_list),
+				'AUX_GEN_LIST':"<br>".join(aux_gen_list),
+				'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),
+				'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),
+				'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')
+				},
+			'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
+			})
 	return RS_dict
 ##
 # Method for retrieving RPG data 
@@ -116,6 +167,7 @@ def RPG():
 	if not RPG_state:
 		RPG_state.append("SHUTDOWN")
 	sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
+	sails_allowed = _rpg.liborpg.orpgsails_get_num_cuts()
 	precip_switch = _rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_A
         clear_air_switch = _rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_B	
 	RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
@@ -123,7 +175,18 @@ def RPG():
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
 	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
-	return {'sails_cuts':sails_cuts,'ORPGVST':ORPGVST,'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),'Precip_Switch':precip_switch,'Clear_Air_Switch':clear_air_switch}
+	return {
+		'sails_allowed':sails_allowed,
+		'sails_cuts':sails_cuts,
+		'ORPGVST':ORPGVST,
+		'RPG_state':",".join(RPG_state),
+		'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),
+		'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
+		'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
+		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),
+		'Precip_Switch':precip_switch,
+		'Clear_Air_Switch':clear_air_switch
+	}
 ##
 # Method for retrieving Performance/ Maintenance Data
 ##	
@@ -140,7 +203,21 @@ def PMD():
 		perf_color = 'white'
 	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
 	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
-	return {"Model_Update":model_flag,"VAD_Update":vad_flag,"prf":prf_dict[prf],"mode_conflict":mode_conflict,"current_precip_status":precip,"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,"precip_mode_area_thresh":wx.precip_mode_area_thresh,"precip_mode_zthresh":wx.precip_mode_zthresh}
+	return {
+		"Model_Update":model_flag,
+		"VAD_Update":vad_flag,
+		"prf":prf_dict[prf],
+		"mode_conflict":mode_conflict,
+		"current_precip_status":precip,	
+		"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,
+		"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],
+		"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),
+		"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),
+		'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
+		'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,
+		"precip_mode_area_thresh":wx.precip_mode_area_thresh,
+		"precip_mode_zthresh":wx.precip_mode_zthresh
+	}
 ##
 # Method for retrieving Adaptation Data
 ##
@@ -175,24 +252,30 @@ def CFG():
             else:
                 temp = {vcp.replace('vcp_',''):0}
             allow_sails.update(temp)
+	    max_sails = _rpg.liborpg.orpgsails_get_site_max_cuts()
             temp = max([float(x.replace('elev_ang_deg','').replace("\n",'').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x])
             last_elev.update({vcp.replace('vcp_',''):temp})
             temp = dict((x.replace('\n','').replace('elev_ang_deg','').replace(' ','').replace('{',''),text_lines[text_lines.index(x)+3].replace('super_res','').replace('\n','').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x)
             super_res.update({vcp.replace('vcp_',''):temp})
-	CFG_dict = {'allow_sails':allow_sails,'last_elev':last_elev,'super_res':super_res}
+	CFG_dict = {
+		    'max_sails':max_sails,
+		    'allow_sails':allow_sails,
+		    'last_elev':last_elev,
+		    'super_res':super_res
+		    }
 	return CFG_dict 
 ##
 # Renders the main HCI 
 ##
 class IndexView(object):
     def GET(self):
-        return LOOKUP.IndexView(**CFG())
+        return LOOKUP.IndexView(**{'CFG_dict':CFG()})
 ##
 # Refreshes the data in the HCI 
 ##
 class Updater(object):
     def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT(),'CFG':CFG()})
+	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
 ##
 # Operations Sub-Menu
 ##

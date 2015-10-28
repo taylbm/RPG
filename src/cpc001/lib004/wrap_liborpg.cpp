@@ -28,6 +28,11 @@ extern "C"
 
 namespace rpg
 {
+    int thinwrap_orpgsails_set_req_num_cuts(int num_cuts)
+    {
+        return ORPGSAILS_set_req_num_cuts(num_cuts);
+    }
+
     int thinwrap_orpg_send_cmd(
         int cmd, 
         int who_sent_it, 
@@ -86,7 +91,16 @@ namespace rpg
         def("orpgda_open", &ORPGDA_open, args("data_id", "flags"));
         def("orpgda_close", &ORPGDA_close, args("data_id"));
     }
-
+    void wrap_orpgsails()
+    {
+	def(
+	    "orpgsails_set_req_num_cuts",
+	    &thinwrap_orpgsails_set_req_num_cuts,
+	    args("num_cuts")
+	);
+	def("orpgsails_allowed",&ORPGSAILS_allowed);
+	def("orpgsails_get_site_max_cuts",&ORPGSAILS_get_site_max_cuts);
+    }
     void wrap_orpgrda()
     {
         def(
@@ -172,6 +186,7 @@ namespace rpg
         wrap_orpginfo();
         wrap_orpgrat();
         wrap_orpgvst();
+	wrap_orpgsails();
 
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
@@ -190,6 +205,9 @@ namespace rpg
             .staticmethod("orpgsails_get_status")
             .staticmethod("orpgsails_init")
             .staticmethod("orpgsails_get_num_cuts")
+	    .staticmethod("orpgsails_set_req_num_cuts")
+	    .staticmethod("orpgsails_allowed")
+	    .staticmethod("orpgsails_get_site_max_cuts")
             .staticmethod("orpgvst_get_volume_time")
             .staticmethod("orpgrat_get_alarm_text")
         ;

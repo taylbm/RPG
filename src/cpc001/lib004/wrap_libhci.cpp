@@ -32,7 +32,6 @@ namespace rpg
         return hci_up_nb_update_dedicated_user_table(throw_away);
     }
     */
-
     void export_libhci()
     {
         string doc1(
@@ -42,7 +41,7 @@ namespace rpg
         );
         class_<libhci_ns> c("libhci");
         scope in_libhci = c;
-
+	
         def(
             "hci_get_orda_pmd_ptr", 
             &hci_get_orda_pmd_ptr, 
@@ -52,26 +51,20 @@ namespace rpg
         def("hci_get_wx_status", &hci_get_wx_status);
         def("hci_get_precip_status", &hci_get_precip_status);
         def("hci_get_vad_update_flag", &hci_get_vad_update_flag);
+	def("hci_set_vad_update_flag", &hci_set_vad_update_flag);
         def("hci_get_model_update_flag", &hci_get_model_update_flag);
+	def("hci_set_model_update_flag", &hci_set_model_update_flag);
         def("hci_get_prf_mode_status_msg", &hci_get_PRF_Mode_status_msg);
-        def("hci_basedata_read_radial", &hci_basedata_read_radial);
-        def("hci_basedata_azimuth_number", &hci_basedata_azimuth_number);
-        def("hci_basedata_azimuth", &hci_basedata_azimuth);
-        def("hci_basedata_elevation", &hci_basedata_elevation);
 
-        c.attr("HCI_BASEDATA_PARTIAL_READ") = HCI_BASEDATA_PARTIAL_READ;
-        c.attr("HCI_BASEDATA_COMPLETE_READ") = HCI_BASEDATA_COMPLETE_READ;
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
         c.staticmethod("hci_get_precip_status");
         c.staticmethod("hci_get_vad_update_flag");
+	c.staticmethod("hci_set_vad_update_flag");
         c.staticmethod("hci_get_model_update_flag");
+	c.staticmethod("hci_set_model_update_flag");
         c.staticmethod("hci_get_prf_mode_status_msg");
-        c.staticmethod("hci_basedata_read_radial");
-        c.staticmethod("hci_basedata_azimuth");
-        c.staticmethod("hci_basedata_azimuth_number");
-        c.staticmethod("hci_basedata_elevation");
     }
 }
 

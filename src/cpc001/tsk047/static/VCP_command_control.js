@@ -55,6 +55,7 @@ $(document).ready(function(){
 	    $.getJSON("/current_vcp", function(attr){
 	        $('#vcp-def-link').click();
 	        $("#TableContain").html($("#vcpTable-"+attr).html())
+		$('.vcp-button').removeClass('ui-btn-active');
 		$('.v'+attr).addClass('ui-btn-active');
     	    });
 	});

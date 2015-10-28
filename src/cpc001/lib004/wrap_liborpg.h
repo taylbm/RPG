@@ -14,6 +14,7 @@ namespace rpg
 {
     struct liborpg_ns {};      // dummy struct for namespacing
 
+    int thinwrap_orpgsails_set_req_num_cuts(int num_cuts);
     int thinwrap_orpg_send_cmd(
         int cmd, 
         int who_sent_it, 
@@ -29,6 +30,7 @@ namespace rpg
     string thinwrap_orpgda_lbname(int data_id);
     string thinwrap_orpgrat_get_alarm_text(int code);
 
+    void wrap_orpgsails();
     void wrap_orpgda();
     void wrap_orpgrda();
     void wrap_orpgmisc();

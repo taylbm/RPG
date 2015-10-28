@@ -120,25 +120,24 @@ $(document).ready(function(){
 	function toggleHandler(attr,switchval){	
 	    switch(switchval){
 	    case 1:
+		console.log(attr.num_cuts)
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-	    	if (attr.newVal.confirmation == "on"){
+		if(attr.displayname != 'SAILS' && attr.displayname != 'SAILS-Exception'){
+	    	    if (attr.newVal.confirmation == "on"){
                 	$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
-            	}
-            	else{
+            	    }
+            	    else{
                 	$.post('/send_cmd',{COM:attr.controlname+'_DISABLE',INPUT:'NULL'});
-            	}
-	    	if (attr.displayname=="SAILS" || attr.displayname=="SAILS-Exception"){
+            	    }
+		}
+	    	else{
                     if (attr.newVal.confirmation == "on"){
-                    	$('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
-                    	$('#RPG_SAILS').val('on').slider('refresh')
-                    	$('#SAILS_Exception').val('on').slider('refresh')
-                    	$('#SAILS_Exception_contain').addClass('hide')
-                    	$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
+			$.post('/sails',{NUM_CUTS:attr.num_cuts});
+			delete actionflag.SAILS
                     }
                	    else{
-                    	$('#RPG_SAILS').val('off').slider('refresh')
-                    	$('#SAILS_Exception').val('off').slider('refresh')
-                    	$('#SAILS_Exception_contain').removeClass('hide')
+			$.post('/sails',{NUM_CUTS:0});
+			delete actionflag.SAILS
                     }
             	}
             	if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
@@ -158,10 +157,7 @@ $(document).ready(function(){
 		if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
 		    $("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
 		}
-            	if(attr.displayname.split('-')[0] == "SAILS"){
-                    document.cookie = "SAILS"+"="+attr.current+"; expires="+attr.date0.toUTCString();
-            	}
-            	else if(attr.displayname.split('-')[0] == "AVSET"){
+            	if(attr.displayname.split('-')[0] == "AVSET"){
                     document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
             	}
             	else{
@@ -169,16 +165,20 @@ $(document).ready(function(){
             	}
 	    	break;
             case 2:
-		console.log(attr.controlname)
-		console.log('test')
 		$('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
 		break;
 	    case 3:
+		if(attr.controlname == 'Model_Update'){
+		    $.post('/set_flag',{TYPE:'hci_set_model_update_flag',FLAG:1});
+		}
 	        $("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
                 $('#'+attr.controlname+'_status').addClass('hide')
                 document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
 		break;
 	    case 4:
+		if(attr.controlname == 'Model_Update'){
+                    $.post('/set_flag',{TYPE:'hci_set_model_update_flag',FLAG:0});
+                }
 		$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
 		break;	
 	    }
@@ -273,8 +273,18 @@ $(document).ready(function(){
 				var child1 = $(this).find("option:first-child").html()
 				if (current=="on"){
                 			$("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
-                		}
+                			if(displayname == 'SAILS' || displayname == 'SAILS-Exception'){
+                                            $("#sails-insert").html($('#sails-form').html())
+					    $('#popupDialog').trigger('create')
+					    attr['num_cuts'] = $('#select-choice-0').val()		    
+                                        }
+					else{
+					    $("#sails-insert").html('')
+					}
+
+				}
                 		else{
+					$("#sails-insert").html('')
 					$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
 				}
                 		
@@ -419,45 +429,22 @@ $(document).ready(function(){
 			    $('#marq1').html(getCookie('RESTART_VCP'))
 		   	}
 			if (Object.keys(actionflag).indexOf('SAILS') < 0){
-				var cookieCheck = getCookie('SAILS',1)
-				if(cookieCheck == "NULL"){cookieCheck = data['RPG_dict']['RPG_SAILS']}
-				if(data['CFG']['allow_sails'][data['RS_dict']['RS_VCP_NUMBER']]){
-					if (cookieCheck){
-						if(getCookie('SAILS',1) != "NULL"){
-							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
-                                                }
-                                                else{
-							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
-						}	
-						$('#RPG_SAILS').val('on').slider('refresh');
-						$('#SAILS_Exception').val('on').slider('refresh');
-						$('#SAILS_Exception_contain').addClass('hide');
-					}
-					else{
-						$('#RPG_SAILS').val('off').slider('refresh');
-						$('#SAILS_Exception').val('off').slider('refresh');
-						$('#SAILS_Exception_contain').removeClass('hide');
-					}
-				}
-				else{
-					if(cookieCheck){
-						if(getCookie('SAILS',1) != "NULL"){
-							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('PENDING')
-						}
-						else{
-							$('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
-						}
-						$('#RPG_SAILS').val('on').slider('refresh')
-						$('#SAILS_Exception').val('on').slider('refresh');
-                                       		$('#SAILS_Exception_contain').addClass('hide');
-					}
-					else{
-						$('#RPG_SAILS').val('off').slider('refresh');
-                                        	$('#SAILS_Exception').val('off').slider('refresh');
-                                        	$('#SAILS_Exception_contain').addClass('hide');
-					}
-				}
-
+			    if(data['RPG_dict']['RPG_SAILS']){
+			        $('#RPG_SAILS').val('on').slider('refresh');
+                                $('#SAILS_Exception').val('on').slider('refresh');
+                                $('#SAILS_Exception_contain').addClass('hide');
+			        if(data['RPG_dict']['sails_allowed']){
+		 	            $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])	
+			        }
+			        else{
+			  	    $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+			        }
+			    }
+			    else{
+			        $('#RPG_SAILS').val('off').slider('refresh');
+                                $('#SAILS_Exception').val('off').slider('refresh');
+                                $('#SAILS_Exception_contain').removeClass('hide');
+			    }
 			}	
 		
 			if (Object.keys(actionflag).indexOf('AVSET') < 0){
@@ -496,10 +483,7 @@ $(document).ready(function(){
 				}		
 				else{	
 					var cookieCheck = getCookie(value,1)
-					console.log(Object.keys(actionflag).indexOf(value))
-					console.log(cookieCheck)
 					if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) <= 0){
-						console.log(value)
 						if(cookieCheck){
 							$("#"+value+"_status").addClass('hide');
                                                 	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
