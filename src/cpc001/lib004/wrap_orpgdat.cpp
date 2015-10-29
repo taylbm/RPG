@@ -15,6 +15,7 @@ namespace rpg
     {
         scope in_as = class_<orpgdat_ns>("orpgdat");
         in_as.attr("ORPGDAT_ADAPT_DATA") = ORPGDAT_ADAPT_DATA;
+	in_as.attr("ORPGDAT_SYSLOG_LATEST") = ORPGDAT_SYSLOG_LATEST;
     }
 }
 

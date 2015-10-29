@@ -3,6 +3,7 @@ import os
 import web
 import sys
 import datetime
+
 HOME = os.getenv("HOME")
 sys.path.insert(0,HOME+'/lib/lnux_x86')
 sys.path.insert(0,HOME+'/RPG-ecp0634p/src/cpc001/lib004')
@@ -12,6 +13,7 @@ import web
 import cgi
 
 from templating import LOOKUP
+
 vcp_dir = HOME+'/cfg/vcp/'
 
 ##
@@ -39,22 +41,28 @@ class Send_RDACOM(object):
 	    p1 = int(input)
 	else:
 	    p1 = getattr(_rpg.orpgrda,input)
-	who_sent_it = {'COM4_RDACOM':1,'COM4_DLOADVCP':_rpg.orpgrda.HCI_VCP_INITIATED_RDA_CTRL_CMD,'COM4_VEL_RES':_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD}
+	who_sent_it = {
+			'COM4_RDACOM':1,
+			'COM4_DLOADVCP':_rpg.orpgrda.HCI_VCP_INITIATED_RDA_CTRL_CMD,
+			'COM4_VEL_RES':_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD
+		      }
 	commanded = _rpg.liborpg.orpgrda_send_cmd(getattr(_rpg.orpgrda,cmd),who_sent_it.get(cmd),p1,0,0,0,0,_rpg.CharVector())
 	return json.dumps(commanded)
 ##
 # Retrieves VCP list from cfg directory
-##
+0##
 class List_VCPS(object):
     def GET(self):
-  	dir_list = (os.listdir(vcp_dir))
+  	dir_list = [x for x in (os.listdir(vcp_dir)) if len(x.split('_')) < 3]
 	dir_list_parse = []
 	for item in dir_list:
     	    newstr = item.split('_')
     	    if newstr[0] == 'vcp':
                 dir_list_parse.append(int(newstr[1]))
 	return json.dumps(dir_list_parse)
-
+##
+# Renders the VCP Command Control page
+##
 class VCP_command_control(object):
     def GET(self):
 	dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
@@ -92,7 +100,8 @@ class VCP_command_control(object):
 	    index_start = [idx for idx,val in enumerate(strtest) if val == '0' and strtest[idx+1] == '0' and strtest[idx+2] == '4']
             index_end = [idx+3 for idx,val in enumerate(strtest) if val == '0' and strtest[idx+1] == '0' and strtest[idx+2] == '4'] 
             index_start1 = [idx for idx,val in enumerate(strtest) if idx < len(strtest)-4 and val+strtest[idx+1]+strtest[idx+2]+strtest[idx+3]+strtest[idx+4] == '02004']
-            elev_sector_labels = [None] * len(index_start)
+            # Declarations
+	    elev_sector_labels = [None] * len(index_start)
             sector_dict = {}
             elev_sector_full_dict = {}
             elev_multi_list = [None] * len(index_start)
@@ -228,13 +237,26 @@ class VCP_command_control(object):
 	    multi = {'bool':unique_elevs == 5 or len(elev_list) == 17,'multi_helper':multi_helper}
 	    scan_rate_sum = sum(360/float(stripList(x.replace('scan_rate_dps',''))) for x in text_lines if 'scan_rate_dps' in x)
 	    update_interval = str(datetime.timedelta(seconds=int(scan_rate_sum)))[2:]
-            main_dict.update({"update_interval":update_interval,"unique_elevs":unique_elevs,"num_batch_cuts":num_batch_cuts,"num_split_cuts":num_split_cuts,"multi":multi,"strategies":{"SAILS":sails,"SZ2":sz2,"AVSET":avset}})
+            main_dict.update({
+				"update_interval":update_interval,
+				"unique_elevs":unique_elevs,
+				"num_batch_cuts":num_batch_cuts,
+				"num_split_cuts":num_split_cuts,
+				"multi":multi,
+				"strategies":{
+						"SAILS":sails,	
+						"SZ2":sz2,
+						"AVSET":avset
+					     }
+			    })
             full = dict(main_dict, **full_label)
             # python dictionary returned 
             temp_fulldict = {vcp:full}
             complete.update(temp_fulldict)
         return LOOKUP.VCP_command_control(**complete)
-
+##
+# Parses VCP data in cfg/vcp for display -> output as .json 
+##
 class Parse_VCPS(object):
     def GET(self):
 	user_data = web.input(VCP=None)
@@ -269,11 +291,14 @@ class Parse_VCPS(object):
 	index_start = [idx for idx,val in enumerate(strtest) if val == '0' and strtest[idx+1] == '0' and strtest[idx+2] == '4']
         index_end = [idx+3 for idx,val in enumerate(strtest) if val == '0' and strtest[idx+1] == '0' and strtest[idx+2] == '4']
         index_start1 = [idx for idx,val in enumerate(strtest) if idx < len(strtest)-4 and val+strtest[idx+1]+strtest[idx+2]+strtest[idx+3]+strtest[idx+4] == '02004']
+	
+	#declarations
 	elev_sector_labels = [None] * len(index_start)
 	sector_dict = {}
 	elev_sector_full_dict = {}
 	elev_multi_list = [None] * len(index_start)
-    # runs through Doppler cuts
+    
+	# runs through Doppler cuts
 	for h,val in enumerate(index_start):
 	    subdict = {}
 	    elev_multi_dict = {}
@@ -393,7 +418,11 @@ class Parse_VCPS(object):
 			temp_dict = {temp[0]:(temp[1])}
 		main_dict.update(temp_dict)
 	main_dict.update(allowable)
-	main_dict.update({"unique_elevs":unique_elevs,"num_batch_cuts":num_batch_cuts,"num_split_cuts":num_split_cuts})
+	main_dict.update({
+				"unique_elevs":unique_elevs,
+				"num_batch_cuts":num_batch_cuts,
+				"num_split_cuts":num_split_cuts
+			})
 	full = dict(main_dict, **full_label)
 	# python dictionary returned as a json string
 	return json.dumps(full)

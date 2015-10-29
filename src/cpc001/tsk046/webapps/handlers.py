@@ -15,6 +15,7 @@ months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','
 moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
+DE = {'DISABLED':'off','ENABLED':'on'}
 yellow ='#FCFC23'
 green = '#51FF22'
 event_holder = {}
@@ -52,9 +53,12 @@ def hasNumbers(inputString):
 class Set_Flag(object):
     def POST(self):
 	data = cgi.parse_qs(web.data())
-	type = data['TYPE'][0]
+	set_type = data['TYPE'][0]
 	flag = int(data['FLAG'][0])
-	set_flag = getattr(_rpg.libhci,type)(flag)
+	print set_type,flag
+	get_type = set_type.replace('set','get')
+	get_flag = getattr(_rpg.libhci,get_type)()
+	set_flag = getattr(_rpg.libhci,set_type)(flag)
 	return json.dumps(set_flag)
 
 ##
@@ -74,16 +78,19 @@ class Send_RDACOM(object):
     def POST(self):
         data = cgi.parse_qs(web.data())
         req = data['COM'][0]
+	set_clear_flag = data['FLAG'][0]
 	print req
 	CRDA = {
-		'RS_SUPER_RES_ENABLE':_rpg.orpgrda.CRDA_SR_ENAB,
-		'RS_SUPER_RES_DISABLE':_rpg.orpgrda.CRDA_SR_DISAB,
-		'RS_CMD_ENABLE':_rpg.orpgrda.CRDA_CMD_ENAB,
-		'RS_CMD_DISABLE':_rpg.orpgrda.CRDA_CMD_DISAB,
-		'RS_AVSET_DISABLE':_rpg.orpgrda.CRDA_AVSET_DISAB,
-		'RS_AVSET_ENABLE':_rpg.orpgrda.CRDA_AVSET_ENAB
+		'RS_SUPER_RES_ENABLE':[_rpg.orpgrda.CRDA_SR_ENAB,'orpginfo_set_super_resolution_enabled'],
+		'RS_SUPER_RES_DISABLE':[_rpg.orpgrda.CRDA_SR_DISAB,'orpginfo_clear_super_resolution_enabled'],
+		'RS_CMD_ENABLE':[_rpg.orpgrda.CRDA_CMD_ENAB,'orpginfo_set_cmd_enabled'],
+		'RS_CMD_DISABLE':[_rpg.orpgrda.CRDA_CMD_DISAB,'orpginfo_clear_cmd_enabled'],
+		'RS_AVSET_DISABLE':[_rpg.orpgrda.CRDA_AVSET_DISAB],
+		'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB]
 		}
-        commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req],0,0,0,0,_rpg.CharVector())
+	if set_clear_flag:
+	    set_clear = getattr(_rpg.liborpg,CRDA[req][1])()
+        commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req][0],0,0,0,0,_rpg.CharVector())
         return json.dumps(commanded)
 
 ##
@@ -142,10 +149,16 @@ def RS():
 	except:
 	    RS_dict.update({'moments':['False']})
         _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
+	lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
 	RS_dict.update({
 			'radome_update':radome_update,
 			'latest_alarm':latest_alarm,
 			'RDA_static':{
+				'LOOKUP':{
+					'RS_CMD':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'CMD' in x),
+					'RS_AVSET':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'AVSET' in x),
+					'RS_SUPER_RES':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'SR' in x)
+					},
 				'DATA_TRANS':data_trans,
 				'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
 				'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
@@ -180,7 +193,7 @@ def RPG():
 		'sails_cuts':sails_cuts,
 		'ORPGVST':ORPGVST,
 		'RPG_state':",".join(RPG_state),
-		'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),
+		'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
 		'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
 		'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
 		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),

@@ -55,6 +55,21 @@ namespace rpg
             in_rdastatus.attr("RS_ALARM_CODE13") = RS_ALARM_CODE13;
             in_rdastatus.attr("RS_ALARM_CODE14") = RS_ALARM_CODE14
         ;
+	//
+	// lookup values for rdastatus
+	//
+
+	
+	{
+            scope in_rdastatus_lookup = class_<rdastatus_lookup_ns>("rdastatus_lookup");
+            in_rdastatus_lookup.attr("CMD_ENABLED") = CMD_ENABLED;
+            in_rdastatus_lookup.attr("CMD_DISABLED") = CMD_DISABLED;
+            in_rdastatus_lookup.attr("AVSET_ENABLED") = AVSET_ENABLED;
+            in_rdastatus_lookup.attr("AVSET_DISABLED") = AVSET_DISABLED;
+            in_rdastatus_lookup.attr("SR_ENABLED") = SR_ENABLED;
+            in_rdastatus_lookup.attr("SR_DISABLED") = SR_DISABLED;
+	}
+
 
         //
         // wideband status line values

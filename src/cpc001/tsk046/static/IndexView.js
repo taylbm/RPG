@@ -35,10 +35,6 @@ setInterval(GetClock,1000);
 
 var moments = ['R','V','W','D'];
 var current_wxstatus = new Array; current_wxstatus[1] = 'B'; current_wxstatus[2] = 'A';
-var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
-var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
-var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
-RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};
 var sails_seq = {1:'1st SAILS',2:'2nd SAILS',3:'3rd SAILS'}
 var actionflag = {} 
 var cookieRaid = {}
@@ -119,27 +115,37 @@ function anim(action){
 $(document).ready(function(){
 	function toggleHandler(attr,switchval){	
 	    switch(switchval){
-	    case 1:
-		console.log(attr.num_cuts)
+	    case 1:	
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-		if(attr.displayname != 'SAILS' && attr.displayname != 'SAILS-Exception'){
+		switch(attr.controlname){
+		case 'RPG_SAILS': case 'SAILS_Exception':
+		    if (attr.newVal.confirmation == "on"){
+                        $.post('/sails',{NUM_CUTS:attr.num_cuts});
+                        delete actionflag.SAILS
+                    }
+                    else{
+                        $.post('/sails',{NUM_CUTS:0});
+                        delete actionflag.SAILS
+                    }
+		    break;
+		case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
+		    if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception'){flag = 0}else{flag=1}
 	    	    if (attr.newVal.confirmation == "on"){
-                	$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
+                	$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
             	    }
             	    else{
-                	$.post('/send_cmd',{COM:attr.controlname+'_DISABLE',INPUT:'NULL'});
+                	$.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
             	    }
-		}
-	    	else{
-                    if (attr.newVal.confirmation == "on"){
-			$.post('/sails',{NUM_CUTS:attr.num_cuts});
-			delete actionflag.SAILS
+		    break;
+                case 'Model_Update': case 'VAD_Update':
+		    if(attr.newVal.confirmation == "on"){
+                        $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
                     }
-               	    else{
-			$.post('/sails',{NUM_CUTS:0});
-			delete actionflag.SAILS
+                    else{
+                        $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
                     }
-            	}
+                    break;
+                }   
             	if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
                     if (attr.newVal.confirmation=="on"){
                     	$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
@@ -168,16 +174,16 @@ $(document).ready(function(){
 		$('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
 		break;
 	    case 3:
-		if(attr.controlname == 'Model_Update'){
-		    $.post('/set_flag',{TYPE:'hci_set_model_update_flag',FLAG:1});
+		if(attr.controlname == 'Model_Update' || attr.controlname == 'VAD_Update'){
+		    $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
 		}
 	        $("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
                 $('#'+attr.controlname+'_status').addClass('hide')
                 document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
 		break;
 	    case 4:
-		if(attr.controlname == 'Model_Update'){
-                    $.post('/set_flag',{TYPE:'hci_set_model_update_flag',FLAG:0});
+		if(attr.controlname == 'Model_Update' || attr.controlname == 'VAD_Update'){
+                    $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
                 }
 		$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
 		break;	
@@ -269,6 +275,7 @@ $(document).ready(function(){
                 	$("#prf_control").click();
                 }
 		else {
+			$("#sails-insert").html('')
 			if (['SAILS','AVSET','CMD','Super-Res','SAILS-Exception','AVSET-Exception'].indexOf(displayname) >=0){
 				var child1 = $(this).find("option:first-child").html()
 				if (current=="on"){
@@ -278,13 +285,8 @@ $(document).ready(function(){
 					    $('#popupDialog').trigger('create')
 					    attr['num_cuts'] = $('#select-choice-0').val()		    
                                         }
-					else{
-					    $("#sails-insert").html('')
-					}
-
 				}
                 		else{
-					$("#sails-insert").html('')
 					$("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
 				}
                 		
@@ -326,7 +328,8 @@ $(document).ready(function(){
 
 	});
 	var link = $('#squaresWaveG_long').html()
-	var item = Object.keys(RS_TOGGLE);
+	var item = ['RS_SUPER_RES','RS_CMD','RS_AVSET'];
+
 	$.getJSON("/update",function(data){
 		maincircle.fillText(data['ADAPT']['ICAO'],125,350)
 	});
@@ -400,8 +403,7 @@ $(document).ready(function(){
 				if(Object.keys(actionflag).indexOf(exception) <0){
 					var cookieCheck = getCookie(exception,1)
 					if (exception == "Model_Update" || exception == "VAD_Update"){var d = 'PMD_dict'}else{var d = 'RPG_dict'}
-					if(cookieCheck == "NULL"){cookieCheck = data[d][exception]}
-					if(cookieCheck){
+					if(data[d][exception]){
                                         	$('#'+exception).val('on').slider('refresh');
                                         	$('#'+exception+'_status').addClass('hide')
                                 	}
@@ -462,7 +464,7 @@ $(document).ready(function(){
 			}	
 			for (i in item){
 				var value = item[i]
-				var val = RS_TOGGLE[value][data['RS_dict'][value]]
+				var val = data['RS_dict']['RDA_static']['LOOKUP'][value][data['RS_dict'][value]]
 				if (val == 'on'){var retrieved = true}else{var retrieved = false}
 				if (value == "RS_AVSET"){
 					if (Object.keys(actionflag).indexOf('AVSET') < 0){
@@ -483,7 +485,7 @@ $(document).ready(function(){
 				}		
 				else{	
 					var cookieCheck = getCookie(value,1)
-					if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) <= 0){
+					if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
 						if(cookieCheck){
 							$("#"+value+"_status").addClass('hide');
                                                 	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')

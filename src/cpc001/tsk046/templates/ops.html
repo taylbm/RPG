@@ -86,44 +86,43 @@
 
 
     var current_wxstatus = new Array; current_wxstatus[1] = 'B'; current_wxstatus[2] = 'A';
-    var RS_SUPER_RES = new Array();RS_SUPER_RES[2] = 'on';RS_SUPER_RES[4] = 'off';
-    var RS_CMD = new Array();RS_CMD[0] = 'off';RS_CMD[1] = 'on';
-    var RS_AVSET = new Array(); RS_AVSET[2] = 'on';RS_AVSET[4] = 'off';
-    RS_TOGGLE = {'RS_SUPER_RES':RS_SUPER_RES,'RS_CMD':RS_CMD,'RS_AVSET':RS_AVSET};	
     var actionflag = {}
 	$(document).ready(function(){
 		function toggleHandler(attr,switchval){	
 		    switch(switchval){
 		    case 1:
 			if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-		    	if(attr.displayname != 'SAILS' && attr.displayname != 'SAILS-Exception'){
+			console.log(attr.controlname)
+			switch(attr.controlname){
+			case 'SAILS_Exception': 
 			    if (attr.newVal.confirmation == "on"){
-                                $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',INPUT:'NULL'});
-                    	    }
-                   	    else{
-                                $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',INPUT:'NULL'});
-                    	    }
-			}
-			else{
-                            if (attr.newVal.confirmation == "on"){
                                 $.post('/sails',{NUM_CUTS:attr.num_cuts});
                                 delete actionflag.SAILS
-                    	    }
+                            }
                             else{
                                 $.post('/sails',{NUM_CUTS:0});
                                 delete actionflag.SAILS
                             }
-                	}
-                    	if (attr.confirmation == "on"){
-                            if (['AVSET','CMD','Super-Res'].indexOf(attr.displayname) >=0){
-                            	$("#"+attr.controlname+"_contain .ui-slider-label-a").text('PENDING')
-                            }
-                        }
-                        else{
-                            if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
-                                $("#"+attr.controlname+"_contain .ui-slider-label-b").text('PENDING')
-                            }
-                    	}
+			    break;
+			case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
+			    if (attr.displayname == 'AVSET'){flag = 0}else{flag=1};
+			    if (attr.newVal.confirmation == "on"){
+                                $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
+				$("#"+attr.controlname+"_contain .ui-slider-label-a").text('PENDING')
+                    	    }
+                   	    else{
+                                $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
+                    	    }
+			    break;
+			case 'Model_Update': case 'VAD_Update':
+			    if(attr.newVal.confirmation == "on"){
+			        $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
+			    }
+			    else{
+				$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
+			    }
+			    break;
+			}	
                     	$("#"+attr.controlname).val(attr.current).slider('refresh')
                     	if(attr.displayname.split('-')[0] == "AVSET"){
                             document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
@@ -218,7 +217,6 @@
 			}
 
 		});
-        	var item = Object.keys(RS_TOGGLE);
 
 		setInterval(function (){	
 			$.getJSON("/update",function(data){
@@ -234,8 +232,7 @@
                                 	if(Object.keys(actionflag).indexOf(exception) <0){
                                         	var cookieCheck = getCookie(exception,1)
                                         	if(exception == "Model_Update" || exception == "VAD_Update"){var d = 'PMD_dict'}else{var d = 'RPG_dict'}
-                                        	if(cookieCheck == "NULL"){cookieCheck = data[d][exception]}
-                                        	if(cookieCheck){
+                                        	if(data[d][exception]){
                                                 	$('#'+exception).val('on').slider('refresh');
                                         	}
                                         	else{
@@ -246,7 +243,7 @@
 				if (Object.keys(actionflag).indexOf('AVSET') < 0){
 					var cookieCheck = getCookie('AVSET',1)
 					if(cookieCheck == "NULL"){
-						$('#AVSET_Exception').val(RS_AVSET[data['RS_dict']['RS_AVSET']]).slider('refresh')
+						$('#AVSET_Exception').val(data['RS_dict']['RDA_static']['LOOKUP']['RS_AVSET'][data['RS_dict']['RS_AVSET']]).slider('refresh')
 					}	
 					else{
 						if(cookieCheck){
@@ -291,11 +288,12 @@
 				else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
 				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM')}
 				else{$('#Precip_contain').html('NO ACCUM')}
+				var item = ['RS_SUPER_RES','RS_CMD','RS_AVSET']; 
                         	for (i in item){
                                 	var value = item[i]
 					if(Object.keys(actionflag).indexOf(value) < 0){
 						var cookieCheck = getCookie(value,1)
-                                		var val = RS_TOGGLE[value][data['RS_dict'][value]]
+						var val = data['RS_dict']['RDA_static']['LOOKUP'][value][data['RS_dict'][value]]
 						if(cookieCheck != "NULL"){
 							if(cookieCheck){
                                                         	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')

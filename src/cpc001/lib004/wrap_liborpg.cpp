@@ -28,6 +28,8 @@ extern "C"
 
 namespace rpg
 {
+
+
     int thinwrap_orpgsails_set_req_num_cuts(int num_cuts)
     {
         return ORPGSAILS_set_req_num_cuts(num_cuts);
@@ -136,9 +138,12 @@ namespace rpg
 
     void wrap_orpginfo()
     {
-
+	def("orpginfo_set_super_resolution_enabled", &ORPGINFO_set_super_resolution_enabled);
+	def("orpginfo_clear_super_resolution_enabled", &ORPGINFO_clear_super_resolution_enabled);
+	def("orpginfo_set_cmd_enabled", &ORPGINFO_set_cmd_enabled);
+	def("orpginfo_clear_cmd_enabled", &ORPGINFO_clear_cmd_enabled);
         def("orpginfo_is_sails_enabled", &ORPGINFO_is_sails_enabled);
-        def("orpginfo_is_avest_enabled", &ORPGINFO_is_avset_enabled);
+        def("orpginfo_is_avset_enabled", &ORPGINFO_is_avset_enabled);
         def(
             "orpginfo_statefl_get_rpgalrm", 
             &thinwrap_orpginfo_statefl_get_rpgalrm 
@@ -199,9 +204,13 @@ namespace rpg
             .staticmethod("orpgda_close")
             .staticmethod("orpgmisc_is_rpg_status")
             .staticmethod("orpginfo_is_sails_enabled")
-            .staticmethod("orpginfo_is_avest_enabled")
+            .staticmethod("orpginfo_is_avset_enabled")
             .staticmethod("orpginfo_statefl_get_rpgalrm")
             .staticmethod("orpginfo_statefl_get_rpgopst")
+	    .staticmethod("orpginfo_set_super_resolution_enabled")
+            .staticmethod("orpginfo_clear_super_resolution_enabled")
+            .staticmethod("orpginfo_set_cmd_enabled")
+            .staticmethod("orpginfo_clear_cmd_enabled")
             .staticmethod("orpgsails_get_status")
             .staticmethod("orpgsails_init")
             .staticmethod("orpgsails_get_num_cuts")

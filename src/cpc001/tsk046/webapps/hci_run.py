@@ -21,13 +21,14 @@ Configure(
 from handlers import *
 SESSION_DIR = '/tmp/HCI'            # change "my_app_name" to your application name
 URLS = (
-    '/',    'handlers.IndexView',            # you can list other handlers here
-'/update','handlers.Updater',
-'/button','handlers.Button',
-'/operations','handlers.Operations',
-'/send_cmd','handlers.Send_RDACOM',
-'/sails','handlers.ORPGSAILS_set',
-'/set_flag','handlers.Set_Flag')
+    '/','handlers.IndexView',            # you can list other handlers here
+    '/update','handlers.Updater',
+    '/button','handlers.Button',
+    '/operations','handlers.Operations',
+    '/send_cmd','handlers.Send_RDACOM',
+    '/sails','handlers.ORPGSAILS_set',
+    '/set_flag','handlers.Set_Flag'
+)
 def session_hook_for_sub_apps():
     n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA) 
     _rpg.librpg.deau_lb_name(n)
