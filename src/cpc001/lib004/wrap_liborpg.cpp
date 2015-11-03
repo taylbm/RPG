@@ -6,6 +6,10 @@ using boost::python::make_tuple;
 using boost::python::reference_existing_object;
 using boost::python::return_value_policy;
 using boost::python::scope;
+using boost::python::object;
+using boost::python::ptr;
+using boost::python::handle;
+using boost::python::list;
 
 #include <string>
 using std::string;
@@ -13,23 +17,28 @@ using std::string;
 #include <vector>
 using std::vector;
 
+#include <boost/shared_ptr.hpp>
+using boost::shared_ptr;
+
+
 extern "C"
 {
-    #include "orpgda.h"
+    #include "orpgda.h" 
+    #include "orpg.h"
+    #include "prod_gen_msg.h"
     #include "orpginfo.h"
     #include "orpgmisc.h"
     #include "orpgrat.h"
     #include "orpgrda.h"
     #include "orpgsails.h"
     #include "orpgvst.h"
+    #include "time.h"
 }
 
 #include "wrap_liborpg.h"
 
 namespace rpg
 {
-
-
     int thinwrap_orpgsails_set_req_num_cuts(int num_cuts)
     {
         return ORPGSAILS_set_req_num_cuts(num_cuts);
@@ -76,7 +85,21 @@ namespace rpg
     {
         return string(ORPGDA_lbname(data_id));
     }
-
+    tuple thinwrap_orpgda_read(int data_id,int length,int msg)
+    {
+	char *buf;
+	char temp[length];
+	int rval = ORPGDA_read(data_id,&buf,0,msg);
+	for(short i = 0;i<length;i++){
+	    if(buf[i] == '\x00'){
+		temp[i] = '0';
+	    }
+	    else{
+	        temp[i] = buf[i];
+	    }
+	}	
+	return make_tuple(rval,string(temp));
+    }
     string thinwrap_orpgrat_get_alarm_text(int code)
     {
         return string(ORPGRAT_get_alarm_text(code));
@@ -89,6 +112,11 @@ namespace rpg
             &thinwrap_orpgda_lbname, 
             args("data_id")
         );
+	def(
+	    "orpgda_read",
+	    &thinwrap_orpgda_read,
+	    args("data_id")
+	);
 
         def("orpgda_open", &ORPGDA_open, args("data_id", "flags"));
         def("orpgda_close", &ORPGDA_close, args("data_id"));
@@ -202,6 +230,7 @@ namespace rpg
             .staticmethod("orpgda_lbname")
             .staticmethod("orpgda_open")
             .staticmethod("orpgda_close")
+	    .staticmethod("orpgda_read")
             .staticmethod("orpgmisc_is_rpg_status")
             .staticmethod("orpginfo_is_sails_enabled")
             .staticmethod("orpginfo_is_avset_enabled")

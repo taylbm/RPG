@@ -16,7 +16,7 @@ LOCAL_INCLUDES = -I/usr/include/python2.4
 
 LOCAL_DEFINES =
 
-SHRDLIBLD_SEARCHLIBS = -lboost_python -lhci -lorpg -linfr
+SHRDLIBLD_SEARCHLIBS = -lboost_python -lboost_date_time -lhci -lorpg -linfr
 
 # You can also include architecture specific defines, if needed, by
 # defining $(ARCH)_DEF and then adding it to the list of ALL_DEFINES.

@@ -188,6 +188,12 @@ def RPG():
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
 	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
+	msg = _rpg.liborpg.orpgda_read(8092,256,1)
+	parse_msg = msg[1][:msg[0]-1].split(' ')
+	rpg_status = " ".join([x for x in parse_msg if '\\x' not in repr(x)]).replace('\n','');
+	alarm = _rpg.liborpg.orpgda_read(8092,256,2)
+	parse_alarm = alarm[1][:alarm[0]-1].split(' ')
+	rpg_alarm_suppl = " ".join([x for x in parse_alarm if '\\x' not in repr(x)]).replace('\n','');
 	return {
 		'sails_allowed':sails_allowed,
 		'sails_cuts':sails_cuts,
@@ -196,7 +202,9 @@ def RPG():
 		'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
 		'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
 		'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
+		'RPG_alarm_suppl':rpg_alarm_suppl,
 		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),
+		'RPG_status':rpg_status,
 		'Precip_Switch':precip_switch,
 		'Clear_Air_Switch':clear_air_switch
 	}

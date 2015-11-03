@@ -394,8 +394,9 @@ $(document).ready(function(){
 				}
 			}
 			else{
-				$('#marq3').html('').attr('style','background-color:white')
+				$('#marq3').html(data['RPG_dict']['RPG_alarm_suppl']).attr('style','background-color:white')
 			}
+			$('#marq2').html(data['RPG_dict']['RPG_status'])
 			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
 			exception_list = ['Model_Update','VAD_Update','Precip_Switch','Clear_Air_Switch']
 			for (e in exception_list){
