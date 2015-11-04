@@ -11,6 +11,8 @@ import time
 import subprocess
 import commands
 import cgi
+import datetime
+import time
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
@@ -18,6 +20,7 @@ vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
 yellow ='#FCFC23'
 green = '#51FF22'
+SECONDS_PER_HOUR = 3600
 event_holder = {}
 ##
 # Callback for event handling 
@@ -139,7 +142,12 @@ def RS():
 	    min = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_MINUTE)
 	    sec = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_SECOND)
 	    latest_alarm_timestamp = months[mo-1]+' '+str(day)+','+yr[2]+yr[3]+' ['+'%02d' % hr+':'+'%02d' % min+':'+'%02d' % sec+']'
-	    latest_alarm = {'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
+	    alarm = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
+            tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
+            ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
+            uts = time.mktime(ts.timetuple())
+	    precedence = ts>tstamp_alarm
+	    latest_alarm = {'precedence':precedence,'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
 	except:
 	    latest_alarm = {'valid':0}
 	radome_update = event_holder
@@ -181,19 +189,43 @@ def RPG():
 		RPG_state.append("SHUTDOWN")
 	sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
 	sails_allowed = _rpg.liborpg.orpgsails_get_num_cuts()
-	precip_switch = _rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_A
-        clear_air_switch = _rpg.libhci.hci_get_wx_status().mode_select_adapt.auto_mode_B	
+	precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
+        clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()	
 	RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
 	RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]  
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
 	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
-	msg = _rpg.liborpg.orpgda_read(8092,256,1)
+	msg = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
 	parse_msg = msg[1][:msg[0]-1].split(' ')
-	rpg_status = " ".join([x for x in parse_msg if '\\x' not in repr(x)]).replace('\n','');
-	alarm = _rpg.liborpg.orpgda_read(8092,256,2)
+	tstamp_msg = msg[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);	
+	st1 = months[int(datetime.datetime.fromtimestamp(tstamp_msg).strftime('%m'))-1]
+	st2 = datetime.datetime.fromtimestamp(tstamp_msg).strftime('%d,%Y [%H:%M:%S]')
+	rpg_status = st1+' '+st2+' >> '+" ".join([x for x in parse_msg if '\\x' not in repr(x)]).replace('\n','');
+	alarm = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	parse_alarm = alarm[1][:alarm[0]-1].split(' ')
-	rpg_alarm_suppl = " ".join([x for x in parse_alarm if '\\x' not in repr(x)]).replace('\n','');
+	tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
+        at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
+        at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%d,%Y [%H:%M:%S]')	
+	rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join([x for x in parse_alarm if '\\x' not in repr(x)]).replace('\n','');
+	category_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_CATEGORY.values.items())
+	type_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_TYPE.values.items())
+	loadshed_dict = {}
+	loadshed = {}
+	for c in category_dict:
+	    temp = {}
+	    for t in type_dict:
+		temp.update({t:_rpg.liborpg.orpgload_get_data(category_dict[c],type_dict[t])[1]})
+	    loadshed_dict.update({c:temp})
+	for cat in loadshed_dict:
+	    if(loadshed_dict[cat]['LOAD_SHED_CURRENT_VALUE'] >=loadshed_dict[cat]['LOAD_SHED_WARNING_THRESHOLD']):
+	        loadshed[cat] = 'WARNING'
+            elif(loadshed_dict[cat]['LOAD_SHED_CURRENT_VALUE'] >=loadshed_dict[cat]['LOAD_SHED_ALARM_THRESHOLD']):
+                loadshed[cat] = 'ALARM'
+            else:
+                loadshed[cat] = 'NONE'
+ 
+
 	return {
 		'sails_allowed':sails_allowed,
 		'sails_cuts':sails_cuts,
@@ -205,8 +237,10 @@ def RPG():
 		'RPG_alarm_suppl':rpg_alarm_suppl,
 		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),
 		'RPG_status':rpg_status,
-		'Precip_Switch':precip_switch,
-		'Clear_Air_Switch':clear_air_switch
+		'RPG_status_ts':tstamp_msg,
+		'mode_A_auto_switch':precip_switch,
+		'mode_B_auto_switch':clear_air_switch,
+	 	'loadshed':loadshed
 	}
 ##
 # Method for retrieving Performance/ Maintenance Data

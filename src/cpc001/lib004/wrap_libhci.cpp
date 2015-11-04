@@ -18,6 +18,7 @@ extern "C"
 //#undef class
     #include "hci_precip_status.h"
     #include "hci_wx_status.h"
+    #include "hci_le.h"
 }
 
 #include "wrap_libhci.h"
@@ -26,7 +27,7 @@ namespace rpg
 {
     /*
     int thinwrap_hci_up_nb_update_dedicated_user_table()
-    {
+    
         char *throw_away = 0;
 
         return hci_up_nb_update_dedicated_user_table(throw_away);
@@ -49,6 +50,10 @@ namespace rpg
 //            doc1
         );
         def("hci_get_wx_status", &hci_get_wx_status);
+	def("hci_get_mode_a_auto_switch_flag",&hci_get_mode_A_auto_switch_flag);
+        def("hci_set_mode_a_auto_switch_flag",&hci_set_mode_A_auto_switch_flag);
+        def("hci_get_mode_b_auto_switch_flag",&hci_get_mode_B_auto_switch_flag);
+        def("hci_set_mode_b_auto_switch_flag",&hci_set_mode_B_auto_switch_flag);
         def("hci_get_precip_status", &hci_get_precip_status);
         def("hci_get_vad_update_flag", &hci_get_vad_update_flag);
 	def("hci_set_vad_update_flag", &hci_set_vad_update_flag);
@@ -65,6 +70,11 @@ namespace rpg
         c.staticmethod("hci_get_model_update_flag");
 	c.staticmethod("hci_set_model_update_flag");
         c.staticmethod("hci_get_prf_mode_status_msg");
+	c.staticmethod("hci_get_mode_a_auto_switch_flag");
+        c.staticmethod("hci_set_mode_a_auto_switch_flag");
+        c.staticmethod("hci_get_mode_b_auto_switch_flag");
+        c.staticmethod("hci_set_mode_b_auto_switch_flag");
+	in_libhci.attr("HCI_LE_MSG_MAX_LENGTH") = HCI_LE_MSG_MAX_LENGTH;
     }
 }
 

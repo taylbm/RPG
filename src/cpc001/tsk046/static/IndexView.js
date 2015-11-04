@@ -38,6 +38,7 @@ var current_wxstatus = new Array; current_wxstatus[1] = 'B'; current_wxstatus[2]
 var sails_seq = {1:'1st SAILS',2:'2nd SAILS',3:'3rd SAILS'}
 var actionflag = {} 
 var cookieRaid = {}
+var rpgStatusMsgs = {'new':0}
 var stopCheck = {'action':0}
 var rpgAlarms = {
 	"CON":"Node Connectivity Failure",
@@ -174,7 +175,7 @@ $(document).ready(function(){
 		$('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
 		break;
 	    case 3:
-		if(attr.controlname == 'Model_Update' || attr.controlname == 'VAD_Update'){
+		if(attr.title == 'flag'){
 		    $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
 		}
 	        $("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
@@ -182,7 +183,7 @@ $(document).ready(function(){
                 document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
 		break;
 	    case 4:
-		if(attr.controlname == 'Model_Update' || attr.controlname == 'VAD_Update'){
+		if(attr.title == 'flag'){
                     $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
                 }
 		$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
@@ -249,6 +250,7 @@ $(document).ready(function(){
 	$(".toggle").on('slidestop',function(){
 		$('#popupDialog').popup('open')
 		var controlname = $(this).attr("id")
+		var title = $(this).attr("title")
 		var displayname = $(this).attr("alt")
 		var current = $(this).val();
 		var date0 = new Date();
@@ -270,7 +272,7 @@ $(document).ready(function(){
 
 		}
 		if (current=="on"){newVal = {cancel:"off",confirmation:"on"}}else{newVal = {cancel:"on",confirmation:"off"}}
-		attr = {controlname:controlname,displayname:displayname,date0:date0,newVal:newVal,current:current}
+		attr = {title:title,controlname:controlname,displayname:displayname,date0:date0,newVal:newVal,current:current}
 		if (controlname == "PRF_Mode"){
                 	$("#prf_control").click();
                 }
@@ -386,19 +388,34 @@ $(document).ready(function(){
 				cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
 			}
 			if(data['RS_dict']['latest_alarm']['valid']){
-				if (data['RS_dict']['latest_alarm']['alarm_status']){
-					$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
-				}
-				else{
-					$('#marq3').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
-				}
+			    if(data['RS_dict']['latest_alarm']['precedence']){
+			        if (data['RS_dict']['latest_alarm']['alarm_status']){
+			            $('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
+			        }
+			        else{
+				    $('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
+			        }
+			    }
+		   	    else{
+				$('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
+			    }
 			}
-			else{
-				$('#marq3').html(data['RPG_dict']['RPG_alarm_suppl']).attr('style','background-color:white')
+			else{	
+			    $('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')		
 			}
-			$('#marq2').html(data['RPG_dict']['RPG_status'])
+			var cts = Math.round((new Date()).getTime() / 1000);
+			console.log(data['RPG_dict']['RPG_status_ts']-cts)	
+			if(cts - data['RPG_dict']['RPG_status_ts'] == 5*60){
+			    rpgStatusMsgs['new'] = timeStamp() + ' >> No System Status Change in the last 5 minutes'
+			}
+			if(cts - data['RPG_dict']['RPG_status_ts'] > 5*60){
+			    $('#Status').html(rpgStatusMsgs['new'])
+			}
+			else{ 
+			    $('#Status').html(data['RPG_dict']['RPG_status'])
+			}
 			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
-			exception_list = ['Model_Update','VAD_Update','Precip_Switch','Clear_Air_Switch']
+			exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
 			for (e in exception_list){
 				var exception = exception_list[e]
 				if(Object.keys(actionflag).indexOf(exception) <0){
@@ -426,10 +443,10 @@ $(document).ready(function(){
 			}
 			var state = Object.keys(data['RS_dict']['RDA_static']);
 			if (getCookie('DLOAD_VCP') != "NULL"){
-			    $('#marq1').html(getCookie('DLOAD_VCP'))
+			    $('#Feedback').html(getCookie('DLOAD_VCP'))
 			}
 			if (getCookie('RESTART_VCP') != "NULL"){
-			    $('#marq1').html(getCookie('RESTART_VCP'))
+			    $('#Feeback').html(getCookie('RESTART_VCP'))
 		   	}
 			if (Object.keys(actionflag).indexOf('SAILS') < 0){
 			    if(data['RPG_dict']['RPG_SAILS']){
@@ -527,13 +544,13 @@ $(document).ready(function(){
 						$("#grid1").attr('class','major-alarm-grid');
 						$('#grid1title').attr('class','major-alarm-grid');
 						$("#"+value2).attr('class','bar-border2 major-alarm');
-						$('#marq3').attr('class','major-alarm');
+						$('#Alarms').attr('class','major-alarm');
 						break;
 					case 'MAINTENANCE_REQ':
 						$("#grid1").attr('class','minor-alarm-grid');
 						$('#grid1title').attr('class','minor-alarm-grid');
 						$("#"+value2).attr('class','bar-border2 minor-alarm');
-						$('#marq3').attr('class','minor-alarm');
+						$('#Alarms').attr('class','minor-alarm');
 						break;
 					case 'UNKNOWN':
 						$("#"+value2).attr('class','bar-border2 inop-indicator');
@@ -542,7 +559,7 @@ $(document).ready(function(){
 						$('#'+value2).attr('class','bar-border2 inop-indicator');
 						$('#grid1').attr('class','inop-grid');
 						$('#grid1title').attr('class','inop-grid');
-						$('#marq3').attr('class','inop');
+						$('#Alarms').attr('class','inop');
 						break;
 					case 'N/A':
 						$('#'+value2).html('N/A');
@@ -718,6 +735,22 @@ $(document).ready(function(){
 			else{$('#v_delta_dbz0').addClass('normal-ops')}
 			$('#h_delta_dbz0').html(data['PMD_dict']['h_delta_dbz0']+'dB')			
 			$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')
+			var loadshed_cats = Object.keys(data['RPG_dict']['loadshed'])
+			$('#Load_Shed_contain').html('NORMAL')
+			$('#Load_Shed_status').addClass('hide')
+			for (lshd in loadshed_cats){
+			    if(data['RPG_dict']['loadshed'][loadshed_cats[lshd]] != 'NONE'){	
+				$('#Load_Shed_contain').html(data['RPG_dict']['loadshed'][lshd])	
+				$('#Load_Shed_status').removeClass('hide')
+				if(data['RPG_dict']['loadshed'][lshd] == 'ALARM'){
+                                    $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')                       
+                                }
+			    }
+			}
+			
+		   
+
+		    		
 		});
 	
 		

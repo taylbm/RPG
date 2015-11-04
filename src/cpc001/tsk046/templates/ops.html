@@ -114,7 +114,7 @@
                                 $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
                     	    }
 			    break;
-			case 'Model_Update': case 'VAD_Update':
+			case 'Model_Update': case 'VAD_Update': case 'mode_A_auto_switch': case 'mode_B_auto_switch':
 			    if(attr.newVal.confirmation == "on"){
 			        $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
 			    }
@@ -226,7 +226,7 @@
 						delete actionflag[flags[flag]]
 					}
 				}
-				exception_list = ['Model_Update','VAD_Update','Precip_Switch','Clear_Air_Switch']
+				exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
 				for (e in exception_list){
                                 	var exception = exception_list[e]
                                 	if(Object.keys(actionflag).indexOf(exception) <0){
@@ -312,6 +312,17 @@
                         	}
 				$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
 				$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
+				var loadshed_cats = Object.keys(data['RPG_dict']['loadshed'])
+                        	$('#Load_Shed_contain').html('NORMAL')
+                        	for (lshd in loadshed_cats){
+                            	    if(data['RPG_dict']['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+                                        $('#Load_Shed_contain').html(data['RPG_dict']['loadshed'][lshd])
+                                        if(data['RPG_dict']['loadshed'][lshd] == 'ALARM'){
+                                            $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')                                  
+                                        }
+                                    }
+                                }
+
 			});
 			
 			
@@ -456,28 +467,28 @@
 
 							</div>
  
-							<div class="ui-grid-a center button-line" id="Clear_Air_Switch_status">
+							<div class="ui-grid-a center button-line" id="mode_B_auto_switch_status">
 								<div class="ui-block-a">
 									<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element-lg">
-										<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Clear Air Switch" class="toggle" title="flag"name="flip-min" id="mode_B_auto_switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">MANUAL</option>
                                 							<option select value="on">AUTO</option>
                                 						</select>
                             						</div>
 								</div>
 							</div>
-	 						<div class="ui-grid-a center button-line" id="Precip_Switch_status">
+	 						<div class="ui-grid-a center button-line" id="mode_A_auto_switch_status">
 								<div class="ui-block-a">
 									<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element-lg">
-										<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Precip Switch" class="toggle" title="flag" name="flip-min" id="mode_A_auto_switch" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">MANUAL</option>
-                                							<option select id="Precip_Switch_label" value="on">AUTO</option>
+                                							<option select value="on">AUTO</option>
                                 						</select>
                             						</div>
 								</div>
@@ -532,7 +543,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element-lg">
-										<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Model Update" class="toggle" title="flag"name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">OFF</option>
                                 							<option value="on">ON</option>
                                 						</select>
@@ -546,7 +557,7 @@
 								</div>
 								<div class="ui-block-b">
                             						<div style="float:left" class="containing-element-lg">
-										<select alt="VAD update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="VAD update" class="toggle" title="flag"name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
                                 							<option value="off">OFF</option>
                                 							<option value="on">ON</option>
                                 						</select>
@@ -557,7 +568,7 @@
                                                                 <div class="ui-block-a">
                                                                         <button id="Load_Shed" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Load Shed</button>                                                               		       </div>
                                                                 <div class="ui-block-b">
-                                                                        <button id="Load_Shed_contain" type="button" style="font-size:11px;background-color:#51FF22;color:black" data-theme="b">NORMAL</button>
+                                                                        <button id="Load_Shed_contain" class="display-button"type="button" style="font-size:14px;background-color:#51FF22;color:black" data-theme="b">N/A</button>
                                                                 </div>
                                                         </div>
 							<div class="ui-grid-a center button-line" id="RDA_Messages_status">

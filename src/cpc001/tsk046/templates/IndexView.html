@@ -306,28 +306,28 @@
 						</div>
 
 
-						<div class="ui-grid-a center button-line" id="Clear_Air_Switch_status">
+						<div class="ui-grid-a center button-line" id="mode_B_auto_switch_status">
 							<div class="ui-block-a">
 								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
 							</div>
 							<div class="ui-block-b">
 								<div style="float:left" class="containing-element-lg">
-									<select alt="Clear Air Switch" class="toggle" name="flip-min" id="Clear_Air_Switch" data-role="slider"data-theme="a"data-mini="true">
+									<select alt="Clear Air Switch" title="flag"class="toggle" name="flip-min" id="mode_B_auto_switch" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">MANUAL</option>
 										<option value="on">AUTO</option>
 									</select>
 								</div>
 							</div>
 						</div>
-						<div class="ui-grid-a center button-line" id="Precip_Switch_status">
+						<div class="ui-grid-a center button-line" id="mode_A_auto_switch_status">
 							<div class="ui-block-a">
 								<button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
 							</div>
 							<div class="ui-block-b">
 								<div style="float:left" class="containing-element-lg">
-									<select alt="Precip Switch" class="toggle" name="flip-min" id="Precip_Switch" data-role="slider"data-theme="a"data-mini="true">
+									<select alt="Precip Switch" class="toggle" title="flag" name="flip-min" id="mode_A_auto_switch" data-role="slider"data-theme="a"data-mini="true">
 										<option select value="off">MANUAL</option>
-										<option id="Precip_Switch_label" value="on">AUTO</option>
+										<option value="on">AUTO</option>
 									</select>
 								</div>
 							</div>
@@ -365,7 +365,7 @@
 										<button type="button" class="display-button" id="Model_Update_button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">Model Update</button>
 									</div>
 									<div class="ui-block-b">
-										<select alt="Model Update" class="toggle" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="Model Update" class="toggle" title="flag" name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
 											<option select value="off">OFF</option>
 											<option value="on">ON</option>
 										</select>
@@ -379,7 +379,7 @@
 										<button type="button" class="display-button" id="VAD_Update_button" style="font-size:11px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
 									</div>
 									<div class="ui-block-b">
-										<select alt="VAD Update" class="toggle" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+										<select alt="VAD Update" class="toggle" title="flag" name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
 											<option select value="off">OFF</option>
 											<option value="on">ON</option>
 										</select>
@@ -411,31 +411,39 @@
 							<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
 							<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div>
 						</div>
+				<div class="ui-grid-a center button-line" id="Load_Shed_status">
+                                    <div class="ui-block-a">
+                                        <button id="Load_Shed" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Load Shed</button>
+                                    </div>
+                                    <div class="ui-block-b">
+                                        <button id="Load_Shed_contain" class="display-button" type="button" style="font-size:14px;background-color:#51FF22" data-theme="b">N/A</button>
+                                    </div>
+                                </div>
+
 
 				
 	</div>
     </div>
 </div>
 						<br>
-						<table data-role="table" class="ui-responsive">
-							<thead>
-								<tr>
-			      <th style="float:right;font-size:14px">Feedback:</td>
-			      <td id="marq1" style="background-color:white" class="bar-border"></td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                      <th style="float:right;font-size:14px">Status:</th>
-                                      <td id="marq2"class="bar-border">Jun 29,15 [14:25:39] >> Vol:3(Seq:3)RDA Clock:06/12/15 14:25:39 VCP:212 L2:6 DP SR SAILS</td>
-                                    </tr>
-								    <tr>
-                                      <th style="float:right;font-size:14px">Alarms:</th>
-                                      <td id="marq3" style="background-color:#51FF22;border:solid 1px" class="bar-border">Jun 29,15 [14:25:39] >> RPG ALARM CLEARED:[RDA:1] RDA <-> RPG COMMUNICATIONS LINK BROKEN</td>
-                                    </tr>
-								</tbody>
-							</table>
-	
+			<table data-role="table" class="ui-responsive">
+			    <thead>
+			        <tr>
+			            <th style="float:right;font-size:14px">Feedback:</td>
+			            <td id="Feedback" style="background-color:white;width:100%" class="bar-border"></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th style="float:right;font-size:14px">Status:</th>
+                                    <td style="font-weight:bold;width:100%"id="Status"class="bar-border"></td>
+                                </tr>
+				<tr>
+                                    <th style="float:right;font-size:14px">Alarms:</th>
+                                    <td id="Alarms" style="background-color:#51FF22;border:solid 1px;font-weight:bold;width:100%" class="bar-border"></td>
+                                </tr>
+			    </tbody>
+			</table>	
 
 
 

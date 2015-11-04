@@ -27,6 +27,8 @@ namespace rpg
     );
     tuple thinwrap_orpg_statefl_get_rpgalrm();
     tuple thinwrap_orpg_statefl_get_rpgopst();
+    tuple thinwrap_orpgda_read(int data_id, int length,int msg);
+    tuple thinwrap_orpgload_get_data(int category,int type); 
     string thinwrap_orpgda_lbname(int data_id);
     string thinwrap_orpgrat_get_alarm_text(int code);
 
@@ -37,6 +39,8 @@ namespace rpg
     void wrap_orpginfo();
     void wrap_orpgvst();
     void wrap_orpgrat();
+    void wrap_rpgcs();
+    void wrap_orpgload();
     void export_liborpg();
 }
 

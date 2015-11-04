@@ -10,6 +10,7 @@ using boost::python::object;
 using boost::python::ptr;
 using boost::python::handle;
 using boost::python::list;
+using boost::python::enum_;
 
 #include <string>
 using std::string;
@@ -33,6 +34,7 @@ extern "C"
     #include "orpgsails.h"
     #include "orpgvst.h"
     #include "time.h"
+    #include "rpgcs_time_funcs.h"
 }
 
 #include "wrap_liborpg.h"
@@ -89,6 +91,8 @@ namespace rpg
     {
 	char *buf;
 	char temp[length];
+	LE_message *le_msg;
+	time_t gen_time;
 	int rval = ORPGDA_read(data_id,&buf,0,msg);
 	for(short i = 0;i<length;i++){
 	    if(buf[i] == '\x00'){
@@ -97,8 +101,16 @@ namespace rpg
 	    else{
 	        temp[i] = buf[i];
 	    }
-	}	
-	return make_tuple(rval,string(temp));
+	}
+	le_msg = (LE_message *) buf;
+	gen_time = le_msg->time;
+	return make_tuple(rval,string(temp),gen_time);
+    }
+    tuple thinwrap_orpgload_get_data(int category,int type)
+    {
+	int value;
+	int rval = ORPGLOAD_get_data(category,type,&value);
+	return make_tuple(rval,value);
     }
     string thinwrap_orpgrat_get_alarm_text(int code)
     {
@@ -207,11 +219,42 @@ namespace rpg
             args("code")
         );
     }
-
+    void wrap_rpgcs()
+    {
+	def(	
+	    "rpgcs_get_time_zone",
+	     &RPGCS_get_time_zone
+	);
+    }
+    void wrap_orpgload()
+    {
+	def(
+	    "orpgload_get_data",
+	    &thinwrap_orpgload_get_data,
+	    args("category","type")
+	);
+    }
     void export_liborpg()
     {
         class_<liborpg_ns> c("liborpg");
         scope in_liborpg = c;
+	enum_<int>("LOAD_SHED_CATEGORY")
+	    .value("LOAD_SHED_CATEGORY_PROD_DIST",LOAD_SHED_CATEGORY_PROD_DIST)
+      	    .value("LOAD_SHED_CATEGORY_PROD_STORAGE",LOAD_SHED_CATEGORY_PROD_STORAGE)
+      	    .value("LOAD_SHED_CATEGORY_INPUT_BUF",LOAD_SHED_CATEGORY_INPUT_BUF)
+      	    .value("LOAD_SHED_CATEGORY_RDA_RADIAL",LOAD_SHED_CATEGORY_RDA_RADIAL)
+      	    .value("LOAD_SHED_CATEGORY_RPG_RADIAL",LOAD_SHED_CATEGORY_RDA_RADIAL)
+      	    .value("LOAD_SHED_CATEGORY_WB_USER",LOAD_SHED_CATEGORY_WB_USER)
+	;
+	enum_<short>("LOAD_SHED_TYPE")
+	    .value("LOAD_SHED_WARNING_THRESHOLD",LOAD_SHED_WARNING_THRESHOLD)
+	    .value("LOAD_SHED_ALARM_THRESHOLD",LOAD_SHED_ALARM_THRESHOLD)
+	    .value("LOAD_SHED_CURRENT_VALUE",LOAD_SHED_CURRENT_VALUE)
+	;
+
+	in_liborpg.attr("LOAD_SHED_THRESHOLD_MSG_ID") = LOAD_SHED_THRESHOLD_MSG_ID;
+	in_liborpg.attr("LOAD_SHED_CURRENT_MSG_ID") = LOAD_SHED_CURRENT_MSG_ID;
+	in_liborpg.attr("LOAD_SHED_THRESHOLD_BASELINE_MSG_ID") = LOAD_SHED_THRESHOLD_BASELINE_MSG_ID;
 
         wrap_orpgda();
         wrap_orpgrda();
@@ -220,7 +263,8 @@ namespace rpg
         wrap_orpgrat();
         wrap_orpgvst();
 	wrap_orpgsails();
-
+	wrap_rpgcs();
+	wrap_orpgload();
         c.staticmethod("orpgrda_send_cmd")
             .staticmethod("orpgrda_get_wb_status")
             .staticmethod("orpgrda_get_status")
@@ -248,6 +292,8 @@ namespace rpg
 	    .staticmethod("orpgsails_get_site_max_cuts")
             .staticmethod("orpgvst_get_volume_time")
             .staticmethod("orpgrat_get_alarm_text")
+	    .staticmethod("rpgcs_get_time_zone")
+	    .staticmethod("orpgload_get_data")
         ;
     }
 }
