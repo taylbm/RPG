@@ -40,23 +40,7 @@ var actionflag = {}
 var cookieRaid = {}
 var rpgStatusMsgs = {'new':0}
 var stopCheck = {'action':0}
-var rpgAlarms = {
-	"CON":"Node Connectivity Failure",
-	"RPGCTLFL":"RPG Control Failure",
-	"DBFL":"Data Base Failure",
-	"MEDIAFL":"Media Failure",
-	"WBDLS":"Wideband Loadshedding",
-	"PRDSTGLS":"Product Storage Loadshedding",
-	"RDAWB":"RDA Wideband Alarm",
-	"RPGRPGFL":"RPG/RPG Link Failure",
-	"REDCHNER":"Redundant Channel Error",
-	"FLACCFL":"File Access Failure",
-	"RDAINLSRDA":"Radial Input Load Shed",
-	"RPGINLSRPG":"Radial Input Load Shed",
-	"RPGTSKFL":"RPG Task Failure",
-	"DISTRI":"Product Distribution",
-	"WBFAILRE":"Wideband Failure"
-}
+
 function toRadians(deg) {
 return deg * Math.PI / 180
 }
@@ -169,8 +153,8 @@ $(document).ready(function(){
             	}
             	else{
                 	document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
-            	}
-	    	break;
+	    	}
+		break;
             case 2:
 		$('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
 		break;
@@ -192,9 +176,6 @@ $(document).ready(function(){
 	}
 	var animcheck = document.getElementById("squaresWaveG_long_1")
 	animcheck.style.animationPlayState = "running"
-	$.getJSON('static/rpg_alarms.json',function(data){
-		console.log($.parseJSON(data))
-	});
 	
 	$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 	$(".nav-item").css('background-color','#002060');
@@ -244,7 +225,7 @@ $(document).ready(function(){
 	maincircle.stroke();
 	document.getElementById("radome").style.zIndex = 1;
 	$.getJSON("/update",function(data){
-        	cookieRaid['i)))ial'] = data['RPG_dict']['ORPGVST']
+        	cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
         });
 
 	$(".toggle").on('slidestop',function(){
@@ -337,6 +318,7 @@ $(document).ready(function(){
 	});
 	setInterval(function (){	
 		$.getJSON("/update",function(data){
+		        $('#marq-insert').html($('#marq-form').html())
 			maincircle.clearRect(0,0,canvas.width,285)
 			maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
         		maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
@@ -404,7 +386,6 @@ $(document).ready(function(){
 			    $('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')		
 			}
 			var cts = Math.round((new Date()).getTime() / 1000);
-			console.log(data['RPG_dict']['RPG_status_ts']-cts)	
 			if(cts - data['RPG_dict']['RPG_status_ts'] == 5*60){
 			    rpgStatusMsgs['new'] = timeStamp() + ' >> No System Status Change in the last 5 minutes'
 			}
@@ -442,12 +423,9 @@ $(document).ready(function(){
 				$("#Mode_Conflict_status").addClass('hide')
 			}
 			var state = Object.keys(data['RS_dict']['RDA_static']);
-			if (getCookie('DLOAD_VCP') != "NULL"){
-			    $('#Feedback').html(getCookie('DLOAD_VCP'))
+			if (getCookie('FEEDBACK') != "NULL"){
+			    $('#Feedback').html(getCookie('FEEDBACK'))
 			}
-			if (getCookie('RESTART_VCP') != "NULL"){
-			    $('#Feeback').html(getCookie('RESTART_VCP'))
-		   	}
 			if (Object.keys(actionflag).indexOf('SAILS') < 0){
 			    if(data['RPG_dict']['RPG_SAILS']){
 			        $('#RPG_SAILS').val('on').slider('refresh');
@@ -622,7 +600,7 @@ $(document).ready(function(){
 					$('#PRF_Mode_block').attr('class','show')
 					break;
 			}
-			
+			console.log(localStorage.getItem("hello"))	
 			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
 			var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
 			if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
@@ -668,6 +646,15 @@ $(document).ready(function(){
 					$('#RPG_state').addClass('inop-indicator')
 					break;		
 			};
+			switch(data['RPG_dict']['narrowband']){
+			    case 'NB_HAS_NO_CONNECTIONS': case 'NB_HAS_FAILED_CONNECTIONS':
+				$('.nblink-status').html('').removeClass('normal-ops').addClass('null-ops')
+			        break;
+			    case 'NB_HAS_CONNECTIONS':
+				$('nblink-status').html(link).removeClass('null-ops').addClass('normal-ops')
+				break;
+			}
+			    
 			if (data['RS_dict']['RDA_static']['WIDEBAND'] == "CONNECTED"){
 				if ($('#squaresWaveG_long').html() != link && data['RS_dict']['active_moments'] == []){
 					var links = data['RS_dict']['moments']
@@ -796,9 +783,9 @@ $(document).ready(function(){
 	$('#88D-ops').click(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");
         }); 	
-	$('#vcp-button').click(function(){
+/**	$('#vcp-button').click(function(){
 		window.open("http://0.0.0.0:3142","_blank","width= 1024, height = 720, scrollbars=yes");
-	});
+	});**/
 	$('#shift-change').click(function(){
                 window.open("http://0.0.0.0:4235","_blank","width= 1024, height = 1024, scrollbars=yes");
         });

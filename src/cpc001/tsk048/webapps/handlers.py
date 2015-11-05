@@ -4,8 +4,8 @@ import sys
 import os
 import web
 HOME = os.getenv("HOME")
+sys.path.insert(0,HOME+'/RPG-ecp0634p/src/cpc001/lib004')
 sys.path.insert(0,HOME+'/lib/lnux_x86')
-sys.path.insert(0,HOME+'RPG-ecp-0634p/src/cpc001/lib004')
 import _rpg
 import time
 import subprocess
@@ -21,7 +21,16 @@ event_holder = {}
 ##
 def callback(event, msg_data):
         msg = _rpg.orpgevt.to_orpgevt_radial_acct_t(msg_data)
-        event_holder.update({'radial_status':msg.radial_status,'super_res':msg.super_res,'moments':msg.moments,'sails_seq':msg.sails_cut_seq,'az':msg.azimuth,'el':msg.elevation,'start_az':msg.start_elev_azm,'last_elev':msg.last_ele_flag})
+        event_holder.update({
+				'radial_status':msg.radial_status,
+				'super_res':msg.super_res,
+				'moments':msg.moments,
+				'sails_seq':msg.sails_cut_seq,
+				'az':msg.azimuth,
+				'el':msg.elevation,
+				'start_az':msg.start_elev_azm,
+				'last_elev':msg.last_ele_flag
+			    })
 ##
 # Register Callback for Event Notification
 ##
@@ -89,8 +98,27 @@ def RS():
 	    RS_dict.update({'moments':moments_list})
 	except:
 	    RS_dict.update({'moments':['False']})
-	RS_dict.update({'radome_update':radome_update,'latest_alarm':latest_alarm,'RDA_static':{'DATA_TRANS':data_trans,'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),'OPERABILITY_LIST':",".join(oper_list),'AUX_GEN_LIST':"<br>".join(aux_gen_list),'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')}})
-	RS_dict.update({'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]})
+	lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
+	RS_dict.update({
+			'radome_update':radome_update,
+			'latest_alarm':latest_alarm,
+			'RDA_static':{
+					'LOOKUP':{
+                                        	'RS_CMD':dict((lookup[x],x.split('_')[1]) for x in lookup.keys() if 'CMD' in x), 
+                                        	'RS_AVSET':dict((lookup[x],x.split('_')[1]) for x in lookup.keys() if 'AVSET' in x),
+                                        	'RS_SUPER_RES':dict((lookup[x],x.split('_')[1]) for x in lookup.keys() if 'SR' in x)
+                                        	},
+					'DATA_TRANS':data_trans,
+					'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
+					'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
+					'OPERABILITY_LIST':",".join(oper_list),
+					'AUX_GEN_LIST':"<br>".join(aux_gen_list),
+					'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),
+					'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),
+					'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')
+				     },
+			'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
+			})
 	return RS_dict
 ##
 # Method for retrieving RPG data 
@@ -108,7 +136,17 @@ def RPG():
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
 	RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
 	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
-	return {'sails_cuts':sails_cuts,'ORPGVST':ORPGVST,'RPG_state':",".join(RPG_state),'RPG_AVSET':_rpg.liborpg.orpginfo_is_avest_enabled(),'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),'Precip_Switch':precip_switch,'Clear_Air_Switch':clear_air_switch}
+	return {
+		'sails_cuts':sails_cuts,
+		'ORPGVST':ORPGVST,
+		'RPG_state':",".join(RPG_state),
+		'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
+		'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
+		'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
+		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),
+		'Precip_Switch':precip_switch,
+		'Clear_Air_Switch':clear_air_switch
+		}
 ##
 # Method for retrieving Performance/ Maintenance Data
 ##	
@@ -125,7 +163,21 @@ def PMD():
 		perf_color = 'white'
 	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
 	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
-	return {"Model_Update":model_flag,"VAD_Update":vad_flag,"prf":prf_dict[prf],"mode_conflict":mode_conflict,"current_precip_status":precip,"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,"precip_mode_area_thresh":wx.precip_mode_area_thresh,"precip_mode_zthresh":wx.precip_mode_zthresh}
+	return {
+		"Model_Update":model_flag,
+		"VAD_Update":vad_flag,
+		"prf":prf_dict[prf],
+		"mode_conflict":mode_conflict,
+		"current_precip_status":precip,
+		"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,
+		"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],
+		"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),
+		"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),
+		'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
+		'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,
+		"precip_mode_area_thresh":wx.precip_mode_area_thresh,
+		"precip_mode_zthresh":wx.precip_mode_zthresh
+		}
 ##
 # Method for retrieving Adaptation Data
 ##
@@ -139,7 +191,16 @@ def ADAPT():
 	default_dir = _rpg.librpg.deau_get_values('alg.storm_cell_track.default_dir',1)
         default_spd = _rpg.librpg.deau_get_values('alg.storm_cell_track.default_spd',1)
 	ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
-	return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ISDP':isdp[1][0],'ZR_exp':zr_exp[1][0],'version':version[1][0],'default_spd':default_spd[1][0],'default_dir':default_dir[1][0],'ptype':ptype[1]}
+	return {
+		'ICAO':ICAO[1],
+		'ZR_mult':zr_mult[1][0],
+		'ISDP':isdp[1][0],
+		'ZR_exp':zr_exp[1][0],
+		'version':version[1][0],
+		'default_spd':default_spd[1][0],	
+		'default_dir':default_dir[1][0],
+		'ptype':ptype[1]
+		}
 ##
 # Method for retrieving VCP Configuration Data
 ##
@@ -164,13 +225,22 @@ def CFG():
             last_elev.update({vcp.replace('vcp_',''):temp})
             temp = dict((x.replace('\n','').replace('elev_ang_deg','').replace(' ','').replace('{',''),text_lines[text_lines.index(x)+3].replace('super_res','').replace('\n','').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x)
             super_res.update({vcp.replace('vcp_',''):temp})
-	CFG_dict = {'allow_sails':allow_sails,'last_elev':last_elev,'super_res':super_res}
+	CFG_dict = {
+			'allow_sails':allow_sails,
+			'last_elev':last_elev,
+			'super_res':super_res
+		   }
 	return CFG_dict 
 ##
 # Renders the Shift Change Checklist 
 ##	
 class Shift_change_checklist(object):
     def GET(self):
-        return LOOKUP.Shift_change_check(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
+        return LOOKUP.Shift_change_check(**{
+						'PMD_dict':PMD(),
+						'RS_dict':RS(),
+						'RPG_dict':RPG(),
+						'ADAPT':ADAPT()
+					   })
 
 

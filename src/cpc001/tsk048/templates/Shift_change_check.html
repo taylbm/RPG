@@ -52,18 +52,8 @@ $(document).ready(function(){
 
 
 	</div>
-	
 
-<% 
-STATUS_VALS = {}
-error_status = "ERROR: value not retrieved"
-STATUS_VALS.update({"RS_SUPER_RES":{2:'ENABLED',4:'DISABLED'}}) 
-STATUS_VALS.update({"RS_CMD":{0:'DISABLED',1:'ENABLED'}}) 
-STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
-%>
-	 
-
-    <div id="content" style="font-size:15px">
+    <div id="content" style="font-size:16px">
 		<div class="ui-grid-a">
             <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
@@ -98,11 +88,11 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
                     </tr>
             	    <tr>
                         <td>Super Resolution (SR):</td>
-                    	<td>${STATUS_VALS["RS_SUPER_RES"].get(context.get("RS_dict").get("RS_SUPER_RES"),error_status)}</td>
+                    	<td>${context.get('RS_dict').get('RDA_static').get('LOOKUP').get('RS_SUPER_RES').get(context.get("RS_dict").get("RS_SUPER_RES"))}</td>
 		    </tr>
             	    <tr>
                         <td>Clutter Mitigation Decision:</td>
-                        <td>${STATUS_VALS["RS_CMD"].get(context.get("RS_dict").get("RS_CMD"),"Enabled")}</td>
+                        <td>${context.get('RS_dict').get('RDA_static').get('LOOKUP').get('RS_CMD').get(context.get("RS_dict").get("RS_CMD"))}</td>
                     </tr>
             	    <tr>
                         <td>Horizontal Delta dBZ0:</td>
@@ -122,7 +112,7 @@ STATUS_VALS.update({"RS_AVSET":{2:'ENABLED',4:'DISABLED'}})
                     </tr>
             	    <tr>
                         <td>AVSET Status:</td>
-                        <td>${STATUS_VALS["RS_AVSET"].get(context.get("RS_dict").get("RS_AVSET"))}</td>
+                        <td>${context.get('RS_dict').get('RDA_static').get('LOOKUP').get('RS_AVSET').get(context.get("RS_dict").get("RS_AVSET"))}</td>
                     </tr>
 		    <tr>
 		    	<th><u>Archive Level II</u></th>

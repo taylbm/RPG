@@ -200,13 +200,13 @@ def RPG():
 	parse_msg = msg[1][:msg[0]-1].split(' ')
 	tstamp_msg = msg[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);	
 	st1 = months[int(datetime.datetime.fromtimestamp(tstamp_msg).strftime('%m'))-1]
-	st2 = datetime.datetime.fromtimestamp(tstamp_msg).strftime('%d,%Y [%H:%M:%S]')
+	st2 = datetime.datetime.fromtimestamp(tstamp_msg).strftime('%-d,%y [%H:%M:%S]')
 	rpg_status = st1+' '+st2+' >> '+" ".join([x for x in parse_msg if '\\x' not in repr(x)]).replace('\n','');
 	alarm = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	parse_alarm = alarm[1][:alarm[0]-1].split(' ')
 	tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
         at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
-        at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%d,%Y [%H:%M:%S]')	
+        at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')	
 	rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join([x for x in parse_alarm if '\\x' not in repr(x)]).replace('\n','');
 	category_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_CATEGORY.values.items())
 	type_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_TYPE.values.items())
@@ -224,7 +224,8 @@ def RPG():
                 loadshed[cat] = 'ALARM'
             else:
                 loadshed[cat] = 'NONE'
- 
+	nb = _rpg.libhci.hci_get_nb_connection_status()
+	nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
 
 	return {
 		'sails_allowed':sails_allowed,
@@ -240,7 +241,8 @@ def RPG():
 		'RPG_status_ts':tstamp_msg,
 		'mode_A_auto_switch':precip_switch,
 		'mode_B_auto_switch':clear_air_switch,
-	 	'loadshed':loadshed
+	 	'loadshed':loadshed,
+	  	'narrowband':nb_dict[nb]
 	}
 ##
 # Method for retrieving Performance/ Maintenance Data

@@ -14,7 +14,6 @@ namespace rpg
     tuple thinwrap_deau_get_values(const string& key, int number_of_values);
     tuple thinwrap_deau_get_string_values(const string& key);
     void thinwrap_deau_lb_name(const string& name);
-
     void export_librpg();
 }
 

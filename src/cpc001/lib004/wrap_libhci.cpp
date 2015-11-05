@@ -19,6 +19,7 @@ extern "C"
     #include "hci_precip_status.h"
     #include "hci_wx_status.h"
     #include "hci_le.h"
+    #include "hci_up_nb.h" // TODO Resolve reserved type in this header file. 'class' used as variable name in Class_details and Dial_details structs
 }
 
 #include "wrap_libhci.h"
@@ -60,7 +61,7 @@ namespace rpg
         def("hci_get_model_update_flag", &hci_get_model_update_flag);
 	def("hci_set_model_update_flag", &hci_set_model_update_flag);
         def("hci_get_prf_mode_status_msg", &hci_get_PRF_Mode_status_msg);
-
+	def("hci_get_nb_connection_status",&hci_get_nb_connection_status);
 
         c.staticmethod("hci_get_orda_pmd_ptr");
         c.staticmethod("hci_get_wx_status");
@@ -74,7 +75,12 @@ namespace rpg
         c.staticmethod("hci_set_mode_a_auto_switch_flag");
         c.staticmethod("hci_get_mode_b_auto_switch_flag");
         c.staticmethod("hci_set_mode_b_auto_switch_flag");
+	c.staticmethod("hci_get_nb_connection_status");
 	in_libhci.attr("HCI_LE_MSG_MAX_LENGTH") = HCI_LE_MSG_MAX_LENGTH;
+	scope in_nb_status = class_<nb_status_ns>("nb_status");
+	    in_nb_status.attr("NB_HAS_NO_CONNECTIONS") = NB_HAS_NO_CONNECTIONS;
+	    in_nb_status.attr("NB_HAS_CONNECTIONS") = NB_HAS_CONNECTIONS; 
+            in_nb_status.attr("NB_HAS_FAILED_CONNECTIONS") = NB_HAS_FAILED_CONNECTIONS;
     }
 }
 

@@ -12,7 +12,8 @@
 ###
 ### page body
 ###
-<link href='https://fonts.googleapis.com/css?family=Arimo:400,700' rel='stylesheet' type='text/css'>
+
+
 <script src="/static/jquery-1.11.2/jquery-1.11.2.min.js"></script>
 <script src="/static/jquery.mobile-1.4.5/jquery.mobile-1.4.5.js"></script>
 <link rel="stylesheet" href="/static/themes/rpghci.min.css" />

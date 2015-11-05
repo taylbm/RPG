@@ -16,6 +16,7 @@ extern "C"
     #include "infr.h"
     #include "orpg.h"
     #include "deau.h"
+    #include "dpprep_isdp.h"
 }
 
 #include "wrap_librpg.h"
@@ -50,7 +51,7 @@ namespace rpg
         class_<librpg_ns> c("librpg");
         scope in_librpg = c;
         
-        def("deau_lb_name", &thinwrap_deau_lb_name, args("name"));
+	def("deau_lb_name", &thinwrap_deau_lb_name, args("name"));
         def(
             "deau_get_values", 
             &thinwrap_deau_get_values, 

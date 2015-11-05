@@ -210,7 +210,7 @@
 							<button type="button" style="font-size:50px;background-color:#DCDBD6;padding:30px;" data-theme="b">VCP</button>
 						</div>
 						<div class="ui-block-b" style="text-decoration : none; color : #000000;">
-							<button id="RS_VCP_NUMBER" type="button" style="font-size:60px;background-color:white;padding:20px;" data-theme="b">N/A</button>
+							<a id="RS_VCP_NUMBER" href="http://localhost:3142" class="ui-btn ui-btn-b ui-shadow ui-corner-all" target="_blank" style="font-size:60px;background-color:white;padding:20px;width:70%;margin-left:0px" data-theme="b">N/A</a>
 						</div>
 					</div>
 					<p id="VCP_start_date" style="font-size:16px;color:black;display:inline-block"></p><p id="VCP_start_time" style="font-size:16px;color:black;display:inline-block"></p>
@@ -401,7 +401,7 @@
 							<br>
 					</div>
 				</div>
-						<div style="position:relative;z-index:1;left:-80px;top:-100px;display:inline-block" class="bar-border" id="squaresWaveG_long">
+						<div style="position:relative;z-index:1;left:-80px;top:-100px;display:inline-block" class="bar-border nblink-status" id="squaresWaveG_long">
 							<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
 							<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
 							<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
@@ -425,12 +425,11 @@
 	</div>
     </div>
 </div>
-						<br>
-			<table data-role="table" class="ui-responsive">
-			    <thead>
-			        <tr>
-			            <th style="float:right;font-size:14px">Feedback:</td>
-			            <td id="Feedback" style="background-color:white;width:100%" class="bar-border"></td>
+			    <table data-role="table" class="ui-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="float:right;font-size:14px">Feedback:</td>
+                                    <td id="Feedback" style="background-color:white;width:100%;font-weight:bold" class="bar-border"></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -438,13 +437,12 @@
                                     <th style="float:right;font-size:14px">Status:</th>
                                     <td style="font-weight:bold;width:100%"id="Status"class="bar-border"></td>
                                 </tr>
-				<tr>
+                                <tr>
                                     <th style="float:right;font-size:14px">Alarms:</th>
                                     <td id="Alarms" style="background-color:#51FF22;border:solid 1px;font-weight:bold;width:100%" class="bar-border"></td>
                                 </tr>
-			    </tbody>
-			</table>	
-
+                            </tbody>
+                            </table>
 
 
 	

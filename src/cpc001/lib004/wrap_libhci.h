@@ -4,7 +4,7 @@
 namespace rpg
 {
     struct libhci_ns {};    // dummy class for scoping
-
+    struct nb_status_ns {}; 
     int thinwrap_hci_up_nb_update_dedicated_user_table();
     void export_libhci();
 }
