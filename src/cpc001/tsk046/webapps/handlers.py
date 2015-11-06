@@ -36,12 +36,9 @@ def callback(event, msg_data):
 			    'el':msg.elevation,
 			    'start_az':msg.start_elev_azm,
 			    'last_elev':msg.last_ele_flag
+
 			    })
-##
-# Register Callback for Event Notification
-##
-_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
-##
+##			    
 # Utility fxn defs
 ##
 def stripList(list1):
