@@ -38,6 +38,7 @@
     <h2>VCP Mode and Control</h2>
 </div>
 <a id="vcp-def-link" href="#vcp-def"></a>
+<a id="vel-pop-link" href="#vel-pop" data-rel="popup" data-position-to="window" data-transition="pop"></a>
 <div id="content">
     <div data-role="popup" id="vcp-desc">
         <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
@@ -218,13 +219,24 @@ x_url = "delete"
     <div style="display:inline-block">
         <form>
             <fieldset data-theme="b" data-role="controlgroup" data-type="horizontal">
-                <input type="radio" name="vel-select" id="vel-1" value="on" checked="checked">
-                <label for="vel-1">0.97kts</label>
-                <input type="radio" name="vel-select" id="vel-2" value="off">
-                <label for="vel-2">1.94kts</label>
+                <input class="vel-sel" alt="0.97kts" type="radio" name="vel-select" id="vel-high" value="on" checked="checked" data-role="button">
+                <label class="label-vel" id="label-high" for="vel-high">0.97kts</label>
+                <input class="vel-sel" alt="1.94kts"type="radio" name="vel-select" id="vel-low" value="off" data-role="button">
+                <label class="label-vel" id="label-low" for="vel-low">1.94kts</label>
             </fieldset>
         </form>
-    </div>	
+    </div>
+                <div data-role="popup" id="vel-pop" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="max-width:400px;">
+                <div data-role="header" data-theme="a">
+                    <h1>Warning Popup</h1>
+                </div>
+                <div role="main" class="ui-content">
+                    <h3 style="text-align:center">You are about to change the velocity resolution to</h3> <h2 id="vel-res-insert" style="text-align:center;color:red"></h2><h3>It will take effect at the start of the next volume scan. Do you want to continue?</h3>
+                    <a href="#" id="change-vel-cancel" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back">No</a>
+                    <a href="#" id="change-vel-confirm" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back" data-transition="flow" style="float:right">Yes</a>
+                </div>
+            </div>
+	
     <div style="display:inline-block;float:right">
         <div data-theme="b" data-role="controlgroup" data-type="horizontal">
 	    <a href="#vcp-def" class="ui-btn ui-corner-all">View RPG VCP Definitions</a>

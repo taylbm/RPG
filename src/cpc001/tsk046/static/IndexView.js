@@ -414,13 +414,19 @@ $(document).ready(function(){
 
 				}
 			}
-                        if(data['PMD_dict']['mode_conflict']){
+			if(data['PMD_dict']['mode_trans']){
+			    $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
+                            $("#Mode_Conflict_status").removeClass('hide')
+			}
+			else{
+                            if(data['PMD_dict']['mode_conflict']){
 				$("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
 				$("#Mode_Conflict_status").removeClass('hide')
-			}
-                        else{
+			    }
+                            else{
 				$("#Mode_Conflict_contain").html('NO').removeClass('minor-alarm').addClass('normal-ops');
 				$("#Mode_Conflict_status").addClass('hide')
+			    }
 			}
 			var state = Object.keys(data['RS_dict']['RDA_static']);
 			if (getCookie('FEEDBACK') != "NULL"){
@@ -522,7 +528,6 @@ $(document).ready(function(){
 						$("#grid1").attr('class','major-alarm-grid');
 						$('#grid1title').attr('class','major-alarm-grid');
 						$("#"+value2).attr('class','bar-border2 major-alarm');
-						$('#Alarms').attr('class','major-alarm');
 						break;
 					case 'MAINTENANCE_REQ':
 						$("#grid1").attr('class','minor-alarm-grid');
@@ -622,6 +627,7 @@ $(document).ready(function(){
 				case 'MAM':
 					$('#RPG_oper').attr('class','major-alarm bar-border2')
 					$('#grid2').attr('class','major-alarm-grid')
+					$('#Alarms').attr('class','major-alarm');
 					break;
 				case 'ONLINE':
 					if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops-grid')}

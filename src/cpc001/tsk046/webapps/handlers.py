@@ -254,17 +254,20 @@ def PMD():
 	precip = _rpg.libhci.hci_get_precip_status().current_precip_status
 	pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
 	wx = _rpg.libhci.hci_get_wx_status().mode_select_adapt
+	
 	if int(time.strftime('%H',time.gmtime(pmd.perf_check_time-int(time.time())))) < 1:
 		perf_color = yellow
 	else: 
 		perf_color = 'white'
 	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
 	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
+	mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
 	return {
 		"Model_Update":model_flag,
 		"VAD_Update":vad_flag,
 		"prf":prf_dict[prf],
 		"mode_conflict":mode_conflict,
+		"mode_trans":mode_trans,
 		"current_precip_status":precip,	
 		"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,
 		"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],

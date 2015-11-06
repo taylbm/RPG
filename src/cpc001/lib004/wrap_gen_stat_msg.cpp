@@ -43,6 +43,10 @@ namespace rpg
                 "recommended_wxstatus",
                 &Wx_status_t::recommended_wxstatus
             )
+	    .def_readwrite(
+	  	"wxstatus_deselect",
+		&Wx_status_t::wxstatus_deselect
+	    )
         ;
     }
 

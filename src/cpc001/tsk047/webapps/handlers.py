@@ -28,7 +28,10 @@ def hasNumbers(inputString):
 ##
 class Current_VCP(object):
     def GET(self):
-        return json.dumps(_rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER))
+	vcp_num = _rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER)
+	vel_res = _rpg.libhci.hci_current_vcp_get_vel_resolution()
+	vel_res_dict = {_rpg.orpgrda.CRDA_VEL_RESO_HIGH:'label-high',_rpg.orpgrda.CRDA_VEL_RESO_LOW:'label-low'}
+        return json.dumps({'vcp_num':vcp_num,'vel_res':vel_res_dict[vel_res]})
 ##
 # Sends RDA Commands 
 ##
@@ -44,7 +47,7 @@ class Send_RDACOM(object):
 	who_sent_it = {
 			'COM4_RDACOM':1,
 			'COM4_DLOADVCP':_rpg.orpgrda.HCI_VCP_INITIATED_RDA_CTRL_CMD,
-			'COM4_VEL_RES':_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD
+			'COM4_VEL_RESO':_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD
 		      }
 	commanded = _rpg.liborpg.orpgrda_send_cmd(getattr(_rpg.orpgrda,cmd),who_sent_it.get(cmd),p1,0,0,0,0,_rpg.CharVector())
 	return json.dumps(commanded)

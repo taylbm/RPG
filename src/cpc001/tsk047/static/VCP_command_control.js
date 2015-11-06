@@ -37,6 +37,40 @@ var i;
 var full_dataset = [];
 
 $(document).ready(function(){
+	setInterval(function (){
+	    $.getJSON("/current_vcp", function(attr){
+		$('.label-vel').removeClass('ui-btn-active')
+		$('#'+attr['vel_res']).addClass('ui-btn-active')
+	    });
+	},10000);
+	function VelHandler(current,flag){
+	    if(flag){
+		if(current == 'vel-high'){
+		    $.post('/send_cmd',{COM:'COM4_VEL_RESO',INPUT:'CRDA_VEL_RESO_HIGH'});
+		    var date0 = new Date();
+                    date0.setTime(date0.getTime()+900000)
+                    document.cookie = "FEEDBACK="+timeStamp()+" >> Changing velocity resolution to HIGH; expires="+date0.toUTCString();
+
+	    	}
+		else{
+		    $.post('/send_cmd',{COM:'COM4_VEL_RESO',INPUT:'CRDA_VEL_RESO_LOW'});
+                    var date0 = new Date();
+                    date0.setTime(date0.getTime()+900000)
+                    document.cookie = "FEEDBACK="+timeStamp()+" >> Changing velocity resolution to LOW; expires="+date0.toUTCString();
+		}
+	    }
+	    else{
+	        if(current == 'vel-high'){
+		    console.log('ehle')
+	            $('#label-high').removeClass('ui-btn-active')
+		    $('#label-low').addClass('ui-btn-active')
+		}
+		else{
+		    $('#label-high').addClass('ui-btn-active')
+                    $('#label-low').removeClass('ui-btn-active')
+		}
+	    }
+	}
 	$(".vcp-confirm").on("click", function(){
 	    delete vcp 
 	    vcp = $(this).attr("id")
@@ -54,9 +88,9 @@ $(document).ready(function(){
 	$('#current-vcp').on("click", function() {
 	    $.getJSON("/current_vcp", function(attr){
 	        $('#vcp-def-link').click();
-	        $("#TableContain").html($("#vcpTable-"+attr).html())
+	        $("#TableContain").html($("#vcpTable-"+attr['vcp_num']).html())
 		$('.vcp-button').removeClass('ui-btn-active');
-		$('.v'+attr).addClass('ui-btn-active');
+		$('.v'+attr['vcp_num']).addClass('ui-btn-active');
     	    });
 	});
 	
@@ -72,6 +106,25 @@ $(document).ready(function(){
             date0.setTime(date0.getTime()+900000)
             document.cookie = "FEEDBACK="+timeStamp()+" >> Requesting the download of RPG VCP "+$(".final-vcp-confirm").html()+";path='/'; expires="+date0.toUTCString();
         });
+	$('.vel-sel').on("click",function(){
+	    $('#vel-pop-link').click();
+	    $('#vel-res-insert').html($(this).attr('alt'))
+	    current = $(this).attr('id')
+	    $("#change-vel-confirm").bind('click',{current},function(event){
+		VelHandler(event.data.current,1);
+		$('#change-vel-confirm').unbind()
+                $('#change-vel-cancel').unbind()
+
+            });
+	    $("#change-vel-cancel").bind('click',{current},function(event){	
+		VelHandler(event.data.current,0);
+            	$('#change-vel-cancel').unbind()
+                $('#change-vel-confirm').unbind()
+	    });
+
+	        
+	});
+	
     localStorage.setItem("hello","me")
 
     $(document).bind('IssuesReceived',IssuesReceived)

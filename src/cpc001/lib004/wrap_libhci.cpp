@@ -7,6 +7,7 @@ using boost::python::def;
 using boost::python::reference_existing_object;
 using boost::python::return_value_policy;
 using boost::python::scope;
+using boost::python::args;
 
 extern "C"
 {
@@ -20,6 +21,7 @@ extern "C"
     #include "hci_wx_status.h"
     #include "hci_le.h"
     #include "hci_up_nb.h" // TODO Resolve reserved type in this header file. 'class' used as variable name in Class_details and Dial_details structs
+    #include "hci_vcp_data.h"
 }
 
 #include "wrap_libhci.h"
@@ -33,7 +35,11 @@ namespace rpg
 
         return hci_up_nb_update_dedicated_user_table(throw_away);
     }
-    */
+    */	
+    void thinwrap_hci_current_vcp_set_vel_resolution(int num)
+    {
+	return hci_current_vcp_set_vel_resolution(num);
+    }
     void export_libhci()
     {
         string doc1(
@@ -62,20 +68,29 @@ namespace rpg
 	def("hci_set_model_update_flag", &hci_set_model_update_flag);
         def("hci_get_prf_mode_status_msg", &hci_get_PRF_Mode_status_msg);
 	def("hci_get_nb_connection_status",&hci_get_nb_connection_status);
+	def("hci_current_vcp_get_vel_resolution",&hci_current_vcp_get_vel_resolution);
+	def(
+	    "hci_current_vcp_set_vel_resolution",
+	    &thinwrap_hci_current_vcp_set_vel_resolution,
+	    args("num")
+	);	
 
-        c.staticmethod("hci_get_orda_pmd_ptr");
-        c.staticmethod("hci_get_wx_status");
-        c.staticmethod("hci_get_precip_status");
-        c.staticmethod("hci_get_vad_update_flag");
-	c.staticmethod("hci_set_vad_update_flag");
-        c.staticmethod("hci_get_model_update_flag");
-	c.staticmethod("hci_set_model_update_flag");
-        c.staticmethod("hci_get_prf_mode_status_msg");
-	c.staticmethod("hci_get_mode_a_auto_switch_flag");
-        c.staticmethod("hci_set_mode_a_auto_switch_flag");
-        c.staticmethod("hci_get_mode_b_auto_switch_flag");
-        c.staticmethod("hci_set_mode_b_auto_switch_flag");
-	c.staticmethod("hci_get_nb_connection_status");
+	c.staticmethod("hci_current_vcp_get_vel_resolution")
+            .staticmethod("hci_current_vcp_set_vel_resolution")
+	    .staticmethod("hci_get_orda_pmd_ptr")
+            .staticmethod("hci_get_wx_status")
+            .staticmethod("hci_get_precip_status")
+            .staticmethod("hci_get_vad_update_flag")
+	    .staticmethod("hci_set_vad_update_flag")
+            .staticmethod("hci_get_model_update_flag")
+	    .staticmethod("hci_set_model_update_flag")
+            .staticmethod("hci_get_prf_mode_status_msg")
+	    .staticmethod("hci_get_mode_a_auto_switch_flag")
+            .staticmethod("hci_set_mode_a_auto_switch_flag")
+            .staticmethod("hci_get_mode_b_auto_switch_flag")
+            .staticmethod("hci_set_mode_b_auto_switch_flag")
+	    .staticmethod("hci_get_nb_connection_status")
+	;
 	in_libhci.attr("HCI_LE_MSG_MAX_LENGTH") = HCI_LE_MSG_MAX_LENGTH;
 	scope in_nb_status = class_<nb_status_ns>("nb_status");
 	    in_nb_status.attr("NB_HAS_NO_CONNECTIONS") = NB_HAS_NO_CONNECTIONS;
