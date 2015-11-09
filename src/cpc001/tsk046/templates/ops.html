@@ -104,13 +104,14 @@
                                 delete actionflag.SAILS
                             }
 			    break;
-			case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
+			case 'RS_AVSET': case 'RS_CMD': case 'RS_SUPER_RES':
 			    if (attr.displayname == 'AVSET'){flag = 0}else{flag=1};
 			    if (attr.newVal.confirmation == "on"){
+				console.log('hello')
                                 $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
-				$("#"+attr.controlname+"_contain .ui-slider-label-a").text('PENDING')
                     	    }
                    	    else{
+				$("#"+attr.controlname+"_contain .ui-slider-label-b").text('PENDING')
                                 $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
                     	    }
 			    break;
@@ -132,7 +133,6 @@
                     	}
 			break;
 		    case 2:
-			console.log(attr.controlname)
 			$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
 			break;
 		    }			
@@ -244,13 +244,14 @@
 					var cookieCheck = getCookie('AVSET',1)
 					if(cookieCheck == "NULL"){
 						$('#AVSET_Exception').val(data['RS_dict']['RDA_static']['LOOKUP']['RS_AVSET'][data['RS_dict']['RS_AVSET']]).slider('refresh')
+						$('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED')
 					}	
 					else{
 						if(cookieCheck){
 							$('#AVSET_Exception').val('on').slider('refresh')
-							$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
 						}
 						else{
+							$('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING')
 							$('#AVSET_Exception').val('off').slider('refresh')
 						}
 					}
@@ -284,11 +285,23 @@
                                         		break;
                         		}
 				}
+				if(data['PMD_dict']['mode_trans']){
+                                    $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
+                        	}
+                        	else{
+                            	    if(data['PMD_dict']['mode_conflict']){
+                                    $("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
+                            	    }
+                            	    else{
+                                        $("#Mode_Conflict_contain").html('NO').removeClass('minor-alarm').addClass('normal-ops');
+                            	    }
+                        	}
+
 				if(data['PMD_dict']['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
 				else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
 				if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM')}
 				else{$('#Precip_contain').html('NO ACCUM')}
-				var item = ['RS_SUPER_RES','RS_CMD','RS_AVSET']; 
+				var item = ['RS_SUPER_RES','RS_CMD']; 
                         	for (i in item){
                                 	var value = item[i]
 					if(Object.keys(actionflag).indexOf(value) < 0){
@@ -296,7 +309,6 @@
 						var val = data['RS_dict']['RDA_static']['LOOKUP'][value][data['RS_dict'][value]]
 						if(cookieCheck != "NULL"){
 							if(cookieCheck){
-                                                        	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
 								$("#"+value).val('on').slider("refresh")
                                                 	}
                                                 	else{
@@ -306,7 +318,6 @@
                                         	}
                                         	else{
                                                         	$("#"+value).val(val).slider("refresh")	
-								$('#'+value+'_contain .ui-slider .ui-slider-label-a').text('ENABLED')
                                         	} 
 					}
                         	}
@@ -322,6 +333,15 @@
                                         }
                                     }
                                 }
+				if(data['RPG_dict']['RPG_state'] == "SHUTDOWN"){
+				    var unk_list = ['AVSET_Exception','RS_CMD','RS_SUPER_RES']
+                                    for (unk in unk_list){
+                                        $('#'+unk_list[unk]).val('off').slider('refresh')
+                                        $('#'+unk_list[unk]+'_contain .ui-slider .ui-slider-label-b').text('????')
+                                        $('#'+unk_list[unk]+'_status').removeClass('hide')
+                                    }
+				}
+
 
 			});
 			

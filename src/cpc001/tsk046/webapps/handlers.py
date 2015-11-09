@@ -18,8 +18,7 @@ moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
-yellow ='#FCFC23'
-green = '#51FF22'
+color = {'yellow':'#FCFC23','green':'#51FF22'}
 SECONDS_PER_HOUR = 3600
 event_holder = {}
 ##
@@ -80,16 +79,21 @@ class Send_RDACOM(object):
         req = data['COM'][0]
 	set_clear_flag = data['FLAG'][0]
 	print req
+	statefl = dict((str(v),k) for k,v in _rpg.liborpg.STATEFL.values.items())
+	orpginfo = dict((str(v),k) for k,v in _rpg.liborpg.ORPGINFO_STATEFL.values.items())
 	CRDA = {
 		'RS_SUPER_RES_ENABLE':[_rpg.orpgrda.CRDA_SR_ENAB,'orpginfo_set_super_resolution_enabled'],
 		'RS_SUPER_RES_DISABLE':[_rpg.orpgrda.CRDA_SR_DISAB,'orpginfo_clear_super_resolution_enabled'],
 		'RS_CMD_ENABLE':[_rpg.orpgrda.CRDA_CMD_ENAB,'orpginfo_set_cmd_enabled'],
 		'RS_CMD_DISABLE':[_rpg.orpgrda.CRDA_CMD_DISAB,'orpginfo_clear_cmd_enabled'],
-		'RS_AVSET_DISABLE':[_rpg.orpgrda.CRDA_AVSET_DISAB],
-		'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB]
+		'RS_AVSET_DISABLE':[_rpg.orpgrda.CRDA_AVSET_DISAB,statefl['ORPGINFO_STATEFL_CLR']],
+		'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB,statefl['ORPGINFO_STATEFL_SET']]
 		}
 	if set_clear_flag:
-	    set_clear = getattr(_rpg.liborpg,CRDA[req][1])()
+	    if req.split('_')[1] == 'AVSET':
+		set_clear = _rpg.liborpg.orpginfo_statefl_flag(_rpg.liborpg.ORPGINFO_STATEFL.ORPGINFO_STATEFL_FLG_AVSET_ENABLED,CRDA[req][1])
+	    else:
+	        set_clear = getattr(_rpg.liborpg,CRDA[req][1])()
         commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req][0],0,0,0,0,_rpg.CharVector())
         return json.dumps(commanded)
 
@@ -201,10 +205,15 @@ def RPG():
 	rpg_status = st1+' '+st2+' >> '+" ".join([x for x in parse_msg if '\\x' not in repr(x)]).replace('\n','');
 	alarm = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	parse_alarm = alarm[1][:alarm[0]-1].split(' ')
+        alarm_final = [x for x in parse_alarm if '\\x' not in repr(x)]
+	alarm_state = {'cleared':'CLEARED' in alarm_final,'activated':'ACTIVATED' in alarm_final}
 	tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
         at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
-        at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')	
-	rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join([x for x in parse_alarm if '\\x' not in repr(x)]).replace('\n','');
+        at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')
+	if not alarm_final:	
+	    rpg_alarm_suppl = ''
+	else:
+	    rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join(alarm_final).replace('\n','');
 	category_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_CATEGORY.values.items())
 	type_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_TYPE.values.items())
 	loadshed_dict = {}
@@ -233,6 +242,7 @@ def RPG():
 		'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
 		'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
 		'RPG_alarm_suppl':rpg_alarm_suppl,
+		'alarm_state':alarm_state,
 		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),
 		'RPG_status':rpg_status,
 		'RPG_status_ts':tstamp_msg,
@@ -253,7 +263,7 @@ def PMD():
 	wx = _rpg.libhci.hci_get_wx_status().mode_select_adapt
 	
 	if int(time.strftime('%H',time.gmtime(pmd.perf_check_time-int(time.time())))) < 1:
-		perf_color = yellow
+		perf_color = color['yellow']
 	else: 
 		perf_color = 'white'
 	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)

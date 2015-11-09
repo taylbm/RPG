@@ -39,6 +39,11 @@ namespace rpg
     void thinwrap_hci_current_vcp_set_vel_resolution(int num)
     {
 	return hci_current_vcp_set_vel_resolution(num);
+    }	
+    int thinwrap_hci_up_nb_update_dedicated_user_table()
+    {	
+	void *out;
+	return hci_up_nb_update_dedicated_user_table(&out);
     }
     void export_libhci()
     {
@@ -73,6 +78,10 @@ namespace rpg
 	    "hci_current_vcp_set_vel_resolution",
 	    &thinwrap_hci_current_vcp_set_vel_resolution,
 	    args("num")
+	);
+	def(
+	    "hci_up_nb_update_dedicated_user_table",
+	    &thinwrap_hci_up_nb_update_dedicated_user_table
 	);	
 
 	c.staticmethod("hci_current_vcp_get_vel_resolution")
@@ -90,6 +99,7 @@ namespace rpg
             .staticmethod("hci_get_mode_b_auto_switch_flag")
             .staticmethod("hci_set_mode_b_auto_switch_flag")
 	    .staticmethod("hci_get_nb_connection_status")
+	    .staticmethod("hci_up_nb_update_dedicated_user_table")
 	;
 	in_libhci.attr("HCI_LE_MSG_MAX_LENGTH") = HCI_LE_MSG_MAX_LENGTH;
 	scope in_nb_status = class_<nb_status_ns>("nb_status");

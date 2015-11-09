@@ -133,13 +133,13 @@ $(document).ready(function(){
                 }   
             	if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
                     if (attr.newVal.confirmation=="on"){
-                    	$('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING')
                     	$('#RS_AVSET').val('on').slider('refresh')
                     	$('#AVSET_Exception').val('on').slider('refresh')
                     	$('#AVSET_Exception_contain').addClass('hide')
-                    	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING')
                	    }
                     else{
+			$('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING')
+	 		$('#RS_AVSET_contain .ui-slider .ui-slider-label-b').text('PENDING')
                     	$('#RS_AVSET').val('off').slider('refresh')
                     	$('#AVSET_Exception').val('off').slider('refresh')
                     	$('#AVSET_Exception_contain').removeClass('hide')
@@ -382,8 +382,14 @@ $(document).ready(function(){
 				$('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
 			    }
 			}
-			else{	
-			    $('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')		
+			else{
+			    $('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl'])
+			    if(data['RPG_dict']['RPG_alarm_suppl'] == ''){
+			        $('#Alarms').attr('class','bar-border null-ops')
+			    }
+			    else{	
+			        $('#Alarms').attr('class','bar-border normal-ops')		
+			    }
 			}
 			var cts = Math.round((new Date()).getTime() / 1000);
 			if(cts - data['RPG_dict']['RPG_status_ts'] == 5*60){
@@ -453,7 +459,7 @@ $(document).ready(function(){
 		
 			if (Object.keys(actionflag).indexOf('AVSET') < 0){
 				var cookieCheck = getCookie('AVSET',0)
-				if(cookieCheck == "NULL"){cookieCheck = RS_AVSET[data['RS_dict']['RS_AVSET']]}
+				if(cookieCheck == "NULL"){cookieCheck = data['RS_dict']['RDA_static']['LOOKUP']['RS_AVSET'][data['RS_dict']['RS_AVSET']]}
 				$('#AVSET_Exception').val(cookieCheck).slider('refresh')
 				if(cookieCheck  =='on'){
 					$('#AVSET_Exception_contain').addClass('hide')
@@ -473,8 +479,8 @@ $(document).ready(function(){
 						var cookieCheck = getCookie('AVSET',0)
 						if(cookieCheck != "NULL"){
 							val = cookieCheck
-							if(val == "on"){
-                                                        	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING')
+							if(val == "off"){
+                                                        	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
                                                 	}
 						}
 						else{
@@ -490,7 +496,7 @@ $(document).ready(function(){
 					if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
 						if(cookieCheck){
 							$("#"+value+"_status").addClass('hide');
-                                                	$("#"+value+"_contain .ui-slider-label-a").text('PENDING')
+                                                	$("#"+value+"_contain .ui-slider-label-a").text('ENABLED')
 						}
 						else{
 							$("#"+value+"_status").removeClass('hide');
@@ -539,10 +545,10 @@ $(document).ready(function(){
 						$("#"+value2).attr('class','bar-border2 inop-indicator');
 						break;
 					case 'INOPERABLE,-9999':
+						$("#"+value2).html('INOPERABLE')
 						$('#'+value2).attr('class','bar-border2 inop-indicator');
 						$('#grid1').attr('class','inop-grid');
 						$('#grid1title').attr('class','inop-grid');
-						$('#Alarms').attr('class','inop');
 						break;
 					case 'N/A':
 						$('#'+value2).html('N/A');
@@ -550,17 +556,17 @@ $(document).ready(function(){
 				}
 			}
 			var all_alarms = data['RS_dict']['RDA_alarms_all']
+			for (a in all_alarms){
+                                $('#'+all_alarms[a]).addClass('hide')
+                        };
 			var current_alarms = data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>') 
 			for (alarm in current_alarms){
-				$('#'+current_alarms[alarm]).addClass('show')
+				$('#'+current_alarms[alarm]).removeClass('hide')
 				var i = all_alarms.indexOf(alarm);
 				if (i != -1) { 
 					all_alarms.splice(i,1);
 				}
 			}
-			for (a in all_alarms){
-				$('#'+all_alarms[a]).addClass('hide')
-			};
 			switch(data['ADAPT']['ZR_mult']){
 				case 300.0:
 					$('#Z-R').html('CONVECTIVE')
@@ -605,7 +611,6 @@ $(document).ready(function(){
 					$('#PRF_Mode_block').attr('class','show')
 					break;
 			}
-			console.log(localStorage.getItem("hello"))	
 			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
 			var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
 			if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
@@ -650,6 +655,16 @@ $(document).ready(function(){
 					break;
 				case 'SHUTDOWN':
 					$('#RPG_state').addClass('inop-indicator')
+					$('#RDA_STATE').html('UNKNOWN').attr('class','bar-border2 inop-indicator')
+                                        $('#OPERABILITY_LIST').html('UNKNOWN').attr('class','bar-border2 inop-indicator')      	
+					$('#AVSET_Exception_contain').removeClass('hide')
+					var unk_list = ['AVSET_Exception','RS_AVSET','RS_CMD','RS_SUPER_RES']
+					for (unk in unk_list){
+					    $('#'+unk_list[unk]).val('off').slider('refresh')
+					    $('#'+unk_list[unk]+'_contain .ui-slider .ui-slider-label-b').text('????')
+					    $('#'+unk_list[unk]+'_status').removeClass('hide')
+
+					}
 					break;		
 			};
 			switch(data['RPG_dict']['narrowband']){
@@ -740,7 +755,7 @@ $(document).ready(function(){
                                 }
 			    }
 			}
-			
+
 		   
 
 		    		
