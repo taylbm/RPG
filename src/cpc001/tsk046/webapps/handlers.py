@@ -14,13 +14,19 @@ import cgi
 import datetime
 import time
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
-moments = {1:'R',2:'V',4:'W',8:'D'}
 main_path = '/export/home/$USER/src/cpc001/'
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
 color = {'yellow':'#FCFC23','green':'#51FF22'}
 SECONDS_PER_HOUR = 3600
 event_holder = {}
+moments = {
+	    _rpg.orpgevt.RADIAL_ACCT_REFLECTIVITY:'R',
+	    _rpg.orpgevt.RADIAL_ACCT_VELOCITY:'V',
+	    _rpg.orpgevt.RADIAL_ACCT_WIDTH:'W',
+	    _rpg.orpgevt.RADIAL_ACCT_DUALPOL:'D'
+	  }
+
 ##
 # Callback for event handling 
 ##
@@ -130,7 +136,6 @@ def RS():
 		aux_gen_list.append('true')
 	else:
 		aux_gen_list.append('false')
-	data_trans = [RS_states['datatrans'][key] for key in RS_states['datatrans'].keys() if (key & RS_dict['RS_DATA_TRANS_ENABLED']) > 0]
 	
 	alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
 	alarm_status = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_CODE)	
@@ -168,7 +173,6 @@ def RS():
 					'RS_AVSET':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'AVSET' in x),
 					'RS_SUPER_RES':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'SR' in x)
 					},
-				'DATA_TRANS':data_trans,
 				'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
 				'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
 				'OPERABILITY_LIST':",".join(oper_list),
@@ -199,6 +203,7 @@ def RPG():
 	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
 	msg = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
 	parse_msg = msg[1][:msg[0]-1].split(' ')
+	tstamp = msg[2]
 	tstamp_msg = msg[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);	
 	st1 = months[int(datetime.datetime.fromtimestamp(tstamp_msg).strftime('%m'))-1]
 	st2 = datetime.datetime.fromtimestamp(tstamp_msg).strftime('%-d,%y [%H:%M:%S]')
@@ -245,7 +250,7 @@ def RPG():
 		'alarm_state':alarm_state,
 		'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_',''),
 		'RPG_status':rpg_status,
-		'RPG_status_ts':tstamp_msg,
+		'RPG_status_ts':tstamp,
 		'mode_A_auto_switch':precip_switch,
 		'mode_B_auto_switch':clear_air_switch,
 	 	'loadshed':loadshed,
