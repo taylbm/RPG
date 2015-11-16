@@ -1,30 +1,4 @@
-
-    tday=new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
-    tmonth=new Array("January","February","March","April","May","June","July","August","September","October","November","December");
-    smonth=new Array("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec");
-    function GetClock(){
-        var d=new Date();
-        var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
-        if(nyear<1000) nyear+=1900;
-        var d=new Date();
-        var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
-        if(nmin<=9) nmin="0"+nmin
-        if(nsec<=9) nsec="0"+nsec;
-        $('#clockbox-date').html(""+tday[nday]+" "+tmonth[nmonth]+" "+ndate+", "+nyear);
-        $('#clockbox-time').html(""+nhour+":"+nmin+":"+nsec+" "+"UT");
-        $('#VCP_start_date').html("VCP START: "+smonth[nmonth]+" "+ndate+", "+nyear+'&nbsp');
-    }
-    function timeStamp(){
-        var d=new Date();
-        var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
-        if(nyear<1000) nyear+=1900;
-        var d=new Date();
-        var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
-        if(nmin<=9) nmin="0"+nmin
-        if(nsec<=9) nsec="0"+nsec;
-       return smonth[nmonth]+" "+ndate+","+nyear%100+" "+"["+nhour+":"+nmin+":"+nsec+"]";
-    }
-
+    
     function toRadians(deg) {
         return deg * Math.PI / 180
     }	
@@ -41,97 +15,123 @@
     };
     xobj.send(null);  
     }
-var DATA = {}
+    
+    var DATA = {}
+    
     function init() {
  	loadJSON(function(response) {
   	    // Parse JSON string into object
     	    DATA = JSON.parse(response);
     	});
     }
-function getCookie(cname,truthSwitch) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) {
-        var c = ca[i];
-	while (c.charAt(0)==' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) {
+    function getCookie(cname,truthSwitch) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0; i<ca.length; i++) {
+            var c = ca[i];
+	    while (c.charAt(0)==' ') c = c.substring(1);
+            if (c.indexOf(name) == 0) {
         	if (truthSwitch){
-                        if (c.substring(name.length,c.length) == "on") return true 
-                        else return false
+                    if (c.substring(name.length,c.length) == "on") return true 
+                    else return false
                 }
                 else{
                         return c.substring(name.length,c.length)
                 }
-	 }
+	    }
+        }
+        return "NULL";
     }
-    return "NULL";
-}
 
+    function deleteAllCookies() {
+        var cookies = document.cookie.split(";");
 
-function deleteAllCookies() {
-    var cookies = document.cookie.split(";");
-
-    for (var i = 0; i < cookies.length; i++) {
-    	var cookie = cookies[i];
-    	var eqPos = cookie.indexOf("=");
-    	var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    	document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        for (var i = 0; i < cookies.length; i++) {
+     	    var cookie = cookies[i];
+    	    var eqPos = cookie.indexOf("=");
+    	    var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    	    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
     }
-}
-function closest(array,num){
-    var i=0;
-    var minDiff=1000;
-    var ans;
-    for(i in array){
-         var m=Math.abs(num-array[i]);
-         if(m<minDiff){ 
+    
+    function closest(array,num){
+        var i=0;
+        var minDiff=1000;
+        var ans;
+        for(i in array){
+            var m=Math.abs(num-array[i]);
+             if(m<minDiff){ 
                 minDiff=m; 
                 ans=array[i]; 
             }
-      }
-    return ans;
-}
-function anim(action){
-	var i;
-        var j;
-        for (i = 1; i<9; i++){
+        }
+        return ans;
+    }
+    
+    function anim(action){
+	    var i;
+            var j;
+            for (i = 1; i<9; i++){
 		var group = document.getElementsByName("squaresWaveG_long_"+i)
 		for(j = 0; j<group.length; j++){
                 	group[j].style.animationPlayState = action
                 }
-        }
-}    
+            }
+    }    
 init();
-window.onload=function(){
-    GetClock();
-    setInterval(GetClock,DATA.clockInterval);
-}
+    function GetClock(){
+        var d=new Date();
+        var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+        if(nyear<1000) nyear+=1900;
+        var d=new Date();
+        var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+        if(nmin<=9) nmin="0"+nmin
+        if(nsec<=9) nsec="0"+nsec;
+        $('#clockbox-date').html(""+DATA.calendar.tday[nday]+" "+DATA.calendar.tmonth[nmonth]+" "+ndate+", "+nyear);
+        $('#clockbox-time').html(""+nhour+":"+nmin+":"+nsec+" "+"UT");
+        $('#VCP_start_date').html("VCP START: "+DATA.calendar.smonth[nmonth]+" "+ndate+", "+nyear+'&nbsp');
+    }
+    function timeStamp(){
+        var d=new Date();
+        var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
+        if(nyear<1000) nyear+=1900;
+        var d=new Date();
+        var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+        if(nmin<=9) nmin="0"+nmin
+        if(nsec<=9) nsec="0"+nsec;
+        return DATA.calendar.smonth[nmonth]+" "+ndate+","+nyear%100+" "+"["+nhour+":"+nmin+":"+nsec+"]";
+    }
+
+    window.onload=function(){
+        GetClock();
+        setInterval(GetClock,DATA.clockInterval);
+    }
 
     var actionflag = {}
     var cookieRaid = {}
     var rpgStatusMsgs = {'new':0} 
-    var stopCheck = {'action':0}
+    var stopCheck = {'action':0,'running':1}
 
 $(document).ready(function(){
-		function toggleHandler(attr,switchval){	
-		switch(switchval){
+    	function toggleHandler(attr,switchval){	
+	    switch(switchval){
 		case 1:	
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
 		switch(attr.controlname){
 		case 'RPG_SAILS': case 'SAILS_Exception':
 		if (attr.newVal.confirmation == "on"){
-		$.post('/sails',{NUM_CUTS:attr.num_cuts});
-		delete actionflag.SAILS
+		    $.post('/sails',{NUM_CUTS:attr.num_cuts});
+		    delete actionflag.SAILS
 		}
 		else{
-		$.post('/sails',{NUM_CUTS:0});
-		delete actionflag.SAILS
+		    $.post('/sails',{NUM_CUTS:0});
+		    delete actionflag.SAILS
 		}
 		break;
 		case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
 		if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception'){flag = 0}else{flag=1}
 		if (attr.newVal.confirmation == "on"){
-		$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
+		     $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
 		}
 		else{
 			$.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
@@ -187,61 +187,58 @@ $(document).ready(function(){
 		}
 		$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
 			break;	
-		}
-		}
-		var animcheck = document.getElementById("squaresWaveG_long_1")
-			animcheck.style.animationPlayState = "running"
-
-			$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
-		$(".nav-item").css('background-color','#002060');
-		var canvas=document.getElementById("radome");
-		var maincircle=canvas.getContext("2d");
-		maincircle.fillStyle="white";maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();
-		maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();
-		maincircle.lineTo(150,150);
-		maincircle.closePath();
-		maincircle.fill();
-		maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();
-		maincircle.fillStyle="#FFFFFF";
-		maincircle.strokeRect(60,290,180,54)
-		maincircle.strokeRect(60,344,180,54)
-		maincircle.beginPath();
-		maincircle.moveTo(60,290)
-		maincircle.lineTo(240,344)
-		maincircle.moveTo(60,344)
-		maincircle.lineTo(240,290)
-		maincircle.moveTo(60,344)
-		maincircle.lineTo(240,398)
-		maincircle.moveTo(60,398)
-		maincircle.lineTo(240,344)
-		maincircle.fillStyle = '#5B575B';
-		maincircle.fillRect(115, 329, 70, 30);
-		maincircle.strokeRect(115, 329, 70, 30);
-		maincircle.fillStyle = 'black';
-		maincircle.font = "bold 18px Helvetica";
-		maincircle.fillText("SAILS:",50,160)
-		maincircle.fillText("AVSET:",50,210)
-		maincircle.shadowColor = "black"; 
-		maincircle.shadowOffsetX = 2;
-		maincircle.shadowOffsetY = 2; 
-		maincircle.shadowBlur = 5;
-		maincircle.fillStyle = 'white';
-		maincircle.stroke();
-		maincircle.beginPath();
-		maincircle.lineWidth = 5;
-		maincircle.moveTo(150,358)
-		maincircle.lineTo(150,400)
-		maincircle.moveTo(150,285)
-		maincircle.lineTo(150,330)
-		maincircle.shadowColor = "transparent"
-		maincircle.lineWidth = 4;
-		maincircle.moveTo(240,393)
-		maincircle.lineTo(300,393)
-		maincircle.stroke();
-		document.getElementById("radome").style.zIndex = 1;
+	    }
+	}
+	var animcheck = document.getElementById("squaresWaveG_long_1")
+	animcheck.style.animationPlayState = "running"
+	var canvas=document.getElementById("radome");
+	var maincircle=canvas.getContext("2d");
+	maincircle.fillStyle="white";maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();
+	maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();
+	maincircle.lineTo(150,150);
+	maincircle.closePath();
+	maincircle.fill();
+	maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();
+	maincircle.fillStyle="#FFFFFF";
+	maincircle.strokeRect(60,290,180,54)
+	maincircle.strokeRect(60,344,180,54)
+	maincircle.beginPath();
+	maincircle.moveTo(60,290)
+	maincircle.lineTo(240,344)
+	maincircle.moveTo(60,344)
+	maincircle.lineTo(240,290)
+	maincircle.moveTo(60,344)
+	maincircle.lineTo(240,398)
+	maincircle.moveTo(60,398)
+	maincircle.lineTo(240,344)
+	maincircle.fillStyle = '#5B575B';
+	maincircle.fillRect(115, 329, 70, 30);
+	maincircle.strokeRect(115, 329, 70, 30);
+	maincircle.fillStyle = 'black';
+	maincircle.font = "bold 18px Helvetica";
+	maincircle.fillText("SAILS:",50,160)
+	maincircle.fillText("AVSET:",50,210)
+	maincircle.shadowColor = "black"; 
+	maincircle.shadowOffsetX = 2;
+	maincircle.shadowOffsetY = 2; 
+	maincircle.shadowBlur = 5;
+	maincircle.fillStyle = 'white';
+	maincircle.stroke();
+	maincircle.beginPath();
+	maincircle.lineWidth = 5;
+	maincircle.moveTo(150,358)
+	maincircle.lineTo(150,400)
+	maincircle.moveTo(150,285)
+	maincircle.lineTo(150,330)
+	maincircle.shadowColor = "transparent"
+	maincircle.lineWidth = 4;
+	maincircle.moveTo(240,393)
+	maincircle.lineTo(300,393)
+	maincircle.stroke();
+	document.getElementById("radome").style.zIndex = 1;
 		$.getJSON("/update",function(data){
-				cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
-				});
+		    cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
+		});
 
 		$(".toggle").on('slidestop',function(){
 				$('#popupDialog').popup('open')
@@ -332,98 +329,95 @@ $(document).ready(function(){
 				maincircle.fillText(data['ADAPT']['ICAO'],125,350)
 				});
 		setInterval(function (){	
-				$.getJSON("/update",function(data){
-					$('#marq-insert').html($('#marq-form').html())
-					maincircle.clearRect(0,0,canvas.width,285)
-					maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
-					maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
-					maincircle.font = "bold 80px Helvetica";
-					maincircle.fillStyle = 'black';
-					maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['start_az']/10),-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['az']/10));
-					maincircle.lineTo(150,150);
-					maincircle.closePath();
-					maincircle.fill();
-					maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
-					maincircle.fillStyle="black";
-					if(data['RS_dict']['radome_update']['last_elev']){
-					maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
-					}
-					if(data['RS_dict']['radome_update']['sails_seq']>0){ 
-					maincircle.font = "bold 30px Helvetica";maincircle.fillText(DATA.sails_seq[data['RS_dict']['radome_update']['sails_seq']],85,132)
-					}
-
-					try {
-						var elevation = data['RS_dict']['radome_update']['el'] / 10
-							if(data['RS_dict']['radome_update']['super_res'] > 0){
-								maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
-							}
-					}
-					catch(err){
-						var elevation = 0.0
-					}
-					maincircle.font = "bold 80px Helvetica";	
-					if (elevation < 10){var elevx = 95;var elevy = 105;}
-					else{var elevx = 70; var elevy = 105;} 
-					if(elevation % 1 == 0){
-						maincircle.fillText(elevation.toFixed(1),elevx,elevy);
-					}
-					else{
-						maincircle.fillText(elevation,elevx,elevy);
-					}
-					maincircle.font = "bold 18px Helvetica";
-					maincircle.fillText("SAILS:",50,160)
-						maincircle.fillText("AVSET:",50,210)
-
-						var flags = Object.keys(actionflag)
-						for (flag in flags){
-							if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
-								delete actionflag[flags[flag]]
-							}
-						}
-					if(cookieRaid['initial'] != data['RPG_dict']['ORPGVST']){
-						deleteAllCookies();
-						cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
-					}
-					if(data['RS_dict']['latest_alarm']['valid']){
-						if(data['RS_dict']['latest_alarm']['precedence']){
-							if (data['RS_dict']['latest_alarm']['alarm_status']){
-								$('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
-							}
-							else{
-								$('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
-							}
-						}
-						else{
-							$('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
-						}
-					}
-					else{
-						$('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl'])
-							if(data['RPG_dict']['RPG_alarm_suppl'] == ''){
-								$('#Alarms').attr('class','bar-border null-ops')
-							}
-							else{	
-								$('#Alarms').attr('class','bar-border normal-ops')		
-							}
-					}
-					var cts = Math.round((new Date()).getTime() / 1000);	
-			if(cts - data['RPG_dict']['RPG_status_ts'] == DATA.noSystemChangeTimeout){
-			    rpgStatusMsgs['new'] = timeStamp() + ' >> No System Status Change in the last 5 minutes'
+		    $.getJSON("/update",function(data){
+		    $('#marq-insert').html($('#marq-form').html())
+		    maincircle.clearRect(0,0,canvas.width,285)
+		    maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
+		    maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
+		    maincircle.font = "bold 80px Helvetica";
+		    maincircle.fillStyle = 'black';
+		    maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['start_az']/10),-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['az']/10));
+		    maincircle.lineTo(150,150);
+		    maincircle.closePath();
+		    maincircle.fill();
+		    maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
+		    maincircle.fillStyle="black";
+		    if(data['RS_dict']['radome_update']['last_elev']){
+		        maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
+		    }
+		    if(data['RS_dict']['radome_update']['sails_seq']>0){ 
+			maincircle.font = "bold 30px Helvetica";maincircle.fillText(DATA.sails_seq[data['RS_dict']['radome_update']['sails_seq']],85,132)
+		    }
+		    try {
+		        var elevation = data['RS_dict']['radome_update']['el'] / 10
+			if(data['RS_dict']['radome_update']['super_res'] > 0){
+			    maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
 			}
-			if(cts - data['RPG_dict']['RPG_status_ts'] > DATA.noSystemChangeTimeout){
+		    }
+		    catch(err){
+		        var elevation = 0.0
+		    }
+		    maincircle.font = "bold 80px Helvetica";	
+		    if (elevation < 10){var elevx = 95;var elevy = 105;}
+		    else{var elevx = 70; var elevy = 105;} 
+		    if(elevation % 1 == 0){
+		        maincircle.fillText(elevation.toFixed(1),elevx,elevy);
+		    }
+		    else{
+			maincircle.fillText(elevation,elevx,elevy);
+		    }
+		    maincircle.font = "bold 18px Helvetica";
+		    maincircle.fillText("SAILS:",50,160)
+		    maincircle.fillText("AVSET:",50,210)
+		    var flags = Object.keys(actionflag)
+		    for (flag in flags){
+		        if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
+			    delete actionflag[flags[flag]]
+			}
+		    }
+		    if(cookieRaid['initial'] != data['RPG_dict']['ORPGVST']){
+			deleteAllCookies();
+			cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
+		    }
+		    if(data['RS_dict']['latest_alarm']['valid']){
+		        if(data['RS_dict']['latest_alarm']['precedence']){
+			    if (data['RS_dict']['latest_alarm']['alarm_status']){
+			        $('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
+			    }
+			    else{
+				$('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
+			    }
+			}
+			else{
+			    $('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
+			}
+		    }
+		    else{
+			$('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl'])
+			if(data['RPG_dict']['RPG_alarm_suppl'] == ''){
+			    $('#Alarms').attr('class','bar-border null-ops')
+			}
+			else{	
+			    $('#Alarms').attr('class','bar-border normal-ops')		
+			}
+		    }
+		    var cts = Math.round((new Date()).getTime() / 1000);	
+		    if(cts - data['RPG_dict']['RPG_status_ts'] == DATA.noSystemChangeTimeout){
+			rpgStatusMsgs['new'] = timeStamp() + ' >> No System Status Change in the last 5 minutes'
+		    }
+		    if(cts - data['RPG_dict']['RPG_status_ts'] > DATA.noSystemChangeTimeout){
 			    $('#Status').html(rpgStatusMsgs['new'])
-			}
-			else{ 
-			    $('#Status').html(data['RPG_dict']['RPG_status'])
-			}
-			$('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
-			exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
+		    }
+		    else{ 
+			$('#Status').html(data['RPG_dict']['RPG_status'])
+		    }
+		    $('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
+		    exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
 			for (e in exception_list){
 				var exception = exception_list[e]
 				if(Object.keys(actionflag).indexOf(exception) <0){
 					var cookieCheck = getCookie(exception,1)
-					if (exception == "Model_Update" || exception == "VAD_Update"){var d = 'PMD_dict'}else{var d = 'RPG_dict'}
-					if(data[d][exception]){
+					if(data['RPG_dict'][exception]){
                                         	$('#'+exception).val('on').slider('refresh');
                                         	$('#'+exception+'_status').addClass('hide')
                                 	}
@@ -746,10 +740,15 @@ $(document).ready(function(){
 			}
 	
 			if(stopCheck['action'] != data['RS_dict']['radome_update']['az']){
-                            anim("running")
+			    if(stopCheck['running']){
+			        anim("running")
+			        stopCheck['running'] = 0
+				console.log('hello')
+			    }
                         }
 			else{
                             anim("paused")
+			    stopCheck["running"] = 1
 			}
 			stopCheck['action'] = data['RS_dict']['radome_update']['az']
 			if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}

@@ -77,8 +77,12 @@ namespace rpg
         def("to_orpgevt_radial_acct_t", &to_orpgevt_radial_acct_t);
 
         in_orpgevt.attr("ORPGEVT_RADIAL_ACCT") = static_cast<int>(ORPGEVT_RADIAL_ACCT);
-        c.staticmethod("to_orpgevt_radial_acct_t");
-
+        in_orpgevt.attr("RADIAL_ACCT_REFLECTIVITY") = RADIAL_ACCT_REFLECTIVITY;
+	in_orpgevt.attr("RADIAL_ACCT_VELOCITY") = RADIAL_ACCT_VELOCITY;
+	in_orpgevt.attr("RADIAL_ACCT_WIDTH") = RADIAL_ACCT_WIDTH;
+	in_orpgevt.attr("RADIAL_ACCT_DUALPOL") = RADIAL_ACCT_DUALPOL;
+	c.staticmethod("to_orpgevt_radial_acct_t");
+	
         
         wrap_radial_acct_t();
     }

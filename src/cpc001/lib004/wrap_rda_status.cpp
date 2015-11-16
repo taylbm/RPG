@@ -29,37 +29,15 @@ namespace rpg
             in_rdastatus.attr("RS_CMD") = RS_CMD;
             in_rdastatus.attr("RS_AVSET") = RS_AVSET;
             in_rdastatus.attr("RS_RDA_ALARM_SUMMARY") = RS_RDA_ALARM_SUMMARY;
-            in_rdastatus.attr("RS_COMMAND_ACK") = RS_COMMAND_ACK;
-            in_rdastatus.attr("RS_CHAN_CONTROL_STATUS") = RS_CHAN_CONTROL_STATUS;
-            in_rdastatus.attr("RS_SPOT_BLANKING_STATUS") = RS_SPOT_BLANKING_STATUS;
-            in_rdastatus.attr("RS_BPM_GEN_DATE") = RS_BPM_GEN_DATE;
-            in_rdastatus.attr("RS_BPM_GEN_TIME") = RS_BPM_GEN_TIME;
-            in_rdastatus.attr("RS_NWM_GEN_DATE") = RS_NWM_GEN_DATE;
-            in_rdastatus.attr("RS_NWM_GEN_TIME") = RS_NWM_GEN_TIME;
-            in_rdastatus.attr("RS_VC_REFL_CALIB_CORRECTION") = RS_VC_REFL_CALIB_CORRECTION;
             in_rdastatus.attr("RS_TPS_STATUS") = RS_TPS_STATUS;
             in_rdastatus.attr("RS_RMS_CONTROL_STATUS") = RS_RMS_CONTROL_STATUS;
             in_rdastatus.attr("RS_PERF_CHECK_STATUS") = RS_PERF_CHECK_STATUS;
-            in_rdastatus.attr("RS_ALARM_CODE1") = RS_ALARM_CODE1;
-            in_rdastatus.attr("RS_ALARM_CODE2") = RS_ALARM_CODE2;
-            in_rdastatus.attr("RS_ALARM_CODE3") = RS_ALARM_CODE3;
-            in_rdastatus.attr("RS_ALARM_CODE4") = RS_ALARM_CODE4;
-            in_rdastatus.attr("RS_ALARM_CODE5") = RS_ALARM_CODE5;
-            in_rdastatus.attr("RS_ALARM_CODE6") = RS_ALARM_CODE6;
-            in_rdastatus.attr("RS_ALARM_CODE7") = RS_ALARM_CODE7;
-            in_rdastatus.attr("RS_ALARM_CODE8") = RS_ALARM_CODE8;
-            in_rdastatus.attr("RS_ALARM_CODE9") = RS_ALARM_CODE9;
-            in_rdastatus.attr("RS_ALARM_CODE10") = RS_ALARM_CODE10;
-            in_rdastatus.attr("RS_ALARM_CODE11") = RS_ALARM_CODE11;
-            in_rdastatus.attr("RS_ALARM_CODE12") = RS_ALARM_CODE12;
-            in_rdastatus.attr("RS_ALARM_CODE13") = RS_ALARM_CODE13;
-            in_rdastatus.attr("RS_ALARM_CODE14") = RS_ALARM_CODE14
         ;
 	//
 	// lookup values for rdastatus
 	//
 
-	
+
 	{
             scope in_rdastatus_lookup = class_<rdastatus_lookup_ns>("rdastatus_lookup");
             in_rdastatus_lookup.attr("CMD_ENABLED") = CMD_ENABLED;
@@ -92,13 +70,14 @@ namespace rpg
         //
         // command ack status values
         //
-
-        in_rdastatus.attr("RS_NO_ACKNOWLEDGEMENT") = RS_NO_ACKNOWLEDGEMENT;
-        in_rdastatus.attr("RS_REMOVE_VCP_RECEIVED") = RS_REMOTE_VCP_RECEIVED;
-        in_rdastatus.attr("RS_CLUTTER_BYPASS_MAP_RECEIVED") = RS_CLUTTER_BYPASS_MAP_RECEIVED;
-        in_rdastatus.attr("RS_CLUTTER_CENSOR_ZONES_RECEIVED") = RS_CLUTTER_CENSOR_ZONES_RECEIVED;
-        in_rdastatus.attr("RS_REDUND_CHNL_STBY_CMD_ACCEPTED") = RS_REDUND_CHNL_STBY_CMD_ACCEPTED;
-
+	{
+	    scope in_acknowledge = class_<acknowledge_ns>("acknowledge");
+            in_rdastatus.attr("RS_NO_ACKNOWLEDGEMENT") = RS_NO_ACKNOWLEDGEMENT;
+            in_rdastatus.attr("RS_REMOVE_VCP_RECEIVED") = RS_REMOTE_VCP_RECEIVED;
+            in_rdastatus.attr("RS_CLUTTER_BYPASS_MAP_RECEIVED") = RS_CLUTTER_BYPASS_MAP_RECEIVED;
+            in_rdastatus.attr("RS_CLUTTER_CENSOR_ZONES_RECEIVED") = RS_CLUTTER_CENSOR_ZONES_RECEIVED;
+            in_rdastatus.attr("RS_REDUND_CHNL_STBY_CMD_ACCEPTED") = RS_REDUND_CHNL_STBY_CMD_ACCEPTED;
+	}
         //
         // RDA status states
         //

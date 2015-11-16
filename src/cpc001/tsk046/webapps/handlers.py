@@ -13,8 +13,9 @@ import commands
 import cgi
 import datetime
 import time
+import StringIO
+import gzip
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
-main_path = '/export/home/$USER/src/cpc001/'
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
 color = {'yellow':'#FCFC23','green':'#51FF22'}
@@ -27,6 +28,16 @@ moments = {
 	    _rpg.orpgevt.RADIAL_ACCT_DUALPOL:'D'
 	  }
 
+def gzip_response(resp):
+    web.webapi.header('Content-Encoding','gzip')
+    zbuf = StringIO.StringIO()
+    zfile = gzip.GzipFile(mode='wb',fileobj=zbuf,compresslevel=9)    
+    zfile.write(resp)
+    zfile.close()
+    data = zbuf.getvalue()
+    web.webapi.header('Content-Length',str(len(data)))
+    web.webapi.header('Vary','Accept-Encoding',unique=True)
+    return data 
 ##
 # Callback for event handling 
 ##
@@ -116,7 +127,7 @@ def RS():
 		else:
 			RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
 	class_list = [x for x in dir(_rpg.rdastatus) if '_' not in x]
-	class_dict = dict((classname,[x for x in dir(getattr(_rpg.rdastatus,classname)) if '__' not in x]) for classname in class_list)
+	class_dict = dict((classname,[x for x in dir(getattr(_rpg.rdastatus,classname)) if '__' not in x]) for classname in class_list if classname != 'acknowledge' or 'rdastatus_lookup')
 	for cls in class_list:
 		temp = dict((getattr(getattr(_rpg.rdastatus,cls),x),x) for x in class_dict[cls])
 		if cls == 'rdastatus':
@@ -125,7 +136,6 @@ def RS():
 			temp.update({0:'N/A'})
 		temp.update({-9999:'-9999'})
 		RS_states.update({cls:temp})
-	RS_states.update({'datatrans':{2:'None',4:'R',8:'V',16:'W'}})
 	RS_dict.update(RS_states)
 	
 	oper_list = [RS_states['opstatus'][key].replace('OS_','') for key in RS_states['opstatus'].keys() if (key & RS_dict['RS_OPERABILITY_STATUS']) > 0]
@@ -157,6 +167,9 @@ def RS():
 	except:
 	    latest_alarm = {'valid':0}
 	radome_update = event_holder
+	if not radome_update:
+	    print 'event registration'
+	    _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
 	try:
 	    moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
 	    RS_dict.update({'moments':moments_list})
@@ -237,6 +250,9 @@ def RPG():
                 loadshed[cat] = 'NONE'
 	nb = _rpg.libhci.hci_get_nb_connection_status()
 	nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
+	model_flag = _rpg.libhci.hci_get_model_update_flag()
+        vad_flag = _rpg.libhci.hci_get_vad_update_flag()
+
 
 	return {
 		'sails_allowed':sails_allowed,
@@ -254,14 +270,14 @@ def RPG():
 		'mode_A_auto_switch':precip_switch,
 		'mode_B_auto_switch':clear_air_switch,
 	 	'loadshed':loadshed,
-	  	'narrowband':nb_dict[nb]
+	  	'narrowband':nb_dict[nb],
+		'Model_Update':model_flag,
+		'VAD_Update':vad_flag
 	}
 ##
 # Method for retrieving Performance/ Maintenance Data
 ##	
 def PMD():
-	model_flag = _rpg.libhci.hci_get_model_update_flag()
-	vad_flag = _rpg.libhci.hci_get_vad_update_flag()
 	prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
 	precip = _rpg.libhci.hci_get_precip_status().current_precip_status
 	pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
@@ -275,35 +291,24 @@ def PMD():
 	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
 	mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
 	return {
-		"Model_Update":model_flag,
-		"VAD_Update":vad_flag,
 		"prf":prf_dict[prf],
 		"mode_conflict":mode_conflict,
 		"mode_trans":mode_trans,
 		"current_precip_status":precip,	
 		"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,
 		"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],
-		"trsmttr_leaving_air_temp":int(pmd.trsmttr_leaving_air_temp),
-		"xmtr_peak_pwr":int(pmd.xmtr_peak_pwr),
 		'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
 		'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,
-		"precip_mode_area_thresh":wx.precip_mode_area_thresh,
-		"precip_mode_zthresh":wx.precip_mode_zthresh
 	}
 ##
 # Method for retrieving Adaptation Data
 ##
 def ADAPT():
-	sails_available = _rpg.librpg.deau_get_values('sails.sails_available',1)
 	ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
 	zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
 	zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
-	isdp = _rpg.librpg.deau_get_values('alg.dpprep.isdp_apply',1)
-	version = _rpg.librpg.deau_get_values('alg.Archive_II.version',1)
-	default_dir = _rpg.librpg.deau_get_values('alg.storm_cell_track.default_dir',1)
-        default_spd = _rpg.librpg.deau_get_values('alg.storm_cell_track.default_spd',1)
 	ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
-	return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ISDP':isdp[1][0],'ZR_exp':zr_exp[1][0],'version':version[1][0],'default_spd':default_spd[1][0],'default_dir':default_dir[1][0],'ptype':ptype[1]}
+	return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ZR_exp':zr_exp[1][0],'ptype':ptype[1]}
 ##
 # Method for retrieving VCP Configuration Data
 ##
@@ -347,7 +352,7 @@ class IndexView(object):
 ##
 class Updater(object):
     def GET(self):
-	return json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()})
+	return gzip_response(json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()}))
 ##
 # Operations Sub-Menu
 ##

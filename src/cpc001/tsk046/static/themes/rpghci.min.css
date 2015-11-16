@@ -603,12 +603,15 @@ table.no-spacing {
 }
 .nav-item{
 	font-size:13px !important;
+	background-color:#002060 !important;
 }
 .table-item{
 	font-size:14px !important;
 }
 .control-item{
 	font-size:16px;
+	background-color:#1F497D !important;
+	color:#FFFFFF !important;
 }
 .display-button{
 	height:30px;

@@ -13,7 +13,7 @@ namespace rpg
     struct tps_ns {};
     struct auxgen_ns {};
     struct controlstatus_ns {};
-
+    struct acknowledge_ns {};
     void export_rda_status();
 }
 
