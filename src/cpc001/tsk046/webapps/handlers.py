@@ -38,6 +38,7 @@ def gzip_response(resp):
     web.webapi.header('Content-Length',str(len(data)))
     web.webapi.header('Vary','Accept-Encoding',unique=True)
     return data 
+
 ##
 # Callback for event handling 
 ##
@@ -54,6 +55,8 @@ def callback(event, msg_data):
 			    'last_elev':msg.last_ele_flag
 
 			    })
+
+
 ##			    
 # Utility fxn defs
 ##
@@ -61,6 +64,17 @@ def stripList(list1):
 	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
 	return any(char.isdigit() for char in inputString)
+##
+# Pack data in SSE format
+##
+
+def sse_pack(d):
+    buffer = ''
+    for k in ['retry','id','event','data']:
+        if k in d.keys():
+            buffer += '%s: %s\n' % (k, d[k])
+    return buffer + '\n'
+
 
 ##
 # Flag setting function
@@ -166,19 +180,8 @@ def RS():
 	    latest_alarm = {'precedence':precedence,'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
 	except:
 	    latest_alarm = {'valid':0}
-	radome_update = event_holder
-	if not radome_update:
-	    print 'event registration'
-	    _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
-	try:
-	    moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
-	    RS_dict.update({'moments':moments_list})
-	except:
-	    RS_dict.update({'moments':['False']})
-        _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
 	lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
 	RS_dict.update({
-			'radome_update':radome_update,
 			'latest_alarm':latest_alarm,
 			'RDA_static':{
 				'LOOKUP':{
@@ -348,11 +351,56 @@ class IndexView(object):
     def GET(self):
         return LOOKUP.IndexView(**{'CFG_dict':CFG()})
 ##
-# Refreshes the data in the HCI 
+# Refreshes the data in the HCI (old method -- for backwards compatibility) 
 ##
-class Updater(object):
+class Update(object):
     def GET(self):
 	return gzip_response(json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()}))
+##
+# Server Sent updates
+## 
+class Update_Server(object):
+    def GET(self):
+        web.header("Content-Type","text/event-stream")
+	msg = {
+	    'retry':'4000'
+	}
+	event_id = 0
+	while True:
+  	    msg.update({
+		        'data':json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()}),
+			'id':event_id
+	    })
+	    yield sse_pack(msg)
+	    event_id += 1
+	    time.sleep(2)
+
+##
+# SERVER_SENT_EVENTS (SSE)
+##
+class Radome(object):
+    def GET(self):
+        web.header("Content-Type","text/event-stream")
+        _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
+        msg = {
+            'retry':'2000'
+        }
+        event_id = 0
+        while True:
+            radome_update = event_holder
+            try:
+                moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
+                radome_update.update({'moments':moments_list})
+            except:
+                radome_update.update({'moments':['False']})
+            msg.update({
+                        'data':json.dumps(radome_update),
+                        'id':event_id
+            })
+            yield sse_pack(msg)
+            event_id += 1
+            time.sleep(1)
+
 ##
 # Operations Sub-Menu
 ##

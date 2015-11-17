@@ -22,7 +22,9 @@ from handlers import *
 SESSION_DIR = '/tmp/HCI'            # change "my_app_name" to your application name
 URLS = (
     '/','handlers.IndexView',            # you can list other handlers here
-    '/update','handlers.Updater',
+    '/update','handlers.Update',
+    '/update_s','handlers.Update_Server',
+    '/radome','handlers.Radome',
     '/button','handlers.Button',
     '/operations','handlers.Operations',
     '/send_cmd','handlers.Send_RDACOM',

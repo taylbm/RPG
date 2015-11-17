@@ -110,7 +110,7 @@ init();
     var actionflag = {}
     var cookieRaid = {}
     var rpgStatusMsgs = {'new':0} 
-    var stopCheck = {'action':0,'running':1}
+    var stopCheck = {'action':0,'running':1,'reload':1}
 
 $(document).ready(function(){
     	function toggleHandler(attr,switchval){	
@@ -323,52 +323,88 @@ $(document).ready(function(){
 
 		});
 		var link = $('#squaresWaveG_long').html()
-			var item = ['RS_SUPER_RES','RS_CMD','RS_AVSET'];
+		var item = ['RS_SUPER_RES','RS_CMD','RS_AVSET'];
 
 		$.getJSON("/update",function(data){
-				maincircle.fillText(data['ADAPT']['ICAO'],125,350)
-				});
-		setInterval(function (){	
-		    $.getJSON("/update",function(data){
-		    $('#marq-insert').html($('#marq-form').html())
+		    maincircle.fillStyle = 'white';
+		    maincircle.fillText(data['ADAPT']['ICAO'],125,350)
+		});
+		var source = new EventSource('/radome');
+		source.addEventListener('message',function(e) {
+		    var radome = JSON.parse(e.data)
 		    maincircle.clearRect(0,0,canvas.width,285)
-		    maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
-		    maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
-		    maincircle.font = "bold 80px Helvetica";
-		    maincircle.fillStyle = 'black';
-		    maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['start_az']/10),-Math.PI / 2 + toRadians(data['RS_dict']['radome_update']['az']/10));
-		    maincircle.lineTo(150,150);
-		    maincircle.closePath();
-		    maincircle.fill();
-		    maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
-		    maincircle.fillStyle="black";
-		    if(data['RS_dict']['radome_update']['last_elev']){
-		        maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
-		    }
-		    if(data['RS_dict']['radome_update']['sails_seq']>0){ 
-			maincircle.font = "bold 30px Helvetica";maincircle.fillText(DATA.sails_seq[data['RS_dict']['radome_update']['sails_seq']],85,132)
-		    }
-		    try {
-		        var elevation = data['RS_dict']['radome_update']['el'] / 10
-			if(data['RS_dict']['radome_update']['super_res'] > 0){
-			    maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
-			}
-		    }
-		    catch(err){
-		        var elevation = 0.0
-		    }
-		    maincircle.font = "bold 80px Helvetica";	
-		    if (elevation < 10){var elevx = 95;var elevy = 105;}
-		    else{var elevx = 70; var elevy = 105;} 
-		    if(elevation % 1 == 0){
-		        maincircle.fillText(elevation.toFixed(1),elevx,elevy);
-		    }
-		    else{
-			maincircle.fillText(elevation,elevx,elevy);
-		    }
-		    maincircle.font = "bold 18px Helvetica";
-		    maincircle.fillText("SAILS:",50,160)
-		    maincircle.fillText("AVSET:",50,210)
+                    maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
+                    maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
+                    maincircle.font = "bold 80px Helvetica";
+                    maincircle.fillStyle = 'black';
+                    maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 + toRadians(radome.start_az/10),-Math.PI / 2 + toRadians(radome.az/10));
+                    maincircle.lineTo(150,150);
+                    maincircle.closePath();
+                    maincircle.fill();
+                    maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
+                    maincircle.fillStyle="black";
+                    if(radome.last_elev){
+                        maincircle.font = "bold 30px Helvetica";maincircle.fillText('LAST',115,132)
+                    }
+                    if(radome.sails_seq>0){
+                        maincircle.font = "bold 30px Helvetica";maincircle.fillText(DATA.sails_seq[radome.sails_seq],85,132)
+                    }
+                    try {
+                        var elevation = radome.el / 10
+                        if(radome.super_res > 0){
+                            maincircle.font = "bold 50px Helvetica";maincircle.fillText('SR',120,260)
+                        }
+                    }
+                    catch(err){
+                        var elevation = 0.0
+                    }
+                    maincircle.font = "bold 80px Helvetica";
+                    if (elevation < 10){var elevx = 95;var elevy = 105;}
+                    else{var elevx = 70; var elevy = 105;}
+                    if(elevation % 1 == 0){
+                        maincircle.fillText(elevation.toFixed(1),elevx,elevy);
+                    }
+                    else{
+                        maincircle.fillText(elevation,elevx,elevy);
+                    }
+                    maincircle.font = "bold 18px Helvetica";
+                    maincircle.fillText("SAILS:",50,160)
+                    maincircle.fillText("AVSET:",50,210)
+		    if(stopCheck['action'] != radome.az){
+                        if(stopCheck['running']){
+                            anim("running")
+                            stopCheck['running'] = 0
+                        }
+                    }
+                    else{
+                            anim("paused")
+			    stopCheck['running'] = 1
+                    }
+                    stopCheck['action'] = radome.az
+
+		    if(stopCheck['WIDEBAND'] == "CONNECTED"){
+                            var letter = radome.moments
+                            for (l in DATA.moments){
+                                var mom = DATA.moments[l]
+                                if($('.link-status'+mom).html() == '' && letter.indexOf(mom) >= 0 ){
+                                    $('.link-status'+mom).html(link).removeClass('null-ops').addClass('normal-ops');
+                                    $('#link_'+mom).html(mom).removeClass('null-ops').addClass('normal-ops');
+                                    var yank = $('#link').html()	
+                                    $('#link').html(yank)
+                                }
+				if(letter.indexOf(mom) < 0 && stopCheck['running'] == 0){
+                                    $('.link-status'+mom).html('').removeClass('normal-ops').addClass('null-ops');
+                                    $('#link_'+mom).html(mom).removeClass('normal-ops').addClass('null-ops');
+                                }
+
+                            }
+                    }
+		    
+		},false);
+		var non_rapid = new EventSource('/update_s');
+                non_rapid.addEventListener('message',function(e) {
+                    var data = JSON.parse(e.data)
+		    $('#marq-insert').html($('#marq-form').html())
 		    var flags = Object.keys(actionflag)
 		    for (flag in flags){
 		        if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
@@ -478,7 +514,7 @@ $(document).ready(function(){
 				}
 				
 
-			}	
+			}
 			for (i in item){
 				var value = item[i]
 				var val = data['RS_dict']['RDA_static']['LOOKUP'][value][data['RS_dict'][value]]
@@ -583,13 +619,13 @@ $(document).ready(function(){
 				case DATA.zrCats.TROPICAL:
 					$('#Z-R').html('TROPICAL')
 					break;
-				case DATA.zrCats.MARSHALL-PALMER:
+				case DATA.zrCats['MARSHALL-PALMER']:
 					$('#Z-R').html('MARSHALL-PALMER')
                                         break;
-                                case DATA.zrCats.EAST-COOL-STRATIFORM:
+                                case DATA.zrCats['EAST-COOL-STRATIFORM']:
                                         $('#Z-R').html('EAST-COOL STRATIFORM')
                                         break;
-                                case DATA.zrCats.WEST-COOL-STRATIFORM:
+                                case DATA.zrCats['WEST-COOL-STRATIFORM']:
                                         $('#Z-R').html('WEST-COOL STRATIFORM')
                                         break;
 			}
@@ -685,72 +721,28 @@ $(document).ready(function(){
 				$('nblink-status').html(link).removeClass('null-ops').addClass('normal-ops')
 				break;
 			}
-			    
-			if (data['RS_dict']['RDA_static']['WIDEBAND'] == "CONNECTED"){
-				if ($('#squaresWaveG_long').html() != link && data['RS_dict']['active_moments'] == []){
-					var links = data['RS_dict']['moments']
-					for (l in links){
-						var letter = links[l]
-						$('.link-status'+letter).removeClass('major-alarm');
-						$('.link-status'+letter).removeClass('minor-alarm');
-						$('.link-status'+letter).html(link).addClass('normal-ops');
-						$('#link_'+letter).html(letter).attr('class','link-status-sq normal-ops');
-					}
-				 }
-				 else{
-					var letter = data['RS_dict']['moments']
-                                        for (l in DATA.moments){
-						var mom = DATA.moments[l]
-						if(letter.indexOf(mom) < 0){
-                                                	$('.link-status'+mom).html('').removeClass('normal-ops').addClass('null-ops');
-                                                	$('#link_'+mom).html(mom).removeClass('normal-ops').addClass('null-ops');
-						}
-					}
-					for (j in DATA.moments){
-						var mom = DATA.moments[j]
-						if($('.link-status'+mom).html() == '' && letter.indexOf(mom) >= 0 ){
-							$('.link-status'+mom).html(link).removeClass('null-ops').addClass('normal-ops');
-							$('#link_'+mom).html(mom).removeClass('null-ops').addClass('normal-ops');
-							var yank = $('#link').html()
-							$('#link').html(yank)
-						}
-					}
-								
-                                    }
-			}
-			else{
-				switch (data['RS_dict']['RDA_static']['WIDEBAND']){
-					case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
-						var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
-						var word_l = word.length-1
-						for (w = 0;w < 4; w++){
-							if(w > word_l){$('.status'+w).html('').addClass('major-alarm')}
-							else{$('.status'+w).html(word[w]).addClass('major-alarm')}
-						}
-						$('.link-status-sq').html('X').addClass('major-alarm')
-					case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
-						var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
-						var word_l = word.length-1
-						for (w = 0;w < 4; w++){
-							if(w > word_l){$('.status'+w).html('').addClass('minor-alarm')}
-							else{$('.status'+w).html(word[w]).addClass('minor-alarm')}
-						}
-						$('.link-status-sq').html('X').addClass('minor-alarm')
-				}
-			}
-	
-			if(stopCheck['action'] != data['RS_dict']['radome_update']['az']){
-			    if(stopCheck['running']){
-			        anim("running")
-			        stopCheck['running'] = 0
-				console.log('hello')
+			stopCheck['WIDEBAND'] = data['RS_dict']['RDA_static']['WIDEBAND'] 
+			if(data['RS_dict']['RDA_static']['WIDEBAND'] != 'CONNECTED'){
+			    switch (data['RS_dict']['RDA_static']['WIDEBAND']){
+			        case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
+				    var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
+				    var word_l = word.length-1
+				    for (w = 0;w < 4; w++){
+				        if(w > word_l){$('.status'+w).html('').addClass('major-alarm')}
+					else{$('.status'+w).html(word[w]).addClass('major-alarm')}
+				    }
+				    $('.link-status-sq').html('X').addClass('major-alarm')
+				case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
+				    var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
+				    var word_l = word.length-1
+				    for (w = 0;w < 4; w++){
+				        if(w > word_l){$('.status'+w).html('').addClass('minor-alarm')}
+					else{$('.status'+w).html(word[w]).addClass('minor-alarm')}
+				    }
+				    $('.link-status-sq').html('X').addClass('minor-alarm')
 			    }
-                        }
-			else{
-                            anim("paused")
-			    stopCheck["running"] = 1
 			}
-			stopCheck['action'] = data['RS_dict']['radome_update']['az']
+
 			if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
 			else{$('#h_delta_dbz0').addClass('normal-ops')}
 			if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
@@ -769,14 +761,7 @@ $(document).ready(function(){
                                 }
 			    }
 			}
-
-		   
-
-		    		
 		});
-	
-		
-	},1000);
 
 
 	$('#refreshPage').click(function(){
