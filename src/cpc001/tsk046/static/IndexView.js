@@ -101,7 +101,23 @@ init();
         if(nsec<=9) nsec="0"+nsec;
         return DATA.calendar.smonth[nmonth]+" "+ndate+","+nyear%100+" "+"["+nhour+":"+nmin+":"+nsec+"]";
     }
-
+    function perfCheck(end){
+	setInterval(function(){
+	    var remaining = end*1000-Date.parse(new Date())
+	    if(remaining < 1800*1000){
+	        $('#perf_check_time').css('background-color','#FCFC23')
+	    }
+	    else{
+		$('#perf_check_time').css('background-color','white')
+	    }
+	    var d = new Date(end*1000-Date.parse(new Date()))
+	    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
+	    $('#perf_check_time').html(nhour+'h '+nmin+'m '+nsec+'s')
+	    if(remaining < 0){
+		$('#perf_check_time').html('PENDING').css('background-color','#51FF22')
+	    }
+	},1000);
+    }
     window.onload=function(){
         GetClock();
         setInterval(GetClock,DATA.clockInterval);
@@ -110,7 +126,7 @@ init();
     var actionflag = {}
     var cookieRaid = {}
     var rpgStatusMsgs = {'new':0} 
-    var stopCheck = {'action':0,'running':1,'reload':1}
+    var stopCheck = {'WIDEBAND_SET':1,'action':0,'running':1,'reload':1}
 
 $(document).ready(function(){
     	function toggleHandler(attr,switchval){	
@@ -324,10 +340,13 @@ $(document).ready(function(){
 		});
 		var link = $('#squaresWaveG_long').html()
 		var item = ['RS_SUPER_RES','RS_CMD','RS_AVSET'];
-
+		$('#marq-insert').html($('#marq-form').html())
 		$.getJSON("/update",function(data){
 		    maincircle.fillStyle = 'white';
 		    maincircle.fillText(data['ADAPT']['ICAO'],125,350)
+		});
+		$.getJSON("/perf",function(data){
+		    perfCheck(data['perf_check_time'])
 		});
 		var source = new EventSource('/radome');
 		source.addEventListener('message',function(e) {
@@ -399,61 +418,121 @@ $(document).ready(function(){
 
                             }
                     }
+		    if (getCookie('FEEDBACK') != "NULL"){
+                            $('#Feedback').html(getCookie('FEEDBACK'))
+                    }
+
 		    
 		},false);
 		var non_rapid = new EventSource('/update_s');
-                non_rapid.addEventListener('message',function(e) {
-                    var data = JSON.parse(e.data)
-		    $('#marq-insert').html($('#marq-form').html())
+               	non_rapid.addEventListener('PMD_dict',function(e) {
+                    var PMD = JSON.parse(e.data)
+		    if(PMD['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
+		    else{$('#h_delta_dbz0').addClass('normal-ops')}
+		    if(PMD['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
+		    else{$('#v_delta_dbz0').addClass('normal-ops')}
+		    $('#h_delta_dbz0').html(PMD['h_delta_dbz0']+'dB')			
+		    $('#v_delta_dbz0').html(PMD['v_delta_dbz0']+'dB')
+		    $("#gen_level").attr('value',PMD['cnvrtd_gnrtr_fuel_lvl'])
+                    $("#gen_level_num").html(PMD['cnvrtd_gnrtr_fuel_lvl']+'%')
+		    if(PMD['mode_trans']){
+                        $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
+                        $("#Mode_Conflict_status").removeClass('hide')
+                    }
+                    else{
+                        if(PMD['mode_conflict']){
+                            $("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
+                            $("#Mode_Conflict_status").removeClass('hide')
+                        }
+                        else{
+                            $("#Mode_Conflict_contain").html('NO').removeClass('minor-alarm').addClass('normal-ops');
+                            $("#Mode_Conflict_status").addClass('hide')
+                        }
+                    }
+		    switch(PMD['prf']){
+                        case 'CELL_BASED': case 'STORM_BASED':
+                            $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+                            $('#PRF_Mode').val('on').slider('refresh')
+                            $('#PRF_Mode_block').attr('class','hide')
+                            break;
+                        case 'AUTO_PRF':
+                            $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                            $('#PRF_Mode').val('on').slider('refresh')
+                            $('#PRF_Mode_block').attr('class','hide')
+                            break;
+                        case 'MANUAL_PRF':
+                            $('#PRF_Mode').val('off').slider('refresh')
+                            $('#PRF_Mode_block').attr('class','show')
+                            break;
+                    }
+
+
+		});
+
+
+		non_rapid.addEventListener('ADAPT',function(e) {
+		    var ADAPT = JSON.parse(e.data)
+		    $('#Z-ZDR').html(ADAPT['ptype'])
+		    switch(ADAPT['ZR_mult']){
+                        case DATA.zrCats.CONVECTIVE:
+                            $('#Z-R').html('CONVECTIVE')
+                            break;
+                        case DATA.zrCats.TROPICAL:
+                            $('#Z-R').html('TROPICAL')
+                            break;
+                        case DATA.zrCats['MARSHALL-PALMER']:
+                            $('#Z-R').html('MARSHALL-PALMER')
+                            break;
+                        case DATA.zrCats['EAST-COOL-STRATIFORM']:
+                            $('#Z-R').html('EAST-COOL STRATIFORM')
+                            break;
+                        case DATA.zrCats['WEST-COOL-STRATIFORM']:
+                            $('#Z-R').html('WEST-COOL STRATIFORM')
+                            break;
+                    }
+		});
+		non_rapid.addEventListener('RPG_dict',function(e) {
+		    var RPG = JSON.parse(e.data) 
 		    var flags = Object.keys(actionflag)
 		    for (flag in flags){
-		        if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
+		        if(actionflag[flags[flag]] != RPG['ORPGVST']){
 			    delete actionflag[flags[flag]]
 			}
 		    }
-		    if(cookieRaid['initial'] != data['RPG_dict']['ORPGVST']){
+		    if(cookieRaid['initial'] != RPG['ORPGVST']){
 			deleteAllCookies();
-			cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
+			cookieRaid['initial'] = RPG['ORPGVST']
 		    }
-		    if(data['RS_dict']['latest_alarm']['valid']){
-		        if(data['RS_dict']['latest_alarm']['precedence']){
-			    if (data['RS_dict']['latest_alarm']['alarm_status']){
-			        $('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border minor-alarm')
-			    }
-			    else{
-				$('#Alarms').html(data['RS_dict']['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+data['RS_dict']['latest_alarm']['text']).attr('class','bar-border normal-ops')
-			    }
-			}
-			else{
-			    $('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
-			}
-		    }
-		    else{
-			$('#Alarms').html(data['RPG_dict']['RPG_alarm_suppl'])
-			if(data['RPG_dict']['RPG_alarm_suppl'] == ''){
+		    if(!RPG['RDA_alarm_valid']){
+			$('#Alarms').html(RPG['RPG_alarm_suppl'])
+			if(RPG['RPG_alarm_suppl'] == ''){
 			    $('#Alarms').attr('class','bar-border null-ops')
 			}
 			else{	
 			    $('#Alarms').attr('class','bar-border normal-ops')		
 			}
 		    }
+		    if(!RPG['precedence']){
+                        $('#Alarms').html(RPG['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
+                    }
+
 		    var cts = Math.round((new Date()).getTime() / 1000);	
-		    if(cts - data['RPG_dict']['RPG_status_ts'] == DATA.noSystemChangeTimeout){
+		    if(cts - RPG['RPG_status_ts'] == DATA.noSystemChangeTimeout){
 			rpgStatusMsgs['new'] = timeStamp() + ' >> No System Status Change in the last 5 minutes'
 		    }
-		    if(cts - data['RPG_dict']['RPG_status_ts'] > DATA.noSystemChangeTimeout){
+		    if(cts - RPG['RPG_status_ts'] > DATA.noSystemChangeTimeout){
 			    $('#Status').html(rpgStatusMsgs['new'])
 		    }
 		    else{ 
-			$('#Status').html(data['RPG_dict']['RPG_status'])
+			$('#Status').html(RPG['RPG_status'])
 		    }
-		    $('#VCP_start_time').html(" "+data['RPG_dict']['ORPGVST'])
+		    $('#VCP_start_time').html(" "+RPG['ORPGVST'])
 		    exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
 			for (e in exception_list){
 				var exception = exception_list[e]
 				if(Object.keys(actionflag).indexOf(exception) <0){
 					var cookieCheck = getCookie(exception,1)
-					if(data['RPG_dict'][exception]){
+					if(RPG[exception]){
                                         	$('#'+exception).val('on').slider('refresh');
                                         	$('#'+exception+'_status').addClass('hide')
                                 	}
@@ -465,31 +544,13 @@ $(document).ready(function(){
 
 				}
 			}
-			if(data['PMD_dict']['mode_trans']){
-			    $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
-                            $("#Mode_Conflict_status").removeClass('hide')
-			}
-			else{
-                            if(data['PMD_dict']['mode_conflict']){
-				$("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
-				$("#Mode_Conflict_status").removeClass('hide')
-			    }
-                            else{
-				$("#Mode_Conflict_contain").html('NO').removeClass('minor-alarm').addClass('normal-ops');
-				$("#Mode_Conflict_status").addClass('hide')
-			    }
-			}
-			var state = Object.keys(data['RS_dict']['RDA_static']);
-			if (getCookie('FEEDBACK') != "NULL"){
-			    $('#Feedback').html(getCookie('FEEDBACK'))
-			}
 			if (Object.keys(actionflag).indexOf('SAILS') < 0){
-			    if(data['RPG_dict']['RPG_SAILS']){
+			    if(RPG['RPG_SAILS']){
 			        $('#RPG_SAILS').val('on').slider('refresh');
                                 $('#SAILS_Exception').val('on').slider('refresh');
                                 $('#SAILS_Exception_contain').addClass('hide');
-			        if(data['RPG_dict']['sails_allowed']){
-		 	            $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])	
+			        if(RPG['sails_allowed']){
+		 	            $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts'])	
 			        }
 			        else{
 			  	    $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
@@ -500,173 +561,11 @@ $(document).ready(function(){
                                 $('#SAILS_Exception').val('off').slider('refresh');
                                 $('#SAILS_Exception_contain').removeClass('hide');
 			    }
-			}	
-		
-			if (Object.keys(actionflag).indexOf('AVSET') < 0){
-				var cookieCheck = getCookie('AVSET',0)
-				if(cookieCheck == "NULL"){cookieCheck = data['RS_dict']['RDA_static']['LOOKUP']['RS_AVSET'][data['RS_dict']['RS_AVSET']]}
-				$('#AVSET_Exception').val(cookieCheck).slider('refresh')
-				if(cookieCheck  =='on'){
-					$('#AVSET_Exception_contain').addClass('hide')
-				}
-				else{
-					$('#AVSET_Exception_contain').removeClass('hide')
-				}
-				
-
-			}
-			for (i in item){
-				var value = item[i]
-				var val = data['RS_dict']['RDA_static']['LOOKUP'][value][data['RS_dict'][value]]
-				if (val == 'on'){var retrieved = true}else{var retrieved = false}
-				if (value == "RS_AVSET"){
-					if (Object.keys(actionflag).indexOf('AVSET') < 0){
-						var cookieCheck = getCookie('AVSET',0)
-						if(cookieCheck != "NULL"){
-							val = cookieCheck
-							if(val == "off"){
-                                                        	$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
-                                                	}
-						}
-						else{
-							$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
-						}
-						$("#RS_AVSET").val(val).slider('refresh')
-					}
-						
-						
-				}		
-				else{	
-					var cookieCheck = getCookie(value,1)
-					if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
-						if(cookieCheck){
-							$("#"+value+"_status").addClass('hide');
-                                                	$("#"+value+"_contain .ui-slider-label-a").text('ENABLED')
-						}
-						else{
-							$("#"+value+"_status").removeClass('hide');
-                                                	$("#"+value).val('off').slider("refresh")
-                                                	$('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
-						}
-					}
-					else{
-						if(retrieved){
-							$("#"+value+"_status").addClass('hide');
-							$("#"+value).val('on').slider("refresh")
-						}
-						else{
-							$("#"+value+"_status").removeClass('hide');
-							$("#"+value).val('off').slider("refresh")	
-						}
-					}
-				}
-			}
+			}		
 			
-			for (b in state){
-				var value2 = state[b];
-				$("#"+value2).html(data['RS_dict']['RDA_static'][value2])
-				switch (data['RS_dict']['RDA_static'][value2]){
-					case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP':
-						$("#"+value2).attr('class','normal-ops bar-border2');
-						$('#'+value2+'_label').attr('class','bar-border1 show');	
-						$('#grid1').attr('class','normal-ops-grid');
-						$('#grid1title').attr('class','normal-ops-grid');
-						break;
-					case 'NOT_INSTALLED':
-						$('#'+value2).attr('class','bar-border2 hide');$('#'+value2+'_label').attr('class','bar-border1 hide');
-						break;
-					case 'MAINTENANCE_MAN':
-						$("#grid1").attr('class','major-alarm-grid');
-						$('#grid1title').attr('class','major-alarm-grid');
-						$("#"+value2).attr('class','bar-border2 major-alarm');
-						break;
-					case 'MAINTENANCE_REQ':
-						$("#grid1").attr('class','minor-alarm-grid');
-						$('#grid1title').attr('class','minor-alarm-grid');
-						$("#"+value2).attr('class','bar-border2 minor-alarm');
-						$('#Alarms').attr('class','minor-alarm');
-						break;
-					case 'UNKNOWN':
-						$("#"+value2).attr('class','bar-border2 inop-indicator');
-						break;
-					case 'INOPERABLE,-9999':
-						$("#"+value2).html('INOPERABLE')
-						$('#'+value2).attr('class','bar-border2 inop-indicator');
-						$('#grid1').attr('class','inop-grid');
-						$('#grid1title').attr('class','inop-grid');
-						break;
-					case 'N/A':
-						$('#'+value2).html('N/A');
-						break;
-				}
-			}
-			var all_alarms = data['RS_dict']['RDA_alarms_all']
-			for (a in all_alarms){
-                                $('#'+all_alarms[a]).addClass('hide')
-                        };
-			var current_alarms = data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>') 
-			for (alarm in current_alarms){
-				$('#'+current_alarms[alarm]).removeClass('hide')
-				var i = all_alarms.indexOf(alarm);
-				if (i != -1) { 
-					all_alarms.splice(i,1);
-				}
-			}
-			switch(data['ADAPT']['ZR_mult']){
-				case DATA.zrCats.CONVECTIVE:
-					$('#Z-R').html('CONVECTIVE')
-					break;
-				case DATA.zrCats.TROPICAL:
-					$('#Z-R').html('TROPICAL')
-					break;
-				case DATA.zrCats['MARSHALL-PALMER']:
-					$('#Z-R').html('MARSHALL-PALMER')
-                                        break;
-                                case DATA.zrCats['EAST-COOL-STRATIFORM']:
-                                        $('#Z-R').html('EAST-COOL STRATIFORM')
-                                        break;
-                                case DATA.zrCats['WEST-COOL-STRATIFORM']:
-                                        $('#Z-R').html('WEST-COOL STRATIFORM')
-                                        break;
-			}
-			switch(data['RS_dict']['RDA_static']['CONTROL_STATUS']){
-				case 'RPG_REMOTE':	
-					$('#CONTROL_STATUS').html('RPG')
-					break;
-				case 'LOCAL_ONLY':
-					$('#CONTROL_STATUS').html('RDA')
-					break;
-                                case 'EITHER':
-                                        $('#CONTROL_STATUS').html('EITHER')
-					break;
-			}
-			switch(data['PMD_dict']['prf']){
-				case 'CELL_BASED': case 'STORM_BASED':
-					$('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
-					$('#PRF_Mode').val('on').slider('refresh')
-					$('#PRF_Mode_block').attr('class','hide')
-					break;
-				case 'AUTO_PRF':
-                                        $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
-                                        $('#PRF_Mode').val('on').slider('refresh')
-					$('#PRF_Mode_block').attr('class','hide')
-					break;
-				case 'MANUAL_PRF':
-					$('#PRF_Mode').val('off').slider('refresh')
-					$('#PRF_Mode_block').attr('class','show')
-					break;
-			}
-			if(data['RS_dict']['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
-			var gen_list = data['RS_dict']['RDA_static']['AUX_GEN_LIST'].split('<br>')
-			if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
-			$("#gen_level").attr('value',data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl'])	
-			$("#gen_level_num").html(data['PMD_dict']['cnvrtd_gnrtr_fuel_lvl']+'%')
-			$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
-			$("#perf_check_time").html(data['PMD_dict']['perf_check_time'][0]).css('background-color',data['PMD_dict']['perf_check_time'][1])
-			$('#RPG_state').html(data['RPG_dict']['RPG_state'])
-			$('#RPG_oper').html(data['RPG_dict']['RPG_op'].split(',')[0])	
-			$('#Z-ZDR').html(data['ADAPT']['ptype'])
-			switch (data['RPG_dict']['RPG_op'].split(',')[0]){
+			$('#RPG_state').html(RPG['RPG_state'])
+			$('#RPG_oper').html(RPG['RPG_op'].split(',')[0])	
+			switch (RPG['RPG_op'].split(',')[0]){
 				case 'CMDSHDN':
 					$('#RPG_oper').attr('class','minor-alarm bar-border2')
 					break;
@@ -681,15 +580,14 @@ $(document).ready(function(){
 					$('#Alarms').attr('class','major-alarm');
 					break;
 				case 'ONLINE':
-					if(data['RPG_dict']['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops-grid')}
+					if(RPG['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops-grid')}
 					$('#RPG_oper').attr('class','normal-ops bar-border2')
 					break;
 				default:
 					$('#RPG_oper').attr('class','inop-indicator bar-border2')
 					$('#grid2').attr('class','normal-ops-grid')
 			}
-			switch(data['RPG_dict']['RPG_state']){
-			
+			switch(RPG['RPG_state']){			
 				case 'OPER': 
 					$('#RPG_state').attr('class','bar-border2 normal-ops');
 					break;
@@ -713,7 +611,7 @@ $(document).ready(function(){
 					}
 					break;		
 			};
-			switch(data['RPG_dict']['narrowband']){
+			switch(RPG['narrowband']){
 			    case 'NB_HAS_NO_CONNECTIONS': case 'NB_HAS_FAILED_CONNECTIONS':
 				$('.nblink-status').html('').removeClass('normal-ops').addClass('null-ops')
 			        break;
@@ -721,46 +619,193 @@ $(document).ready(function(){
 				$('nblink-status').html(link).removeClass('null-ops').addClass('normal-ops')
 				break;
 			}
-			stopCheck['WIDEBAND'] = data['RS_dict']['RDA_static']['WIDEBAND'] 
-			if(data['RS_dict']['RDA_static']['WIDEBAND'] != 'CONNECTED'){
-			    switch (data['RS_dict']['RDA_static']['WIDEBAND']){
-			        case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
-				    var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
-				    var word_l = word.length-1
-				    for (w = 0;w < 4; w++){
-				        if(w > word_l){$('.status'+w).html('').addClass('major-alarm')}
-					else{$('.status'+w).html(word[w]).addClass('major-alarm')}
-				    }
-				    $('.link-status-sq').html('X').addClass('major-alarm')
-				case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
-				    var word = data['RS_dict']['RDA_static']['WIDEBAND'].split('_')
-				    var word_l = word.length-1
-				    for (w = 0;w < 4; w++){
-				        if(w > word_l){$('.status'+w).html('').addClass('minor-alarm')}
-					else{$('.status'+w).html(word[w]).addClass('minor-alarm')}
-				    }
-				    $('.link-status-sq').html('X').addClass('minor-alarm')
-			    }
-			}
 
-			if(data['PMD_dict']['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
-			else{$('#h_delta_dbz0').addClass('normal-ops')}
-			if(data['PMD_dict']['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
-			else{$('#v_delta_dbz0').addClass('normal-ops')}
-			$('#h_delta_dbz0').html(data['PMD_dict']['h_delta_dbz0']+'dB')			
-			$('#v_delta_dbz0').html(data['PMD_dict']['v_delta_dbz0']+'dB')
-			var loadshed_cats = Object.keys(data['RPG_dict']['loadshed'])
+			var loadshed_cats = Object.keys(RPG['loadshed'])
 			$('#Load_Shed_contain').html('NORMAL')
 			$('#Load_Shed_status').addClass('hide')
 			for (lshd in loadshed_cats){
-			    if(data['RPG_dict']['loadshed'][loadshed_cats[lshd]] != 'NONE'){	
-				$('#Load_Shed_contain').html(data['RPG_dict']['loadshed'][lshd])	
+			    if(RPG['loadshed'][loadshed_cats[lshd]] != 'NONE'){	
+				$('#Load_Shed_contain').html(RPG['loadshed'][lshd])	
 				$('#Load_Shed_status').removeClass('hide')
-				if(data['RPG_dict']['loadshed'][lshd] == 'ALARM'){
+				if(RPG['loadshed'][lshd] == 'ALARM'){
                                     $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')                       
                                 }
 			    }
 			}
+		});
+
+		non_rapid.addEventListener('RS_dict',function(e) {
+		    var RS = JSON.parse(e.data)
+	            $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
+		    var state = Object.keys(RS['RDA_static']);
+		    for (b in state){
+                        var value2 = state[b];
+                        $("#"+value2).html(RS['RDA_static'][value2])
+                        switch (RS['RDA_static'][value2]){
+                            case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP':
+                                $("#"+value2).attr('class','normal-ops bar-border2');
+                                $('#'+value2+'_label').attr('class','bar-border1 show');
+                                $('#grid1').attr('class','normal-ops-grid');
+                                $('#grid1title').attr('class','normal-ops-grid');
+                                break;
+                            case 'NOT_INSTALLED':
+                                $('#'+value2).attr('class','bar-border2 hide');$('#'+value2+'_label').attr('class','bar-border1 hide');
+                                break;
+                            case 'MAINTENANCE_MAN':
+                                $("#grid1").attr('class','major-alarm-grid');
+                                $('#grid1title').attr('class','major-alarm-grid');
+                                $("#"+value2).attr('class','bar-border2 major-alarm');
+                                break;
+                            case 'MAINTENANCE_REQ':
+                                $("#grid1").attr('class','minor-alarm-grid');
+                                $('#grid1title').attr('class','minor-alarm-grid');
+                                $("#"+value2).attr('class','bar-border2 minor-alarm');
+                                $('#Alarms').attr('class','minor-alarm');
+                                break;
+                            case 'UNKNOWN':
+                                $("#"+value2).attr('class','bar-border2 inop-indicator');
+                                break; 
+                            case 'INOPERABLE,-9999':
+                                $("#"+value2).html('INOPERABLE')
+                                $('#'+value2).attr('class','bar-border2 inop-indicator');
+                                $('#grid1').attr('class','inop-grid');
+                                $('#grid1title').attr('class','inop-grid');
+                                break;
+                            case 'N/A':
+                                $('#'+value2).html('N/A');
+                                break;
+                        }
+                    }
+		    if(RS['latest_alarm']['valid']){
+                        if(RS['latest_alarm']['precedence']){
+                            if (RS['latest_alarm']['alarm_status']){
+                                $('#Alarms').html(RS['latest_alarm']['timestamp']+' >> RDA ALARM ACTIVATED: '+RS['latest_alarm']['text']).attr('class','bar-border minor-alarm')
+                            }
+                            else{
+                                $('#Alarms').html(RS['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+RS['latest_alarm']['text']).attr('class','bar-border normal-ops')
+                            }
+                        }
+                    }
+		    if (Object.keys(actionflag).indexOf('AVSET') < 0){
+                        var cookieCheck = getCookie('AVSET',0)
+                        if(cookieCheck == "NULL"){cookieCheck = RS['RDA_static']['LOOKUP']['RS_AVSET'][RS['RS_AVSET']]}
+                        $('#AVSET_Exception').val(cookieCheck).slider('refresh')
+                        if(cookieCheck  =='on'){
+                            $('#AVSET_Exception_contain').addClass('hide')
+                        }
+                        else{
+                            $('#AVSET_Exception_contain').removeClass('hide')
+                        }
+                    }
+		    for (i in item){
+                        var value = item[i]
+                        var val = RS['RDA_static']['LOOKUP'][value][RS[value]]
+                        if (val == 'on'){var retrieved = true}else{var retrieved = false}
+                        if (value == "RS_AVSET"){
+                            if (Object.keys(actionflag).indexOf('AVSET') < 0){
+                                var cookieCheck = getCookie('AVSET',0)
+                                if(cookieCheck != "NULL"){
+                                    val = cookieCheck
+                                    if(val == "off"){
+                                        $('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
+                                    }
+                                }
+                                else{
+                                    $('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
+                                }
+                                $("#RS_AVSET").val(val).slider('refresh')
+                            }
+                        }
+                        else{
+                            var cookieCheck = getCookie(value,1)
+                            if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
+                                if(cookieCheck){
+                                    $("#"+value+"_status").addClass('hide');
+                                    $("#"+value+"_contain .ui-slider-label-a").text('ENABLED')
+                                }
+                                else{
+                                    $("#"+value+"_status").removeClass('hide');
+                                    $("#"+value).val('off').slider("refresh")
+                                    $('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
+                                }
+                            }
+                            else{
+                                if(retrieved){
+                                    $("#"+value+"_status").addClass('hide');
+                                    $("#"+value).val('on').slider("refresh")
+                                }
+                                else{
+                                    $("#"+value+"_status").removeClass('hide');
+                                    $("#"+value).val('off').slider("refresh")
+                                }
+                            }
+                        }
+                    }
+		    var all_alarms = RS['RDA_alarms_all']
+                    for (a in all_alarms){
+                        $('#'+all_alarms[a]).addClass('hide')
+                    };
+                    var current_alarms = RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>')
+                    for (alarm in current_alarms){
+                        $('#'+current_alarms[alarm]).removeClass('hide')
+                        var i = all_alarms.indexOf(alarm);
+                        if (i != -1) {
+                            all_alarms.splice(i,1);
+                        }
+                    }
+		    switch(RS['RDA_static']['CONTROL_STATUS']){
+                        case 'RPG_REMOTE':
+                            $('#CONTROL_STATUS').html('RPG')
+                            break;
+                        case 'LOCAL_ONLY':
+                            $('#CONTROL_STATUS').html('RDA')
+                            break;
+                        case 'EITHER':
+                            $('#CONTROL_STATUS').html('EITHER')
+                            break;
+                    }
+                    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
+                    var gen_list = RS['RDA_static']['AUX_GEN_LIST'].split('<br>')
+                    if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
+		    stopCheck['WIDEBAND'] = RS['RDA_static']['WIDEBAND']
+                    switch (RS['RDA_static']['WIDEBAND']){
+                            case 'CONNECTED':
+				if (stopCheck['WIDEBAND_SET']){
+                                    for (w = 0;w < 4; w++){
+                                        $('.status'+w).html('').removeClass('major-alarm').removeClass('minor-alarm').addClass('normal-ops')
+                                    }
+                                    $('.link-status-sq').removeClass('major-alarm').removeClass('minor-alarm').addClass('normal-ops')
+				    stopCheck['WIDEBAND_SET'] = 0
+				}
+                                break;
+			    case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
+                                var word = RS['RDA_static']['WIDEBAND'].split('_')
+                                var word_l = word.length-1
+                                for (w = 0;w < 4; w++){
+                                    if(w > word_l){$('.status'+w).html('').removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')}
+                                    else{$('.status'+w).html(word[w]).removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')}
+                                }
+                                $('.link-status-sq').html('X').removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')
+				stopCheck['WIDEBAND_SET'] = 1
+				break;
+                            case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
+                                var word = RS['RDA_static']['WIDEBAND'].split('_')
+                                var word_l = word.length-1
+                                for (w = 0;w < 4; w++){
+                                    if(w > word_l){$('.status'+w).html('').removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')}
+                                    else{$('.status'+w).html(word[w]).removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')}
+                                }
+                                $('.link-status-sq').html('X').removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')	
+				stopCheck['WIDEBAND_SET'] = 1
+				break;
+                    }
+                
+
+
+
+		    
+
+
 		});
 
 

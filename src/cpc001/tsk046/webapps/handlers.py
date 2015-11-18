@@ -68,12 +68,21 @@ def hasNumbers(inputString):
 # Pack data in SSE format
 ##
 
-def sse_pack(d):
+def sse_pack_single(d):
     buffer = ''
-    for k in ['retry','id','event','data']:
+    for k in ['retry','id','data','event']:
         if k in d.keys():
             buffer += '%s: %s\n' % (k, d[k])
     return buffer + '\n'
+
+def sse_pack(data,attr):
+    buffer = 'retry: %s\n\n' % attr['retry']
+    for d in xrange(4):
+	if d in data.keys():
+	    buffer += 'id: %s\n' % str(attr['id'+str(d)])
+	    buffer += 'event: %s\n' % data[d]
+	    buffer += 'data: %s\n\n' % data['data'+str(d)]	
+    return buffer
 
 
 ##
@@ -255,8 +264,14 @@ def RPG():
 	nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
 	model_flag = _rpg.libhci.hci_get_model_update_flag()
         vad_flag = _rpg.libhci.hci_get_vad_update_flag()
-
-
+	RDA_alarm_valid = 1
+	precedence = 0
+	try:
+	    latest_alarm_text = _rpg.liborpg.orpgrat_get_alarm_text(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_ALARM))
+	    ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
+	    precedence = ts>tstamp_alarm
+	except:
+	    RDA_alarm_valid = 0
 	return {
 		'sails_allowed':sails_allowed,
 		'sails_cuts':sails_cuts,
@@ -275,7 +290,9 @@ def RPG():
 	 	'loadshed':loadshed,
 	  	'narrowband':nb_dict[nb],
 		'Model_Update':model_flag,
-		'VAD_Update':vad_flag
+		'VAD_Update':vad_flag,
+		'RDA_alarm_valid':RDA_alarm_valid,
+		'precedence':precedence
 	}
 ##
 # Method for retrieving Performance/ Maintenance Data
@@ -285,11 +302,6 @@ def PMD():
 	precip = _rpg.libhci.hci_get_precip_status().current_precip_status
 	pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
 	wx = _rpg.libhci.hci_get_wx_status().mode_select_adapt
-	
-	if int(time.strftime('%H',time.gmtime(pmd.perf_check_time-int(time.time())))) < 1:
-		perf_color = color['yellow']
-	else: 
-		perf_color = 'white'
 	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
 	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
 	mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
@@ -299,7 +311,6 @@ def PMD():
 		"mode_trans":mode_trans,
 		"current_precip_status":precip,	
 		"cnvrtd_gnrtr_fuel_lvl":pmd.cnvrtd_gnrtr_fuel_lvl,
-		"perf_check_time":[time.strftime('%Hh %Mm %Ss',time.gmtime(pmd.perf_check_time-int(time.time()))),perf_color],
 		'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
 		'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,
 	}
@@ -362,18 +373,26 @@ class Update(object):
 class Update_Server(object):
     def GET(self):
         web.header("Content-Type","text/event-stream")
-	msg = {
+	web.header("Cache-Control","no-cache")
+	attr = {
 	    'retry':'4000'
 	}
+	update_dict = {'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()}
+	function_dict = {'PMD':PMD,'RS':RS,'RPG':RPG,'ADAPT':ADAPT}
 	event_id = 0
 	while True:
-  	    msg.update({
-		        'data':json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT':ADAPT()}),
-			'id':event_id
-	    })
-	    yield sse_pack(msg)
-	    event_id += 1
+	    data = {}
+	    check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
+	    if update_dict == {}: 
+		pass
+	    else:
+	        for idx,val in enumerate(update_dict):
+  	            data.update({idx:val,'data'+str(idx):json.dumps(update_dict[val])})
+		    event_id += 1
+	    	    attr.update({'id'+str(idx):event_id})
+	        yield sse_pack(data,attr)
 	    time.sleep(2)
+	    update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v)
 
 ##
 # SERVER_SENT_EVENTS (SSE)
@@ -381,6 +400,7 @@ class Update_Server(object):
 class Radome(object):
     def GET(self):
         web.header("Content-Type","text/event-stream")
+	web.header("Cache-Control","no-cache")
         _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
         msg = {
             'retry':'2000'
@@ -397,13 +417,17 @@ class Radome(object):
                         'data':json.dumps(radome_update),
                         'id':event_id
             })
-            yield sse_pack(msg)
+            yield sse_pack_single(msg)
             event_id += 1
             time.sleep(1)
 
 ##
 # Operations Sub-Menu
 ##
+class Performance(object):
+    def GET(self):
+ 	return json.dumps({'perf_check_time':_rpg.libhci.hci_get_orda_pmd_ptr().pmd.perf_check_time})
+ 
 class Operations(object):
     def GET(self):
 	return LOOKUP.ops(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'CFG_dict':CFG()})

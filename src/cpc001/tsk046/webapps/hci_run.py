@@ -25,6 +25,7 @@ URLS = (
     '/update','handlers.Update',
     '/update_s','handlers.Update_Server',
     '/radome','handlers.Radome',
+    '/perf','handlers.Performance',
     '/button','handlers.Button',
     '/operations','handlers.Operations',
     '/send_cmd','handlers.Send_RDACOM',
