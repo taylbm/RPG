@@ -18,7 +18,6 @@ import gzip
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 vcp_dir = os.environ['HOME']+'/cfg/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
-color = {'yellow':'#FCFC23','green':'#51FF22'}
 SECONDS_PER_HOUR = 3600
 event_holder = {}
 moments = {
@@ -395,16 +394,14 @@ class Update_Server(object):
 	    update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v)
 
 ##
-# SERVER_SENT_EVENTS (SSE)
+# Radome Rapid Update 
 ##
 class Radome(object):
     def GET(self):
         web.header("Content-Type","text/event-stream")
 	web.header("Cache-Control","no-cache")
         _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
-        msg = {
-            'retry':'2000'
-        }
+	msg = {'retry':'2000'}
         event_id = 0
         while True:
             radome_update = event_holder

@@ -1,4 +1,4 @@
-    {
+{
 	"moments":[
 		    "R",
 		    "V",
@@ -12,6 +12,7 @@
 	},
     "noSystemChangeTimeout":300,
 	"rdaCommandStickyToggleTimeout":900000,
+	"perfCheckYellow":1800000,
  	"zrCats":{
 		    "CONVECTIVE":300.0,
 		    "TROPICAL":250.0,
@@ -59,5 +60,33 @@
 			"Nov",	
 			"Dec"
 			]
-	}
-    } 
+	},
+	"noSystemChangeMsg":" >> No System Status Change in the last 5 minutes",
+	"hardCommandConfirm":[
+					"You are about to enable ",
+					". Change will not take effect until the start of volume scan. Do you want to continue?"
+					],
+	"softCommandConfirm":[
+					"Are you sure you want to change ",
+					" to ",
+					" ?"
+					],
+	"canvasHeight":285,
+	"superResFont":"bold 50px Helvetica",
+	"sailsSeqFont":"bold 30px Helvetica",
+	"elFont":"bold 80px Helvetica",
+	"sailsAvsetFont":"bold 18px Helvetica",
+	"rdaItems":[
+				"RS_SUPER_RES",
+				"RS_CMD",
+				"RS_AVSET"
+				],
+	"towerLeftX":60,
+	"towerRightX":240,
+	"towerBottomY":290,
+	"towerTopY":344
+
+	
+										
+	
+} 

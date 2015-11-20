@@ -47,9 +47,11 @@ $(document).ready(function(){
 		<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
  		<h1 aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1>
 
-
 		
-
+<% 
+TRUTH = {}
+TRUTH.update({0:'OFF',1:'ON'})
+%>
 
 	</div>
 
@@ -104,7 +106,7 @@ $(document).ready(function(){
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
-  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} W</td>                 
+  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} W [${context.get("PMD_dict").get("spot_blanking")}]</td>                 
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
@@ -196,7 +198,7 @@ $(document).ready(function(){
                     </tr>
             	    <tr>
                         <td>Performance Check Time:</td>
-                         <td>${context.get("PMD_dict").get("perf_check_time")[0]}</td>
+                         <td>${context.get("PMD_dict").get("perf_check_time")}</td>
                     </tr>
             	    <tr>
                         <th><u>RPG Status Information</u></th>
@@ -214,9 +216,9 @@ $(document).ready(function(){
                         <td>${context.get("RS_dict").get("RDA_static").get("WIDEBAND")}</td>
                     </tr>
             	    <tr>
-                        <td>SAILS:</td>
+                        <td>SAILS Status / # Cuts:</td>
                        	% if context.get("RPG_dict").get("RPG_SAILS"):
-			<td>ENABLED</td>
+			<td>ENABLED / ${context.get("RPG_dict").get("sails_cuts")}</td>
 			% else:
 			<td>DISABLED</td>
 			% endif 
@@ -229,13 +231,23 @@ $(document).ready(function(){
                         <th><u>Environmental Data</u></th>
                     </tr>
 		    <tr>
-		        <td>VAD Update:</td>
+		        <td>VAD/Model Update:</td>	
 			% if context.get("PMD_dict").get("VAD_Update"):
-			<td>ON</td>
+			<td>ON /
 			% else:
-			<td>OFF</td>
-			%endif
+			<td>OFF /
+			% endif
+			% if context.get("PMD_dict").get("Model_Update"):
+			ON</td>
+			% else:
+			OFF</td>
+			% endif
 		    </tr>
+		    <tr>
+                        <td>Default Storm Motion:</td>
+                        <td>${context.get("ADAPT").get("default_dir")}@${context.get("ADAPT").get("default_spd")}kts</td>
+                    </tr>
+
 		    <tr>
 		        <td>Model Update:</td>
 			% if context.get("PMD_dict").get("Model_Update"):
@@ -278,10 +290,6 @@ $(document).ready(function(){
 		    <tr>
 			<td>MetSignal Processing/Threshold</td>
 			<td>Yes/-9999 *stub*</td>
-		    </tr>
-		    <tr>
-			<td>Default Storm Motion:</td>
-			<td>${context.get("ADAPT").get("default_dir")}@${context.get("ADAPT").get("default_spd")}kts</td>
 		    </tr>
             	</tbody>
             </table>
