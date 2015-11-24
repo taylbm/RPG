@@ -366,11 +366,13 @@ init();
 	$('#vcp-button').click(function(){
 		window.open("http://localhost:3142","_blank","width= 1024, height = 720, scrollbars=yes");
 	});
-	$("#RDA_Messages").val("on").slider("refresh")
+	$('#RDA_Messages').val("on").slider("refresh")
 	$('#close').click(function(){
 		window.close();
-	}); 
-		
+	});
+	$('#dqdbutton').click(function(){
+	    window.open("file:///export/home/orpg7/dqd/index.html","_blank")
+	});	
 		
     });
 	

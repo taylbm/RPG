@@ -351,7 +351,8 @@ def CFG():
 		    'max_sails':max_sails,
 		    'allow_sails':allow_sails,
 		    'last_elev':last_elev,
-		    'super_res':super_res
+		    'super_res':super_res,
+		    'home':HOME
 		    }
 	return CFG_dict 
 ##
@@ -417,13 +418,16 @@ class Radome(object):
             yield sse_pack_single(msg)
             event_id += 1
             time.sleep(1)
+##
+# Retrieves the scheduled time for the performance check
+##
 
-##
-# Operations Sub-Menu
-##
 class Performance(object):
     def GET(self):
  	return json.dumps({'perf_check_time':_rpg.libhci.hci_get_orda_pmd_ptr().pmd.perf_check_time})
+##
+# Operations Sub-Menu
+##
  
 class Operations(object):
     def GET(self):
