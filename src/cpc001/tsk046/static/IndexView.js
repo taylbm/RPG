@@ -179,6 +179,9 @@ $(document).ready(function(){
 		}
 		if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
 			$("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
+			if (attr.newVal.confirmation == "on"){
+			    $("#"+attr.controlname+"_status").addClass("hide")
+			}
 		}
 		if(attr.displayname.split('-')[0] == "AVSET"){
 			document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
@@ -639,7 +642,6 @@ $(document).ready(function(){
 
 	non_rapid.addEventListener('RS_dict',function(e) {
 	    var RS = JSON.parse(e.data)
-	    console.log(RS)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
 	    for (b in state){

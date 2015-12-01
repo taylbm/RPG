@@ -96,7 +96,6 @@ init();
 	    switch(switchval){
 	    case 1:
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-		console.log(attr.controlname)
 		switch(attr.controlname){
 		case 'SAILS_Exception': 
 		    if (attr.newVal.confirmation == "on"){
@@ -111,7 +110,6 @@ init();
 		case 'RS_AVSET': case 'RS_CMD': case 'RS_SUPER_RES':
 		    if (attr.displayname == 'AVSET'){flag = 0}else{flag=1};
 		    if (attr.newVal.confirmation == "on"){
-			console.log('hello')
 			$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
 		    }
 		    else{
