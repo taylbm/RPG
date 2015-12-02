@@ -1,6 +1,5 @@
 /*!
 * jQuery Mobile 1.4.5
-* Git HEAD hash: 68e55e78b292634d3991c795f06f5e37a512decc <> Date: Fri Oct 31 2014 17:33:30 UTC
 * http://jquerymobile.com
 *
 * Copyright 2010, 2014 jQuery Foundation, Inc. and othercontributors
@@ -173,15 +172,6 @@ label.ui-btn {
     height: 20px ;
     background-color: white;
     border: 2px solid #000602;
-}
-.contain-clock {
-    position: relative; 
-    top: 0px;
-    width: 99%;
-    height: 35px;
-    font-size:10px
-    background-color: #DCDBD6;
-    border: 1px dotted #000602;
 }
 .contain-yellow {
     position: relative; 
@@ -534,6 +524,13 @@ table.no-spacing {
 }
 .link-status-sq{
 	border: 1px solid black !important;
+	display:block;
+	width:20px;
+	height:20px;	
+	margin-left:-6px;
+	position:relative;
+	text-align:center;
+	top:0px;
 }
 .null-ops {
         background-color:#FFFFFF !important;
@@ -616,6 +613,8 @@ table.no-spacing {
 .display-button{
 	height:30px;
 	padding: 0 !important;
+	font-size:14px !important;
+ 	background-color:#DCDBD6 !important;
 }
 .button-line{
 	width:255px;
@@ -627,3 +626,173 @@ table.no-spacing {
 	font-size:18px;
 	text-align:center;
 }
+.vcp-style{
+	font-size:16px;
+	color:black;
+	display:inline-block;
+}
+.rda-style{
+	background-color:red;
+	color:black;
+	border-color:black;
+}
+#RPG_SAILS_contain{
+	position:relative;
+	top:100px;	
+	left:35px;
+	z-index:2;  
+}
+#RS_AVSET_contain{
+	position:relative;
+	top:90px;
+	left:35px;
+	z-index:3;
+}
+#TPS_indicator{
+	position:relative;
+	top:145px;
+	z-index:2;
+	width:25%;
+}
+#TPS_STATUS{
+	text-shadow:none;
+	font-size:11px;
+	background-color:#ff0000;
+	color:black
+}
+#gen_state{
+	position:relative;
+	top:455px;
+	left:-130px;
+	z-index:4;
+	font-size:12px;
+	transform:rotate(-90deg);
+}
+#gen_level{
+	position:relative;
+	left:50px;
+	top:-10px;
+	display:inline-block;
+	height:60px;
+	width:80px;
+}
+#gen_level_num{
+	position:relative;
+	left:-30px;
+	top:-30px;
+	transform:rotate(90deg);
+	display:inline-block;
+}
+#gen_img{
+	height:80px;
+	width:60px;
+	position:relative;
+	top:5px;
+	left:35px;
+	transform:rotate(90deg);
+	display:inline-block;
+}
+#grid1{
+	position:relative;
+	z-index:2;
+	background-color:#228B22;
+	float:center;
+	display:inline-block;
+	width:56%;
+	height:290px;
+}
+#moments_sq{
+	display:inline-block;
+	color:black;
+	position:relative;
+	z-index:4;
+	top:-26px;
+}
+#link{
+	font-weight:bold;
+	color:black;
+	text-shadow:none;
+	display:inline-block;
+	width:25%;height:100%;
+	position:relative;
+	left:-395px;
+	top:390px;
+	font-size:13px;
+	z-index:1;
+}
+#grid2{
+	left:-5px;
+	width:200%;
+	position:relative;
+	z-index:2;
+	background-color:#228B22;
+	display:inline-block;
+	height:325px;
+}
+#grid3{
+	position:relative;
+	z-index:2;
+	width:50%;
+	display:inline-block;
+}
+#Feedback{
+	background-color:white;
+	width:100%;
+	font-weight:bold;
+}
+#Status{
+	font-weight:bold;
+	width:100%;
+}
+#Alarms{
+	background-color:#51FF22;
+	border:solid 1px;
+	font-weight:bold;
+	width:100%;
+}
+#Load_Shed{
+	font-size:14px;
+	background-color:#DCDBD6;
+}
+#Load_Shed_contain{
+	font-size:14px;
+	background-color:#51FF22;
+}
+#RPG_state{
+	text-shadow:none;
+	background-color:red;
+	color:black;
+	border:solid 1px;
+}
+#RPG_oper{
+	background-color:red;
+	color:black;
+	border:solid 1px;
+}
+#RS_VCP_NUMBER{
+	font-size:60px;
+	background-color:white;
+	padding:20px;
+	width:70%;
+	margin-left:0px;
+}
+#VCP_button{
+	font-size:50px;
+	background-color:#DCDBD6;
+	padding:30px;
+}
+#clock_contain{
+	font-size:13px;
+	font-weight:bold;
+	position: relative;
+        top: 0px;
+        width: 99%;
+        height: 35px;
+        background-color: #DCDBD6;
+        border: 1px dotted #000602;
+}
+#radome{
+	z-index:-1;
+	position:relative;
+	margin-bottom:-375px;
+}	

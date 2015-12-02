@@ -143,11 +143,19 @@ def RS():
 	RS_dict = {}
 	RS_states = {}
 	RS_list = [x for x in dir(_rpg.rdastatus) if 'RS' in x]
+	lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
+	LOOKUP = {
+		'RS_CMD':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'CMD' in x),
+		'RS_AVSET':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'AVSET' in x),
+		'RS_SUPER_RES':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'SR' in x)
+	}
 	for task in RS_list:
 		if task == "RS_CMD" and _rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task)) >=1:
 			RS_dict.update({task:1})
 		else:
 			RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
+	for k in LOOKUP.keys():
+	    RS_dict.update({k:LOOKUP[k][RS_dict[k]]}) 
 	class_list = [x for x in dir(_rpg.rdastatus) if '_' not in x]
 	class_dict = dict((classname,[x for x in dir(getattr(_rpg.rdastatus,classname)) if '__' not in x]) for classname in class_list if classname != 'acknowledge' or 'rdastatus_lookup')
 	for cls in class_list:
@@ -188,15 +196,9 @@ def RS():
 	    latest_alarm = {'precedence':precedence,'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
 	except:
 	    latest_alarm = {'valid':0}
-	lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
 	RS_dict.update({
 			'latest_alarm':latest_alarm,
 			'RDA_static':{
-				'LOOKUP':{
-					'RS_CMD':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'CMD' in x),
-					'RS_AVSET':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'AVSET' in x),
-					'RS_SUPER_RES':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'SR' in x)
-					},
 				'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
 				'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
 				'OPERABILITY_LIST':",".join(oper_list),
@@ -249,6 +251,8 @@ def RPG():
 	loadshed = {}
 	for c in category_dict:
 	    temp = {}
+
+
 	    for t in type_dict:
 		temp.update({t:_rpg.liborpg.orpgload_get_data(category_dict[c],type_dict[t])[1]})
 	    loadshed_dict.update({c:temp})

@@ -242,7 +242,7 @@ init();
 		if (Object.keys(actionflag).indexOf('AVSET') < 0){
 		    var cookieCheck = getCookie('AVSET',1)
 		    if(cookieCheck == "NULL"){
-			$('#AVSET_Exception').val(data['RS_dict']['RDA_static']['LOOKUP']['RS_AVSET'][data['RS_dict']['RS_AVSET']]).slider('refresh')
+			$('#AVSET_Exception').val(data['RS_dict']['RS_AVSET']).slider('refresh')
 			$('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED')
 		    }	
 		    else{
@@ -305,7 +305,7 @@ init();
 		    var value = item[i]
 		    if(Object.keys(actionflag).indexOf(value) < 0){
 			var cookieCheck = getCookie(value,1)
-			var val = data['RS_dict']['RDA_static']['LOOKUP'][value][data['RS_dict'][value]]
+			var val = data['RS_dict'][value]
 			if(cookieCheck != "NULL"){
 			    if(cookieCheck){
 				$("#"+value).val('on').slider("refresh")

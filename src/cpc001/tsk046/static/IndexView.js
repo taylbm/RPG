@@ -695,7 +695,7 @@ $(document).ready(function(){
 	    }
 	    if (Object.keys(actionflag).indexOf('AVSET') < 0){
 		var cookieCheck = getCookie('AVSET',0)
-		if(cookieCheck == "NULL"){cookieCheck = RS['RDA_static']['LOOKUP']['RS_AVSET'][RS['RS_AVSET']]}
+		if(cookieCheck == "NULL"){cookieCheck = RS['RS_AVSET']}
 		$('#AVSET_Exception').val(cookieCheck).slider('refresh')
 		if(cookieCheck  =='on'){
 		    $('#AVSET_Exception_contain').addClass('hide')
@@ -706,7 +706,7 @@ $(document).ready(function(){
 	    }
 	    for (i in item){
 		var value = item[i]
-		var val = RS['RDA_static']['LOOKUP'][value][RS[value]]
+		var val = RS[value]
 		if (val == 'on'){var retrieved = true}else{var retrieved = false}
 		if (value == "RS_AVSET"){
 		    if (Object.keys(actionflag).indexOf('AVSET') < 0){
