@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Demo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="static/jquery.mobile-1.4.5/jquery.mobile-1.4.5.css" />
+        <script src="static/jquery-1.11.2/jquery-1.11.2.min.js"></script>
+        <script src="static/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
+        <script src="static/flot/jquery.flot.min.js"></script>
+        <script src="static/flot/jquery.flot.fillbetween.js"></script>
+        <script src="static/flot/jquery.flot.time.js"></script>
+        <script src="justGage.1.0.1/resources/js/raphael.2.1.0.min.js"></script>
+        <script src="justGage.1.0.1/resources/js/justgage.1.0.1.min.js"></script>
+        <script src="dqd.js"></script>
+        <script id="all-data"></script>
+        <script id="summary-data"></script>
+        <script>        
+            var MainGage = null, RainGage = null, SnowGage = null, BraggGage = null;
+        
+            $(document).ready(function () {
+                //$('#all-data').load('output.js', function (response, text, xhr) {
+                    //makeGages();
+                    //determineOverview();
+                //});
+                $('#summary-data').load('summary.js', function () {
+                    makeGages();
+                    determineOverview();
+                    
+                    $.each(SummaryData, function (idx, obj) {
+                        SummaryData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null; 
+                        SummaryData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
+                        SummaryData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
+                    });
+                });
+                $( ":mobile-pagecontainer" ).on( "pagecontainershow", function( event, ui ) {
+                    if (!SummaryData)
+                        event.preventDefault();
+                    
+                    setSizes(event, ui);
+                });
+                
+                $('input[type="button"]').on('click', function () {
+                    var el = $(this);
+                    var name = el.attr('name');
+
+                    if (name == 'rain')
+                        window.location.href = '#rain-page';
+                    else if (name == 'snow')
+                        window.location.href = '#snow-page';
+                    else if (name == 'bragg')
+                        window.location.href = '#bragg-page';
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="home-page" data-role="page">
+            <div id="nav-panel" data-role="panel" data-position="right" data-display="overlay">
+		        <ul data-role="listview">
+		            <li data-role="list-divider">
+		                ZDR Bias
+		            </li>
+		            <li data-icon="home">
+		                <a href="#home-page">Home</a>
+		            </li>
+		            <li>
+		                <a href="#rain-page">Rain method</a>
+		            </li>
+		            <li>
+		                <a href="#snow-page">Snow method</a>
+		            </li>
+		            <li>
+		                <a href="#bragg-page">Bragg method</a>
+		            </li>
+		        </ul>
+		    </div>
+        
+            <div data-role="header">
+                <h2>Data Quality Dashboard</h2>
+                <a href="#nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+            </div>
+            <div role="main" class="ui-content">
+                <div class="ui-bar ui-bar-a">
+                    <h3>ZDR Data Quality</h3>
+                </div>
+                <div class="ui-body ui-body-a">
+                    <div class="ui-grid-a">
+                        <div id="main-gauge" class="ui-block-a" style="height:480px; width:640px; margin:auto;"></div>
+                        <div class="ui-block-b">
+	                        <div id="rain-gauge" class="ui-input-btn ui-btn ui-shadow">
+	                            <input name="rain" type="button" data-enhanced="true" value="">
+	                        </div>
+	                        <div id="snow-gauge" class="ui-input-btn ui-btn ui-shadow">
+	                            <input name="snow" type="button" data-enhanced="true" value="">
+	                        </div>
+	                        <div id="bragg-gauge" class="ui-input-btn ui-btn ui-shadow">
+	                            <input name="bragg" type="button" data-enhanced="true" value="">
+	                        </div>
+	                    </div>
+                    </div>
+                </div>
+            </div>
+            <div data-role="footer">
+                <h3>NEXRAD Radar Operations Center</h3>
+            </div>
+        </div>
+        
+        <div id="rain-page" data-role="page">
+            <div id="rain-nav-panel" data-role="panel" data-position="right" data-display="overlay">
+                <ul data-role="listview">
+                    <li data-role="list-divider">
+                        ZDR Bias
+                    </li>
+                    <li data-icon="home">
+                        <a href="#home-page">Home</a>
+                    </li>
+                    <li>
+                        <a href="#rain-page">Rain method</a>
+                    </li>
+                    <li>
+                        <a href="#snow-page">Snow method</a>
+                    </li>
+                    <li>
+                        <a href="#bragg-page">Bragg method</a>
+                    </li>
+                </ul>
+            </div>
+        
+            <div data-role="header">
+                <h2>ZDR Bias - Rain</h2>
+                <a href="#rain-nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+            </div>
+            <div id="rain-main" role="main" class="ui-content">
+                <div id="rain-container"></div>
+            </div>
+            <div data-role="footer">
+                <h3>NEXRAD Radar Operations Center</h3>
+            </div>
+        </div>
+        
+        <div id="snow-page" data-role="page">
+            <div id="snow-nav-panel" data-role="panel" data-position="right" data-display="overlay">
+                <ul data-role="listview">
+                    <li data-role="list-divider">
+                        ZDR Bias
+                    </li>
+                    <li data-icon="home">
+                        <a href="#home-page">Home</a>
+                    </li>
+                    <li>
+                        <a href="#rain-page">Rain method</a>
+                    </li>
+                    <li>
+                        <a href="#snow-page">Snow method</a>
+                    </li>
+                    <li>
+                        <a href="#bragg-page">Bragg method</a>
+                    </li>
+                </ul>
+            </div>
+        
+            <div data-role="header">
+                <h2>ZDR Bias - Snow</h2>
+                <a href="#snow-nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+            </div>
+            <div id="snow-main" role="main" class="ui-content">
+                <div id="snow-container"></div>
+            </div>
+            <div data-role="footer">
+                <h3>NEXRAD Radar Operations Center</h3>
+            </div>
+        </div>
+        
+        <div id="bragg-page" data-role="page">
+            <div id="bragg-nav-panel" data-role="panel" data-position="right" data-display="overlay">
+                <ul data-role="listview">
+                    <li data-role="list-divider">
+                        ZDR Bias
+                    </li>
+                    <li data-icon="home">
+                        <a href="#home-page">Home</a>
+                    </li>
+                    <li>
+                        <a href="#rain-page">Rain method</a>
+                    </li>
+                    <li>
+                        <a href="#snow-page">Snow method</a>
+                    </li>
+                    <li>
+                        <a href="#bragg-page">Bragg method</a>
+                    </li>
+                </ul>
+            </div>
+        
+            <div data-role="header">
+                <h2>ZDR Bias - Bragg</h2>
+                <a href="#bragg-nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+            </div>
+            <div id="bragg-main" role="main" class="ui-content">
+                <div id="bragg-container"></div>
+            </div>
+            <div data-role="footer">
+                <h3>NEXRAD Radar Operations Center</h3>
+            </div>
+        </div>
+    </body>
+</html>
