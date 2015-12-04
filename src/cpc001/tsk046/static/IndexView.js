@@ -594,17 +594,17 @@ $(document).ready(function(){
 				$('#grid2').attr('class','normal-ops-grid')
 		}
 		switch(RPG['RPG_state']){			
-			case 'OPER': 
+			case 'OPER': case 'STANDBY': 
 				$('#RPG_state').attr('class','bar-border2 normal-ops');
 				break;
-			case 'RESTART': case 'STANDBY': 
+			case 'RESTART': 
 				$('#RPG_state').attr('class','bar-border2 inop-indicator');
 				break;
 			case 'TEST':
 				$('#RPG_state').attr('class','bar-border2 minor-alarm');
 				break;
 			case 'SHUTDOWN':
-				$('#RPG_state').addClass('inop-indicator')
+				$('#RPG_state').atrr('class','inop-indicator')
 				$('#RDA_STATE').html('UNKNOWN').attr('class','bar-border2 inop-indicator')
 				$('#OPERABILITY_LIST').html('UNKNOWN').attr('class','bar-border2 inop-indicator')      	
 				$('#AVSET_Exception_contain').removeClass('hide')
@@ -630,12 +630,13 @@ $(document).ready(function(){
 		$('#Load_Shed_contain').html('NORMAL')
 		$('#Load_Shed_status').addClass('hide')
 		for (lshd in loadshed_cats){
-		    if(RPG['loadshed'][loadshed_cats[lshd]] != 'NONE'){	
-			$('#Load_Shed_contain').html(RPG['loadshed'][lshd])	
+		    if(RPG['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+			$('#Load_Shed_contain').html(RPG['loadshed'][loadshed_cats[lshd]])	
 			$('#Load_Shed_status').removeClass('hide')
 			if(RPG['loadshed'][lshd] == 'ALARM'){
-			    $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')                       
-			}
+                            $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')
+                        }
+
 		    }
 		}
 	});
