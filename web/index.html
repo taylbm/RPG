@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <title>Demo</title>
+        <title>Data Quality Dashboard</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="static/jquery.mobile-1.4.5/jquery.mobile-1.4.5.css" />
         <script src="static/jquery-1.11.2/jquery-1.11.2.min.js"></script>
@@ -9,8 +9,8 @@
         <script src="static/flot/jquery.flot.min.js"></script>
         <script src="static/flot/jquery.flot.fillbetween.js"></script>
         <script src="static/flot/jquery.flot.time.js"></script>
-        <script src="justGage.1.0.1/resources/js/raphael.2.1.0.min.js"></script>
-        <script src="justGage.1.0.1/resources/js/justgage.1.0.1.min.js"></script>
+        <script src="static/justgage-master/raphael-2.1.4.min.js"></script>
+        <script src="static/justgage-master/justgage.min.js"></script>
         <script src="dqd.js"></script>
         <script id="all-data"></script>
         <script id="summary-data"></script>
@@ -18,10 +18,6 @@
             var MainGage = null, RainGage = null, SnowGage = null, BraggGage = null;
         
             $(document).ready(function () {
-                //$('#all-data').load('output.js', function (response, text, xhr) {
-                    //makeGages();
-                    //determineOverview();
-                //});
                 $('#summary-data').load('summary.js', function () {
                     makeGages();
                     determineOverview();

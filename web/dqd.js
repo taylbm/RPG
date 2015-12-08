@@ -52,7 +52,7 @@ function setSizes(event, ui)
                     lineWidth: 0, 
                     fill: 0.2
                 }, 
-                color: 'rgb(128, 128, 255)', 
+                olor: 'rgb(128, 128, 255)', 
                 fillBetween: 'topTolerance'
             }, 
             {
@@ -87,7 +87,7 @@ function setSizes(event, ui)
             },
             xaxis: {
                 mode: 'time', 
-                timeformat: '%Y/%m/%d',
+                timeformat: '%m/%d',
                 min:    then,
                 max:    now
             }
@@ -134,9 +134,11 @@ function makeGages()
 {
     MainGage = new JustGage({
         id:                     'main-gauge',
-        value:                  0.0,
+	value:			0.0,
         min:                    -0.5,
-        max:                    0.5,
+        max:                    0.5,	
+	decimals:		2,
+	pointer:		true,
         title:                  'Overall ZDR data quality',
         levelColors:            ['#000000', '#ff0000', '#ffff00', '#00cc00', '#ffff00', '#ff0000', '#000000'],
         levelColorsGradient:    true,
@@ -148,6 +150,8 @@ function makeGages()
         value:                  0.0,
         min:                    -0.5,
         max:                    0.5,
+	decimals:		2,
+	pointer:		true,
         title:                  'ZDR rain method',
         levelColors:            ['#000000', '#ff0000', '#ffff00', '#00cc00', '#ffff00', '#ff0000', '#000000'],
         levelColorsGradient:    true,
@@ -159,6 +163,8 @@ function makeGages()
         value:                  0.0,
         min:                    -0.5,
         max:                    0.5,
+	decimals:		2,
+	pointer:		true,
         title:                  'ZDR snow method',
         levelColors:            ['#000000', '#ff0000', '#ffff00', '#00cc00', '#ffff00', '#ff0000', '#000000'],
         levelColorsGradient:    true,
@@ -170,6 +176,8 @@ function makeGages()
         value:                  0.0,
         min:                    -0.5,
         max:                    0.5,
+	decimals:		2,
+	pointer:		true,
         title:                  'ZDR Bragg method',
         levelColors:            ['#000000', '#ff0000', '#ffff00', '#00cc00', '#ffff00', '#ff0000', '#000000'],
         levelColorsGradient:    true,
