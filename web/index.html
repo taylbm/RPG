@@ -44,7 +44,7 @@
                     
                     setSizes(event, ui);
 		    var page = ui.toPage.get(0).id.replace('page','')
-		    if(!redundant){
+		    if(redundant == "False"){	
 			$("#"+page+"redundant").html(' ');
 			$('#channel-form').html(' ');
 		    }

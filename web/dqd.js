@@ -59,7 +59,7 @@ function setSizes(event, ui, plotAdd)
         aboveDataToPlot = [],
 	dailyPoints	= []
     ;
-    if(redundant){
+    if(redundant == "True"){
 	var chan1 = {'belowDataToPlot':[],'aboveDataToPlot':[]}	
 	    chan2 = {'belowDataToPlot':[],'aboveDataToPlot':[]}
 	; 
@@ -100,6 +100,35 @@ function setSizes(event, ui, plotAdd)
 	    });
 	}
     }
+    else {
+        if (method == 'bragg'){
+            $.each(SummaryData, function (idx, obj) {
+                    belowDataToPlot.push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
+                    aboveDataToPlot.push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
+            });
+            $.each(DailyData, function(idx, obj) {
+                dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
+            });
+        }
+        else if (method == 'rain'){
+            $.each(SummaryData, function (idx, obj) {
+                    belowDataToPlot.push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
+                    aboveDataToPlot.push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
+            });
+            $.each(DailyData, function(idx, obj) {
+                dailyPoints.push([obj.time * 1e3, obj.medianRain]);
+            });
+        }
+        else if (method == 'snow'){
+            $.each(SummaryData, function (idx, obj) {
+                    belowDataToPlot.push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
+                    aboveDataToPlot.push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
+            });
+            $.each(DailyData, function(idx, obj) {
+                dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
+            });
+        }
+    }
     var plotOpts =         
 	[
             {
@@ -118,7 +147,7 @@ function setSizes(event, ui, plotAdd)
                 fillBetween: 'topTolerance'
             }
         ]
-    if (redundant){
+    if (redundant == "True"){
 	for (p in plotAdd){
             plotOpts.push(
 		{
@@ -216,7 +245,7 @@ function determineOverview(time,chan)
 	mSnow = [],
 	mRain = []
     ;
-    if(redundant){
+    if(redundant == "True"){
 	rBragg = {'chan1':[],'chan2':[]};
         rSnow = {'chan1':[],'chan2':[]};
         rRain = {'chan1':[],'chan2':[]};
