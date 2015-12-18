@@ -7,7 +7,7 @@ var timeInterval = {
 			'1Month':month/1000,
 			'6Months':then/1000
 };
-
+var storeValues = {};
 function mean(arr)
 {
     var i,
@@ -40,6 +40,19 @@ function dBMean(arr)
     return convertedBack;
 }
 
+function showTooltip(x, y, contents) {
+    $('<div id="tooltip">' + contents + '</div>').css( {
+        position: 'absolute',
+        display: 'none',
+        top: y + 5,
+        left: x + 5,
+        border: '1px solid #fdd',
+        padding: '2px',
+        'background-color': '#fee',
+        opacity: 0.80
+    }).appendTo("body").fadeIn(200);
+}
+
 function setSizes(event, ui, plotAdd)
 {
     if (!SummaryData)
@@ -49,6 +62,7 @@ function setSizes(event, ui, plotAdd)
     var possibleChartName = method + '-container';
     var pageMainName = method + '-main';
     var chartContainer = $('#' + possibleChartName);
+    storeValues = {}
         
     if (chartContainer.length < 1)
         return;
@@ -57,7 +71,8 @@ function setSizes(event, ui, plotAdd)
     
     var belowDataToPlot = [],
         aboveDataToPlot = [],
-	dailyPoints	= []
+	dailyPoints	= [],
+	overTolerance	= []
     ;
     if(redundant == "True"){
 	var chan1 = {'belowDataToPlot':[],'aboveDataToPlot':[]}	
@@ -65,11 +80,11 @@ function setSizes(event, ui, plotAdd)
 	; 
         if (method == 'bragg'){
             $.each(SummaryData, function (idx, obj) {
-		if (obj.modeRedundant > -99) {
 		    var channel = 'chan'+obj.modeRedundant
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
-		}
+		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? obj.medianBragg : null]);
+                    storeValues[obj.time * 1e3] = obj.medianBragg;
             });
 	    $.each(DailyData, function(idx, obj) {
 	        dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
@@ -77,11 +92,11 @@ function setSizes(event, ui, plotAdd)
         } 	
 	else if (method == 'rain'){
 	    $.each(SummaryData, function (idx, obj) {
-		if (obj.modeRedundant > -99) {
                     var channel = 'chan'+obj.modeRedundant
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
-                }
+                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
+                    storeValues[obj.time * 1e3] = obj.medianRain;            
 	    });
 	    $.each(DailyData, function(idx, obj) {
 		dailyPoints.push([obj.time * 1e3, obj.medianRain]);
@@ -89,14 +104,14 @@ function setSizes(event, ui, plotAdd)
 	}
 	else if (method == 'snow'){
 	    $.each(SummaryData, function (idx, obj) {
-		if (obj.modeRedundant > -99) {
                     var channel = 'chan'+obj.modeRedundant
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
-                }
+                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
+                    storeValues[obj.time * 1e3] = obj.medianSnow;
 	    });
 	    $.each(DailyData, function(idx, obj) {
-	        dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
+	        dailyPoints.push([obj.time * 1e3, obj.medianSnow]);
 	    });
 	}
     }
@@ -105,6 +120,8 @@ function setSizes(event, ui, plotAdd)
             $.each(SummaryData, function (idx, obj) {
                     belowDataToPlot.push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
                     aboveDataToPlot.push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
+                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? 0.50 : null]);
+                    storeValues[obj.time * 1e3] = obj.medianBragg;            
             });
             $.each(DailyData, function(idx, obj) {
                 dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
@@ -114,6 +131,8 @@ function setSizes(event, ui, plotAdd)
             $.each(SummaryData, function (idx, obj) {
                     belowDataToPlot.push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
                     aboveDataToPlot.push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
+		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
+		    storeValues[obj.time * 1e3] = obj.medianRain; 
             });
             $.each(DailyData, function(idx, obj) {
                 dailyPoints.push([obj.time * 1e3, obj.medianRain]);
@@ -123,9 +142,12 @@ function setSizes(event, ui, plotAdd)
             $.each(SummaryData, function (idx, obj) {
                     belowDataToPlot.push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
                     aboveDataToPlot.push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
+                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
+                    storeValues[obj.time * 1e3] = obj.medianSnow;
+
             });
             $.each(DailyData, function(idx, obj) {
-                dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
+                dailyPoints.push([obj.time * 1e3, obj.medianSnow]);
             });
         }
     }
@@ -210,10 +232,21 @@ function setSizes(event, ui, plotAdd)
             }
         }
     );
+    plotOpts.push(
+	{
+	    data: overTolerance,
+	    color: 'black',
+	    points: {
+		show: true,
+		symbol: "square",
+	    }
+	}
+    );
 	
     $.plot(
         chartContainer,plotOpts, 
         {
+	    grid: { hoverable: true },
             yaxis:  {
                 min:    -0.5,
                 max:    0.5,
