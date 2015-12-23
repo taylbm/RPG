@@ -46,12 +46,7 @@ $(document).ready(function(){
 		<a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
 		<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
  		<h1 aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1>
-
 		
-<% 
-TRUTH = {}
-TRUTH.update({0:'OFF',1:'ON'})
-%>
 
 	</div>
 
@@ -66,104 +61,92 @@ TRUTH.update({0:'OFF',1:'ON'})
                 <tbody>
                     <tr>
                         <td>RDA Alarm Summary:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("RS_RDA_ALARM_SUMMARY_LIST")}</td>
+                        <td>${context.get("SCC").get("RDA Alarm Summary")}</td>
                     </tr>
             	    <tr>
                         <td>Operability Status:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("OPERABILITY_LIST")}</td>
+                        <td>${context.get("SCC").get("Operability Status")}</td>
                     </tr>
             	    <tr>
                         <td>RDA Status:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("RDA_STATE")}</td>
+                        <td>${context.get("SCC").get("RDA Status")}</td>
                     </tr>
             	    <tr>
                         <td>Control Status:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("CONTROL_STATUS")}<td>
+                        <td>${context.get("SCC").get("Control Status")}<td>
                     </tr>
             	    <tr>
                         <td>Transition Power Source (TPS):</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("TPS_STATUS")}</td>
+                        <td>${context.get("SCC").get("Transition Power Source (TPS)")}</td>
                     </tr>
             	    <tr>
                         <td>Aux Power Generator State:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("AUX_GEN_LIST").replace('false','').replace('true','')}</td>
+                        <td>${context.get("SCC").get("Aux Power Generator State")}</td>
                     </tr>
             	    <tr>
                         <td>Super Resolution (SR):</td>
-                    	<td>${context.get('RS_dict').get('RDA_static').get('LOOKUP').get('RS_SUPER_RES').get(context.get("RS_dict").get("RS_SUPER_RES"))}</td>
+                    	<td>${context.get("SCC").get("Super Resolution (SR)")}</td>
 		    </tr>
             	    <tr>
                         <td>Clutter Mitigation Decision:</td>
-                        <td>${context.get('RS_dict').get('RDA_static').get('LOOKUP').get('RS_CMD').get(context.get("RS_dict").get("RS_CMD"))}</td>
+                        <td>${context.get("SCC").get("Clutter Mitigation Decision (CMD)")}</td>
                     </tr>
             	    <tr>
                         <td>Horizontal Delta dBZ0:</td>
-                        <td>${context.get("PMD_dict").get("h_delta_dbz0")}dB</td>
+                        <td>${context.get("SCC").get("Horizontal Delta dBZ0")}</td>
                     </tr>
             	    <tr>
                         <td>Vertical Delta dBZ0:</td>
-                        <td>${context.get("PMD_dict").get("v_delta_dbz0")}dB</td>
+                        <td>${context.get("SCC").get("Vertical Delta dBZ0")}</td>
                     </tr>
             	    <tr>
                         <td>Avg Transmitter Power:</td>
-  			<td>${context.get("RS_dict").get("RS_AVE_TRANS_POWER")} W [${context.get("PMD_dict").get("spot_blanking")}]</td>                 
+  			<td>${context.get("SCC").get("Average Transmitter Power")}</td>                 
                     </tr>
             	    <tr>
                         <td>VCP Number:</td>
-                        <td>${context.get("RS_dict").get("RS_VCP_NUMBER")}</td>
+                        <td>${context.get("SCC").get("VCP Number")}</td>
                     </tr>
             	    <tr>
                         <td>AVSET Status:</td>
-                        <td>${context.get('RS_dict').get('RDA_static').get('LOOKUP').get('RS_AVSET').get(context.get("RS_dict").get("RS_AVSET"))}</td>
+                        <td>${context.get("SCC").get("Enabled")}</td>
                     </tr>
 		    <tr>
 		    	<th><u>Archive Level II</u></th>
 		    </tr>
 		    <tr>
-                        <td>Transmit Status:</td>
-                        <td>On *stub*</td>
+			<td>Transmit Status:</td>
+                        <td>${context.get("SCC").get("Transmit Status")}</td>
                     </tr>
             	    <tr>
                         <td>Version:</td>
-                        <td>${context.get("ADAPT").get("version")}</td>
+                        <td>${context.get("SCC").get("Version")}</td>
                     </tr>
             	    <tr>
                         <th><u>Mode Selection Function</u></th>
                     </tr>
             	    <tr>
                         <td>Mode Conflict:</td>
-			% if context.get("PMD_dict").get("mode_conflict"):
-			<td>YES</td>
-			% else:
-                        <td>NO</td>
-			% endif 
+			<td>${context.get("SCC").get("Mode Conflict")}</td>
                     </tr>
             	    <tr>
                         <td>Mode Switch Clear Air:</td>
-			%if context.get("RPG_dict").get("Clear_Air_Switch"):
-                        <td>AUTO</td>
-			%else:
-			<td>MANUAL</td>
-			%endif
+			<td>${context.get("SCC").get("Mode Switch Clear Air")}</td>
                     </tr>
             	    <tr>
                         <td>Mode Switch Precip:</td>
-			%if context.get("RPG_dict").get("Precip_Switch"):
-                        <td>AUTO</td>
-			%else:	
-			<td>MANUAL</td>
-			%endif
+			<td>${context.get("SCC").get("Mode Switch Precip")}</td>
                     </tr>
             	    <tr>
                         <td>Mode Change Thresholds:</td>
-                        <td>${context.get("PMD_dict").get("precip_mode_area_thresh")} km^2 > ${context.get("PMD_dict").get("precip_mode_zthresh")}dBz</td>
+                        <td>${context.get("SCC").get("Mode Change Thresholds")}</td>
 		    </tr>
 		    <tr>
                         <th><u>Narrrowband Communications</u></th>
                     </tr>
                     <tr>
                         <td>Dedicated Connected Users:</td>
-                        <td>3 *stub*</td>
+                        <td>${context.get("SCC").get("Dedicated Connected Users")}</td>
                     </tr>
 
             	</tbody>
@@ -180,117 +163,89 @@ TRUTH.update({0:'OFF',1:'ON'})
                     </tr>
             	    <tr>
                         <td>Generator Fuel Level:</td>
-                        <td>${context.get("PMD_dict").get("cnvrtd_gnrtr_fuel_lvl")}%</td>
+                        <td>${context.get("SCC").get("Generator Fuel Level")}%</td>
                     </tr>
             	    <tr>
                         <td>Transmitter Air Temp:</td>
-                        <td>${context.get("PMD_dict").get("trsmttr_leaving_air_temp")} (deg C)</td>
+                        <td>${context.get("SCC").get("Transmitter Air Temperature")}</td>
                     </tr>
             	    <tr>
                         <th>Transmitter:</th>
                     </tr>
             	    <tr>
                         <td>Peak Power:</td>
-                         <td>${context.get("PMD_dict").get("xmtr_peak_pwr")} kW</td>
+                         <td>${context.get("SCC").get("Peak Power")}</td>
                     </tr>
             	    <tr>
                         <th>Device Status:</th>
                     </tr>
             	    <tr>
                         <td>Performance Check Time:</td>
-                         <td>${context.get("PMD_dict").get("perf_check_time")}</td>
+                         <td>${context.get("SCC").get("Performance Check Time")}</td>
                     </tr>
             	    <tr>
                         <th><u>RPG Status Information</u></th>
                     </tr>
             	    <tr>
-                        <td>RPG Alarm Summary:</td>
-                        <td>${context.get("RPG_dict").get("RPG_alarms")}</td>
-                    </tr>
-            	    <tr>
                         <td>Operability Status:</td>
-                        <td>${context.get("RPG_dict").get("RPG_op")}</td>
+                        <td>${context.get("SCC").get("Operability Status")}</td>
                     </tr>
             	    <tr>
                         <td>Wideband Status:</td>
-                        <td>${context.get("RS_dict").get("RDA_static").get("WIDEBAND")}</td>
+                        <td>${context.get("SCC").get("Wideband Status")}</td>
                     </tr>
             	    <tr>
-                        <td>SAILS Status / # Cuts:</td>
-                       	% if context.get("RPG_dict").get("RPG_SAILS"):
-			<td>ENABLED / ${context.get("RPG_dict").get("sails_cuts")}</td>
-			% else:
-			<td>DISABLED</td>
-			% endif 
+                        <td>SAILS Status</td>
+			<td>${context.get("SCC").get("SAILS Status")}</td>
                     </tr>
+		    <tr>
+			<td>Requested SAILS Cuts</td>
+			<td>${context.get("SCC").get("Requested SAILS Cuts")}</td>
             	    <tr>
                         <td>PRF Mode:</td>
-                        <td>${context.get("PMD_dict").get("prf")}</td>
+                        <td>${context.get("SCC").get("PRF Mode")}</td>
                     </tr>
             	    <tr>
                         <th><u>Environmental Data</u></th>
                     </tr>
 		    <tr>
-		        <td>VAD/Model Update:</td>	
-			% if context.get("PMD_dict").get("VAD_Update"):
-			<td>ON /
-			% else:
-			<td>OFF /
-			% endif
-			% if context.get("PMD_dict").get("Model_Update"):
-			ON</td>
-			% else:
-			OFF</td>
-			% endif
+		        <td>VAD Update:</td>	
+			<td>${context.get("SCC").get("VAD Update")}</td>
 		    </tr>
 		    <tr>
-                        <td>Default Storm Motion:</td>
-                        <td>${context.get("ADAPT").get("default_dir")}@${context.get("ADAPT").get("default_spd")}kts</td>
-                    </tr>
-
-		    <tr>
-		        <td>Model Update:</td>
-			% if context.get("PMD_dict").get("Model_Update"):
-			<td>ON</td>
-			% else:
-			<td>OFF</td>
-			%endif
+			<td>Model Update:</td>
+			<td>${context.get("SCC").get("Model Update")}</td>
 		    </tr>
 		    <tr>
 			<th><u>Algorithm Status/Data</u></th>
 		    </tr>	    
             	    <tr>
                         <td>PPS Precipitation Status:</td>
-			% if context.get("PMD_dict").get("current_precip_status"):
-                        <td>ACCUM</td>
-			% else:
-			<td>NO ACCUM</td>
-			% endif
+			<td>${context.get("SCC").get("PPS Precipitation Status")}</td>
                     </tr>
             	    <tr>
                         <td>PPS Z-R Relationship:</td>
-                        <td>Z = ${context.get("ADAPT").get("ZR_mult")}*R^${context.get("ADAPT").get("ZR_exp")}</td>
+                        <td>${context.get("SCC").get("PPS Z-R Relationship")}</td>
                     </tr>
             	    <tr>
                         <td>QPE Precipitation Type:</td>
-                        <td>${context.get("ADAPT").get("ptype")}</td>
+                        <td>${context.get("SCC").get("QPE Precipitation Type")}</td>
                     </tr>
             	    <tr>
                         <td>Apply RPG Estimated ISDP:</td>
-			% if context.get("ADAPT").get("ISDP"):
-                        <td>NO</td>
-			% else:
-			<td>YES</td>
-			% endif
+                        <td>${context.get("SCC").get("Apply RPG Estimated ISDP")}</td>
                     </tr>
 		    <tr>
 			<td>RPG Estimated ISDP:</td>
-			<td>current value *stub*</td>
+			<td>${context.get("SCC").get("RPG Estimated ISDP")}</td>
 		    </tr>
 		    <tr>
 			<td>MetSignal Processing/Threshold</td>
-			<td>Yes/-9999 *stub*</td>
+			<td>${context.get("SCC").get("MetSignal Processing/Threshold")}</td>
 		    </tr>
+		    <tr>
+			<td>Default Storm Motion</td>
+			<td>${context.get("SCC").get("Default Storm Motion")}</td>
             	</tbody>
             </table>
 	</div>

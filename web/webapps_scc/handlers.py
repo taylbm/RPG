@@ -33,6 +33,15 @@ def hasNumbers(inputString):
 ##
 # Method for retrieving RDA data 
 ##
+
+def SCC():
+   dump = subprocess.Popen('standalone_scc -t',shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+   out = dump.communicate()
+   out_split = out[0].split('\n')
+   filter_split = filter(None, out_split)
+   select_split = [x.split(':') for x in filter_split if ':' in x]
+   return dict((k.strip(),v.strip()) for k,v in iter(select_split))
+
 def RS():
 	RS_dict = {}
 	RS_states = {}
@@ -198,7 +207,8 @@ class Shift_change_checklist(object):
 						'PMD_dict':PMD(),
 						'RS_dict':RS(),
 						'RPG_dict':RPG(),
-						'ADAPT':ADAPT()
+						'ADAPT':ADAPT(),
+						'SCC':SCC(),
 					   })
 
 
