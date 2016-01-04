@@ -2,9 +2,7 @@ import os
 import sys
 import signal
 HOME = os.getenv("HOME")
-sys.path.append(HOME+'/RPG-ecp-0634p/src/cpc001/lib004')
-sys.path.append(HOME+'/RPG-ecp-0634p/src/cpc001/deps')
-sys.path.append(HOME+'/cfg/deps')
+sys.path.append(HOME+'/cfg/web/deps')
 sys.path.append(HOME+'/lib/lnux_x86')
 
 import _rpg
