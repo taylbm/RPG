@@ -49,12 +49,12 @@ $(document).ready(function(){
         <a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
 	<button id="refreshPage"  class="ui-btn-right ui-btn ui-btn-inline ui-corner-all ui-icon-refresh ui-btn-icon-right">Refresh Page</button>
 	<div class="ui-grid-b">
- 	    <div class="ui-block-a"><h3 style="margin:0;padding-top:9px" align="right">${context.get("SCC").get("ICAO:",e)}</h3></div>              
-	    <div class="ui-block-b"><h1 align="center" aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h1></div>
-    	    <div class="ui-block-c"><h3 style="margin:0;padding-top:9px" align="left">${context.get("SCC").get("Date/Time:",e)}</h3></div>
+ 	    <div class="ui-block-a"><h3 style="margin:0;padding-top:8px" align="right">${context.get("SCC").get("ICAO:",e)}</h3></div>              
+	    <h2 style="padding-bottom:4px;padding-top:4px" class="ui-block-b" align="center" aria-level="1" role="heading" class="ui-title">Shift Change Checklist</h2>
+    	    <div class="ui-block-c"><h3 style="margin:0;padding-top:8px" align="left">${context.get("SCC").get("Date/Time:",e)}</h3></div>
 	</div>
     </div>
-    <div id="content" style="font-size:16px">
+    <div id="content" style="font-size:14px">
 		<div class="ui-grid-a">
             <table data-role="table" class="ui-block-a ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
@@ -148,24 +148,28 @@ $(document).ready(function(){
                         <td>Dedicated Connected Users:</td>
                         <td>${context.get("SCC").get("Dedic Connected Users - Line(ID)",e)}</td>
                     </tr>
+                    <tr>
+                        <th><u>RDA Performance/Maintainence Data (PMD)</u></th>
+                    </tr>
+                    <tr>
+                        <td>Generator Fuel Level:</td>
+                        <td>${context.get("SCC").get("Generator Fuel Level",e)}</td>
+                    </tr>
+                    <tr>
+                        <td>Transmitter Air Temp:</td>
+                        <td>${context.get("SCC").get("Transmitter Air Temperature",e)}</td>
+                    </tr>
+
 
             	</tbody>
             </table>
             <table data-role="table" class="ui-block-b ui-body-d ui-shadow table-stripe ui-responsive">
             	<thead>
-            		<tr>
-                        <th><u>RDA Performance/Maintainence Data</u></th>
+            	    <tr>
+                        <th><u>RDA PMD (continued)</u></th>
                     </tr>
                 </thead>
                 <tbody>
-            	    <tr>
-                        <td>Generator Fuel Level:</td>
-                        <td>${context.get("SCC").get("Generator Fuel Level",e)}</td>
-                    </tr>
-            	    <tr>
-                        <td>Transmitter Air Temp:</td>
-                        <td>${context.get("SCC").get("Transmitter Air Temperature",e)}</td>
-                    </tr>
             	    <tr>
                         <td>Peak Power (Horiz./Vert.):</td>
                          <td>${context.get("SCC").get("Peak Power (Horiz./Vert. )",e)}</td>
@@ -210,7 +214,7 @@ $(document).ready(function(){
 		    </tr>
 		    <tr>
 			<td>Wetbulb Heights (0C/-25C):</td>
-                        <td>${context.get("SCC").get("Wetbulb Heights (0C/-20C)",e)}</td>
+                        <td>${context.get("SCC").get("Wetbulb Heights (0C/-25C)",e)}</td>
 		    <tr>
                     <tr>
                         <td>Default Storm Motion</td>
