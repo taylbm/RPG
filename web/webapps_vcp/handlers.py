@@ -3,9 +3,11 @@ import os
 import web
 import sys
 import datetime
-HOME = os.getenv("HOME")
-sys.path.append(HOME+'/cfg/web/deps')
-sys.path.append(HOME+'/lib/lnux_x86')
+
+CFG = os.getenv("CFG_DIR")
+LD_LIB = os.getenv("LD_LIBRARY_PATH")
+sys.path.append(CFG)
+sys.path.append(LD_LIB)
 
 import _rpg
 
