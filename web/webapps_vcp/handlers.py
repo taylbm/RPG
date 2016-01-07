@@ -6,7 +6,7 @@ import datetime
 
 CFG = os.getenv("CFG_DIR")
 LD_LIB = os.getenv("LD_LIBRARY_PATH")
-sys.path.append(CFG)
+sys.path.append(CFG+"/web/deps")
 sys.path.append(LD_LIB)
 
 import _rpg
@@ -16,7 +16,7 @@ import cgi
 
 from templating import LOOKUP
 
-vcp_dir = HOME+'/cfg/vcp/'
+vcp_dir = CFG+'/vcp/'
 
 ##
 # Utility fxn defs

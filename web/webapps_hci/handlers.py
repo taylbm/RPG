@@ -6,8 +6,9 @@ import web
 
 CFG = os.getenv("CFG_DIR")
 LD_LIB = os.getenv("LD_LIBRARY_PATH")
-sys.path.append(CFG)
+sys.path.append(CFG+"/web/deps")
 sys.path.append(LD_LIB)
+HOME = os.getenv("HOME")
 
 import _rpg
 import time
@@ -19,7 +20,7 @@ import time
 import StringIO
 import gzip
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
-vcp_dir = os.environ['HOME']+'/cfg/vcp/'
+vcp_dir = CFG+'/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
 SECONDS_PER_HOUR = 3600
 event_holder = {}
