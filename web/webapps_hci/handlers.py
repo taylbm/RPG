@@ -31,6 +31,7 @@ moments = {
 	    _rpg.orpgevt.RADIAL_ACCT_DUALPOL:'D'
 	  }
 
+
 def gzip_response(resp):
     web.webapi.header('Content-Encoding','gzip')
     zbuf = StringIO.StringIO()
@@ -46,8 +47,8 @@ def gzip_response(resp):
 # Callback for event handling 
 ##
 def callback(event, msg_data):
-        msg = _rpg.orpgevt.to_orpgevt_radial_acct_t(msg_data)
-        event_holder.update({
+    msg = _rpg.orpgevt.to_orpgevt_radial_acct_t(msg_data)
+    event_holder.update({
 			    'radial_status':msg.radial_status,
 			    'super_res':msg.super_res,
 			    'moments':msg.moments,
@@ -57,8 +58,12 @@ def callback(event, msg_data):
 			    'start_az':msg.start_elev_azm,
 			    'last_elev':msg.last_ele_flag
 
-			    })
+			})
 
+##
+# Register Callback 
+##
+_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
 
 ##			    
 # Utility fxn defs
@@ -371,6 +376,7 @@ def CFG():
 ##
 class IndexView(object):
     def GET(self):
+	web.header("Cache-Control","no-cache")
         return LOOKUP.IndexView(**{'CFG_dict':CFG()})
 ##
 # Refreshes the data in the HCI (old method -- for backwards compatibility) 
@@ -412,7 +418,6 @@ class Radome(object):
     def GET(self):
         web.header("Content-Type","text/event-stream")
 	web.header("Cache-Control","no-cache")
-        _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, callback)
 	msg = {'retry':'2000'}
         event_id = 0
         while True:
