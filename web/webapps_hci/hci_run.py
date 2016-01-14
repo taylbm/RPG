@@ -1,6 +1,8 @@
 import os
 import sys
 import signal
+import threading 
+from time import sleep 
 
 CFG = os.getenv("CFG_DIR")
 LD_LIB = os.getenv("LD_LIBRARY_PATH")
@@ -35,13 +37,12 @@ URLS = (
     '/sails','handlers.ORPGSAILS_set',
     '/set_flag','handlers.Set_Flag'
 )
-def session_hook_for_sub_apps():
+def deau_loadhook():
     n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA) 
     _rpg.librpg.deau_lb_name(n)
 
 if __name__ == '__main__':
     app = web.application(URLS, globals())
-    app.add_processor(web.loadhook(session_hook_for_sub_apps))
+    app.add_processor(web.loadhook(deau_loadhook))
     app.run()
-     
 

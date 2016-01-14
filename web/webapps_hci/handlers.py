@@ -20,28 +20,62 @@ import time
 import StringIO
 import gzip
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
-vcp_dir = CFG+'/vcp/'
+
+VCP_DIR = CFG+'/vcp/'
 DE = {'DISABLED':'off','ENABLED':'on'}
 SECONDS_PER_HOUR = 3600
 event_holder = {}
-event_list = {600:'vad_flag',108:'PMD'}
 moments = {
 	    _rpg.orpgevt.RADIAL_ACCT_REFLECTIVITY:'R',
 	    _rpg.orpgevt.RADIAL_ACCT_VELOCITY:'V',
 	    _rpg.orpgevt.RADIAL_ACCT_WIDTH:'W',
 	    _rpg.orpgevt.RADIAL_ACCT_DUALPOL:'D'
 	  }
+##                          
+# Utility fxn defs
+##
+def stripList(list1):
+        return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
+def hasNumbers(inputString):
+        return any(char.isdigit() for char in inputString)
+##
+# Pack data in a single-line Server-Sent Event (SSE) format
+##
 
-def ADAPT_INIT(arg):
-    dump = subprocess.Popen('print_dea '+arg,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    out = dump.communicate()
-    parse = out[0].split('\n')
-    return [x.split(':')[1] for x in parse if 'value' in x][0].replace(',','').strip()
+def sse_pack_single(d):
+    buffer = ''
+    for k in ['retry','id','data','event']:
+        if k in d.keys():
+            buffer += '%s: %s\n' % (k, d[k])
+    return buffer + '\n'
+##
+# Packs data in a multi-line Server-Sent Event (SSE) format
+##
 
+def sse_pack(data,attr):
+    buffer = 'retry: %s\n\n' % attr['retry']
+    for d in xrange(4):
+        if d in data.keys():
+            buffer += 'id: %s\n' % str(attr['id'+str(d)])
+            buffer += 'event: %s\n' % data[d]
+            buffer += 'data: %s\n\n' % data['data'+str(d)]
+    return buffer
 
-ADAPT_dict = {'ICAO':ADAPT_INIT('site_info.rpg_name'),'ZR_mult':ADAPT_INIT('alg.hydromet_rate.zr_mult'),'ZR_exp':ADAPT_INIT('alg.hydromet_rate.zr_exp'),'ptype':ADAPT_INIT('alg.dp_precip.Precip_type')}
-	
-max_sails_init = ADAPT_INIT('pbd.n_sails_cuts')
+##
+# Packs server response in a compressed format 
+##
+
+def gzip_response(resp):
+    web.webapi.header('Content-Encoding','gzip')
+    zbuf = StringIO.StringIO()
+    zfile = gzip.GzipFile(mode='wb',fileobj=zbuf,compresslevel=9)
+    zfile.write(resp)
+    zfile.close()
+    data = zbuf.getvalue()
+    web.webapi.header('Content-Length',str(len(data)))
+    web.webapi.header('Vary','Accept-Encoding',unique=True)
+    return data
+
 
 ##
 # Method for initializing a static RDA Lookup dictionary
@@ -61,17 +95,6 @@ def RDA_static():
     return RS_states
 
 
-def gzip_response(resp):
-    web.webapi.header('Content-Encoding','gzip')
-    zbuf = StringIO.StringIO()
-    zfile = gzip.GzipFile(mode='wb',fileobj=zbuf,compresslevel=9)    
-    zfile.write(resp)
-    zfile.close()
-    data = zbuf.getvalue()
-    web.webapi.header('Content-Length',str(len(data)))
-    web.webapi.header('Vary','Accept-Encoding',unique=True)
-    return data 
-
 ##
 # Callback for radome event handling 
 ##
@@ -89,6 +112,10 @@ def RADOME_callback(event, msg_data):
 			    'last_elev':msg.last_ele_flag
 
 			})
+#######################################################################
+# Fxn defs to initialize data on initial server connect and on callbacks
+#######################################################################
+
 def VAD_init():
     vad_flag = _rpg.libhci.hci_get_vad_update_flag()
     return vad_flag
@@ -106,8 +133,11 @@ def RPG_state_init():
     RPG_state = [task.replace('ORPGMISC_IS_RPG_STATUS_','') for task in RPG_state_list if _rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))]
     if not RPG_state:
         RPG_state.append("SHUTDOWN")
-    return RPG_state
+    return ",".join(RPG_state)
 
+##
+# Initialize RDA lookup dict
+##
 
 RS_states = RDA_static()
 RS_dict_init = {}
@@ -231,21 +261,67 @@ def RPG_op_init():
     RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
     return ",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_','')
 
+def ADAPT_init():
+    ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
+    zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
+    zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
+    ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
+    max_sails = _rpg.librpg.deau_get_string_values('pbd.n_sails_cuts')
+    return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ZR_exp':zr_exp[1][0],'ptype':ptype[1],'max_sails':max_sails}
+
+def RPG_status_init():
+    s = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
+    parse_s = s[1][:s[0]-1].split(' ')
+    tstamp = s[2]
+    tstamp_s = s[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
+    s1 = months[int(datetime.datetime.fromtimestamp(tstamp_s).strftime('%m'))-1]
+    s2 = datetime.datetime.fromtimestamp(tstamp_s).strftime('%-d,%y [%H:%M:%S]')
+    rpg_status = s1+' '+s2+' >> '+" ".join([x for x in parse_s if '\\x' not in repr(x)]).replace('\n','');
+    return {
+	    'rpg_status':rpg_status,
+	    'rpg_status_ts':tstamp_s
+    }
+
+
+nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
+
+def HCI_status_init():
+    nb = _rpg.libhci.hci_get_nb_connection_status()
+    return {
+	    'nb':nb_dict[nb]
+    }
+def model_flag_init():
+    model_flag = _rpg.libhci.hci_get_model_update_flag()
+    return model_flag
+
+##
+# Init functions initialize this global dictionary, callback functions update it, and then the server checks for changes and pushes updates when necessary
+# //TODO: There are still several RPG items that are being polled every 2 seconds, need to implement ORPGDA_UN_register to get callbacks for them.
+##
+
 Global_dict = {
 	 	'vad_flag':VAD_init(),
 		'PMD':PMD_init(),
+		'HCI':HCI_status_init(),
 		'RPG':{
 			'RPG_state':RPG_state_init(),
+			'RPG_status':RPG_status_init(),
 			'RPG_alarm':RPG_alarm_init(),
-			'RPG_op':RPG_op_init()
+			'RPG_op':RPG_op_init(),
+			'model_update':model_flag_init()
 		      },
 		'RDA':{
 			'RDA_static':RS_init(),
 			'RDA_alarms':RDA_alarms_init(),
 			'CRDA':CRDA_init()
 		      },
-		'LOADSHED':LOADSHED_init()
+		'LOADSHED':LOADSHED_init(),
+		'ADAPT':ADAPT_init()
 	      }
+
+################################################################################
+# Callback defs //TODO: make a generic callback function that can handle any event
+################################################################################
 
 def VAD_callback(event,msg_data):
     Global_dict.update({'vad_flag':VAD_init()})   
@@ -273,9 +349,24 @@ def LOADSHED_callback(event,msg_data):
 
 def RPG_op_callback(event,msg_data):
     Global_dict.update({'RPG':{'RPG_op':RPG_op_init()}})
-##
-# Register Callbacks 
-##
+
+def ADAPT_callback(event,msg_data):
+    Global_dict.update({'ADAPT':ADAPT_init()})
+
+def RPG_status_callback(event):
+    Global_dict.update({'RPG':{'RPG_status':RPG_status_init()}})
+
+def HCI_callback(event):
+    Global_dict.update({'HCI':HCI_status_init()})
+
+def model_data_callback(event):
+    Global_dict.update({'RPG':{'model_flag':model_flag_init()}})
+
+
+############################################
+# Register Event Notification (EN) Callbacks 
+############################################
+
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, RADOME_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_ENVWND_UPDATE,VAD_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_PERF_MAIN_RECEIVED,PMD_callback)
@@ -286,36 +377,23 @@ _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RDA_ALARMS_UPDATE,RDA_alarms_callbac
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RPG_ALARM,RPG_alarm_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_LOAD_SHED_CAT,LOADSHED_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RPG_OPSTAT_CHANGE,RPG_op_callback)
-##			    
-# Utility fxn defs
-##
-def stripList(list1):
-	return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
-def hasNumbers(inputString):
-	return any(char.isdigit() for char in inputString)
-##
-# Pack data in SSE format
-##
+_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_ADAPT_UPDATE,ADAPT_callback)
 
-def sse_pack_single(d):
-    buffer = ''
-    for k in ['retry','id','data','event']:
-        if k in d.keys():
-            buffer += '%s: %s\n' % (k, d[k])
-    return buffer + '\n'
+################################################
+# Register LB Update Notification (UN) Callbacks
+################################################
 
-def sse_pack(data,attr):
-    buffer = 'retry: %s\n\n' % attr['retry']
-    for d in xrange(4):
-	if d in data.keys():
-	    buffer += 'id: %s\n' % str(attr['id'+str(d)])
-	    buffer += 'event: %s\n' % data[d]
-	    buffer += 'data: %s\n\n' % data['data'+str(d)]	
-    return buffer
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.lb.LB_ALL,RPG_status_callback)
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.lb.LB_ALL,HCI_callback) # //TODO: Register for specific LB_id_t HCI_PROD_INFO_STATUS_MSG_ID located in hci.h 
+
+ewt_data_id = ((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)
+_rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,model_data_callback)
+
+
 
 
 ##
-# Flag setting function
+# STATEFL flag setting function
 ##
 
 class Set_Flag(object):
@@ -340,7 +418,7 @@ class ORPGSAILS_set(object):
 	return json.dumps(commanded_cuts)
 
 ##
-# Sends RDA Commands 
+# Sends RDA Commands using CRDA 
 ##
 class Send_RDACOM(object):
     def POST(self):
@@ -364,7 +442,7 @@ class Send_RDACOM(object):
         commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req][0],0,0,0,0,_rpg.CharVector())
         return json.dumps(commanded)
 ##
-# Returns a dictionary of all RDA data 
+# Returns a dictionary of all necessary data from the RDA status message 
 ##
 def RS():
     RS_dict = {}
@@ -377,7 +455,7 @@ def RS():
 		    })
     return RS_dict
 ##
-# Method for retrieving RPG data 
+# Returns a dictionary of all necessary RPG states/flags
 ##
 
 def RPG():
@@ -387,37 +465,28 @@ def RPG():
 	precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
         clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()	
 	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
-	msg = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
-	parse_msg = msg[1][:msg[0]-1].split(' ')
-	tstamp = msg[2]
-	tstamp_msg = msg[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);	
-	st1 = months[int(datetime.datetime.fromtimestamp(tstamp_msg).strftime('%m'))-1]
-	st2 = datetime.datetime.fromtimestamp(tstamp_msg).strftime('%-d,%y [%H:%M:%S]')
-	rpg_status = st1+' '+st2+' >> '+" ".join([x for x in parse_msg if '\\x' not in repr(x)]).replace('\n','');
-	nb = _rpg.libhci.hci_get_nb_connection_status()
-	nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
-	model_flag = _rpg.libhci.hci_get_model_update_flag()
 	RPG_dict.update(Global_dict['RPG']['RPG_alarm']) 
 	RPG_dict.update({
 			'sails_allowed':sails_allowed,
 			'sails_cuts':sails_cuts,
 			'ORPGVST':ORPGVST,
-			'RPG_state':",".join(Global_dict['RPG']['RPG_state']),
+			'RPG_state':Global_dict['RPG']['RPG_state'],
 			'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
 			'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
 			'RPG_op':Global_dict['RPG']['RPG_op'],
-			'RPG_status':rpg_status,
-			'RPG_status_ts':tstamp,
+			'RPG_status':Global_dict['RPG']['RPG_status']['rpg_status'],
+			'RPG_status_ts':Global_dict['RPG']['RPG_status']['rpg_status_ts'],
 			'mode_A_auto_switch':precip_switch,
 			'mode_B_auto_switch':clear_air_switch,
 	 		'loadshed':Global_dict['LOADSHED'],
-	  		'narrowband':nb_dict[nb],
-			'Model_Update':model_flag,
+	  		'narrowband':Global_dict['HCI']['nb'],
+			'Model_Update':Global_dict['RPG']['model_update'],
 			'VAD_Update':Global_dict['vad_flag'],
 			})
 	return RPG_dict
+
 ##
-# Method for retrieving Performance/ Maintenance Data and more from libhci
+# Returns a dictionary of all Performance/ Maintenance Data and more from libhci
 ##	
 def PMD():
 	prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
@@ -435,26 +504,23 @@ def PMD():
 		'v_delta_dbz0':Global_dict['PMD']['v_delta_dbz0'],
 		'h_delta_dbz0':Global_dict['PMD']['h_delta_dbz0']
 	}
+
 ##
-# Method for retrieving Adaptation Data using DEAU
+# Returns a dictionary of all necessary Adaptation data for the HCI
 ##
 def ADAPT():
-	#ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
-	#zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
-	#zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
-	#ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
-#	return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ZR_exp':zr_exp[1][0],'ptype':ptype[1]}
-	return ADAPT_dict
+	return Global_dict['ADAPT']
+
 ##
-# Method for retrieving VCP Configuration Data by parsing the RPG VCP definitions
+# Method for retrieving all necessary config data by parsing the RPG VCP definitions
 ##
 def CFG():
 	allow_sails = {}
         last_elev = {}
         super_res = {}
-        dir_list_parse = [x for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
+        dir_list_parse = [x for x in os.listdir(VCP_DIR) if x.split('_')[0] == 'vcp']
         for vcp in dir_list_parse:
-            fname = vcp_dir+vcp
+            fname = VCP_DIR+vcp
             try:
                 f = open(fname,'r')
                 text_lines = list(f)
@@ -465,7 +531,7 @@ def CFG():
             else:
                 temp = {vcp.replace('vcp_',''):0}
             allow_sails.update(temp)
-	    max_sails = max_sails_init
+	    max_sails = Global_dict['ADAPT']['max_sails']
 	    temp = max([float(x.replace('elev_ang_deg','').replace("\n",'').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x])
             last_elev.update({vcp.replace('vcp_',''):temp})
             temp = dict((x.replace('\n','').replace('elev_ang_deg','').replace(' ','').replace('{',''),text_lines[text_lines.index(x)+3].replace('super_res','').replace('\n','').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x)
@@ -478,6 +544,7 @@ def CFG():
 		    'home':HOME
 		    }
 	return CFG_dict 
+
 ##
 # Renders the main HCI using the LOOKUP global templating function 
 ##
@@ -507,7 +574,7 @@ class Update_Server(object):
 	while True:
 	    data = {}
 	    check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
-	    if update_dict == {}: 
+	    if update_dict == {}: # if no changes do nothing
 		pass
 	    else:
 	        for idx,val in enumerate(update_dict):
@@ -516,18 +583,18 @@ class Update_Server(object):
 	    	    attr.update({'id'+str(idx):event_id})
 	        yield sse_pack(data,attr)
 	    time.sleep(2)
-	    update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v)
+	    update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v) # compare dicts for changes 
 ##
 # Radome Rapid Update 
 ##
 class Radome(object):
     def GET(self):
-        web.header("Content-Type","text/event-stream")
-	web.header("Cache-Control","no-cache")
+        web.header("Content-Type","text/event-stream") 
+	web.header("Cache-Control","no-cache") # caching must be turned off or it will fill up quickly
 	msg = {'retry':'4000'} # connection loss timeout
-        event_id = 0
+        event_id = 0 
         while True:
-            radome_update = event_holder
+            radome_update = event_holder # write global variable to local as the global is constantly being written to by the callback fxn
             try:
                 moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
                 radome_update.update({'moments':moments_list})
@@ -538,8 +605,8 @@ class Radome(object):
                         'id':event_id
             })
             yield sse_pack_single(msg)
-            event_id += 1
-            time.sleep(1)
+            event_id += 1 # provide unique event id so the client can distinguish between messages
+            time.sleep(1) # 1 second updates 
 ##
 # Retrieves the scheduled time for the performance check
 ##
@@ -561,5 +628,5 @@ class Button(object):
     def GET(self):
 	selected_button = web.input(id=None)
 	if selected_button.id not in commands.getoutput('ps -A'):
-	    return subprocess.Popen(selected_button.id).wait()
+	    return subprocess.Popen(selected_button.id).wait() # //TODO: using wait() can be dangerous, find another way to implement this 
 

@@ -479,7 +479,7 @@ $(document).ready(function(){
 	non_rapid.addEventListener('ADAPT',function(e) {
 	    var ADAPT = JSON.parse(e.data)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
-	    switch(ADAPT['ZR_mult']){
+	    switch(Number(ADAPT['ZR_mult'])){
 		case DATA.zrCats.CONVECTIVE:
 		    $('#Z-R').html('CONVECTIVE')
 		    break;
