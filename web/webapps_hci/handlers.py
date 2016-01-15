@@ -140,6 +140,8 @@ def RPG_state_init():
 ##
 
 RS_states = RDA_static()
+RDA_alarms_all = [x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
+
 RS_dict_init = {}
 
 def RS_init():
@@ -166,6 +168,7 @@ def RS_init():
                'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),
                'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')
     }
+
 
 
 def CRDA_init():
@@ -267,7 +270,17 @@ def ADAPT_init():
     zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
     ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
     max_sails = _rpg.librpg.deau_get_string_values('pbd.n_sails_cuts')
-    return {'ICAO':ICAO[1],'ZR_mult':zr_mult[1][0],'ZR_exp':zr_exp[1][0],'ptype':ptype[1],'max_sails':max_sails}
+    precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
+    clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()
+    return {
+	    'ICAO':ICAO[1],
+	    'ZR_mult':zr_mult[1][0],
+	    'ZR_exp':zr_exp[1][0],
+	    'ptype':ptype[1],
+	    'max_sails':max_sails,
+	    'precip_switch':precip_switch,
+	    'clear_air_switch':clear_air_switch
+    }
 
 def RPG_status_init():
     s = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
@@ -294,6 +307,42 @@ def model_flag_init():
     model_flag = _rpg.libhci.hci_get_model_update_flag()
     return model_flag
 
+def SAILS_init():
+    sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
+    sails_allowed = _rpg.liborpg.orpgsails_allowed()
+    return {
+	    'cuts':sails_cuts,
+	    'allowed':sails_allowed
+    }
+ 
+def ORPGVST_init():
+    ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
+    return ORPGVST
+
+def STATEFL_init():
+    return {
+    	    'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
+    	    'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled()
+    }
+
+def WX_init():
+    mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
+    mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
+    return {
+	    'mode_conflict':mode_conflict,
+	    'mode_trans':mode_trans
+    }
+
+def PRECIP_init():
+    precip = _rpg.libhci.hci_get_precip_status().current_precip_status    
+    return precip
+
+prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
+
+def PRF_init():
+    prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
+    return prf_dict[prf]
+
 ##
 # Init functions initialize this global dictionary, callback functions update it, and then the server checks for changes and pushes updates when necessary
 # //TODO: There are still several RPG items that are being polled every 2 seconds, need to implement ORPGDA_UN_register to get callbacks for them.
@@ -313,10 +362,17 @@ Global_dict = {
 		'RDA':{
 			'RDA_static':RS_init(),
 			'RDA_alarms':RDA_alarms_init(),
-			'CRDA':CRDA_init()
+			'CRDA':CRDA_init(),
+			'RDA_alarms_all':RDA_alarms_all
 		      },
 		'LOADSHED':LOADSHED_init(),
-		'ADAPT':ADAPT_init()
+		'ADAPT':ADAPT_init(),
+		'SAILS':SAILS_init(),
+		'ORPGVST':ORPGVST_init(),
+		'STATEFL':STATEFL_init(),
+		'WX':WX_init(),
+		'PRECIP':PRECIP_init(),
+		'PRF':PRF_init()
 	      }
 
 ################################################################################
@@ -362,6 +418,23 @@ def HCI_callback(event):
 def model_data_callback(event):
     Global_dict.update({'RPG':{'model_flag':model_flag_init()}})
 
+def SAILS_callback(event):
+    Global_dict.update({'SAILS':SAILS_init()})
+
+def ORPGVST_callback(event):
+    Global_dict.update({'ORPGVST':ORPGVST_init()})
+
+def STATEFL_callback(event):
+    Global_dict.update({'STATEFL':STATEFL_init()})
+
+def WX_callback(event):
+    Global_dict.update({'WX':WX_init()})
+
+def PRECIP_callback(event):
+    Global_dict.update({'PRECIP':PRECIP_init()})
+
+def PRF_callback(event):
+    Global_dict.update({'PRF':PRF_init()})
 
 ############################################
 # Register Event Notification (EN) Callbacks 
@@ -384,13 +457,16 @@ _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_ADAPT_UPDATE,ADAPT_callback)
 ################################################
 
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.lb.LB_ALL,RPG_status_callback)
-_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.lb.LB_ALL,HCI_callback) # //TODO: Register for specific LB_id_t HCI_PROD_INFO_STATUS_MSG_ID located in hci.h 
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PROD_INFO_STATUS_MSG_ID,HCI_callback) 
 
 ewt_data_id = ((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)
 _rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,model_data_callback)
-
-
-
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,SAILS_callback)
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,ORPGVST_callback)
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_RPG_INFO,_rpg.orpgdat.Orpginfo_msgids_t.ORPGINFO_STATEFL_SHARED_MSGID,STATEFL_callback) 
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,WX_callback)
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,PRECIP_callback)
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,PRF_callback)
 
 ##
 # STATEFL flag setting function
@@ -451,7 +527,7 @@ def RS():
     RS_dict.update({
       		    'latest_alarm':Global_dict['RDA']['RDA_alarms'],
 		    'RDA_static':Global_dict['RDA']['RDA_static'],
-		    'RDA_alarms_all':[x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
+		    'RDA_alarms_all':Global_dict['RDA']['RDA_alarms_all']
 		    })
     return RS_dict
 ##
@@ -460,24 +536,19 @@ def RS():
 
 def RPG():
 	RPG_dict = {}
-	sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
-	sails_allowed = _rpg.liborpg.orpgsails_allowed()
-	precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
-        clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()	
-	ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
 	RPG_dict.update(Global_dict['RPG']['RPG_alarm']) 
 	RPG_dict.update({
-			'sails_allowed':sails_allowed,
-			'sails_cuts':sails_cuts,
-			'ORPGVST':ORPGVST,
+			'sails_allowed':Global_dict['SAILS']['allowed'],
+			'sails_cuts':Global_dict['SAILS']['cuts'],
+			'ORPGVST':Global_dict['ORPGVST'],
 			'RPG_state':Global_dict['RPG']['RPG_state'],
-			'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
-			'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled(),
+			'RPG_AVSET':Global_dict['STATEFL']['RPG_AVSET'],
+			'RPG_SAILS':Global_dict['STATEFL']['RPG_SAILS'],
 			'RPG_op':Global_dict['RPG']['RPG_op'],
 			'RPG_status':Global_dict['RPG']['RPG_status']['rpg_status'],
 			'RPG_status_ts':Global_dict['RPG']['RPG_status']['rpg_status_ts'],
-			'mode_A_auto_switch':precip_switch,
-			'mode_B_auto_switch':clear_air_switch,
+			'mode_A_auto_switch':Global_dict['ADAPT']['precip_switch'],
+			'mode_B_auto_switch':Global_dict['ADAPT']['clear_air_switch'],
 	 		'loadshed':Global_dict['LOADSHED'],
 	  		'narrowband':Global_dict['HCI']['nb'],
 			'Model_Update':Global_dict['RPG']['model_update'],
@@ -489,17 +560,11 @@ def RPG():
 # Returns a dictionary of all Performance/ Maintenance Data and more from libhci
 ##	
 def PMD():
-	prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
-	precip = _rpg.libhci.hci_get_precip_status().current_precip_status
-	wx = _rpg.libhci.hci_get_wx_status().mode_select_adapt
-	prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
-	mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
-	mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
 	return {
-		"prf":prf_dict[prf],
-		"mode_conflict":mode_conflict,
-		"mode_trans":mode_trans,
-		"current_precip_status":precip,	
+		"prf":Global_dict['PRF'],
+		"mode_conflict":Global_dict['WX']['mode_conflict'],
+		"mode_trans":Global_dict['WX']['mode_trans'],
+		"current_precip_status":Global_dict['PRECIP'],	
 		"cnvrtd_gnrtr_fuel_lvl":Global_dict['PMD']['cnvrtd_gnrtr_fuel_lvl'],
 		'v_delta_dbz0':Global_dict['PMD']['v_delta_dbz0'],
 		'h_delta_dbz0':Global_dict['PMD']['h_delta_dbz0']
