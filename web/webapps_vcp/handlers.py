@@ -70,7 +70,7 @@ class List_VCPS(object):
 ##
 class VCP_command_control(object):
     def GET(self):
-	dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
+        dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
         complete = {}
         for vcp in dir_list_parse:	
             fname = vcp_dir+'/vcp_'+vcp
@@ -90,16 +90,16 @@ class VCP_command_control(object):
             # counts whitespaces to determine line indentation pattern
             indent_open = []
             for j in text_open:
-        	    indent_open.append((len(text_lines[j]) - len(text_lines[j].lstrip())))
+        	indent_open.append((len(text_lines[j]) - len(text_lines[j].lstrip())))
             indent_closed = []
             for b in text_closed:
-        	    indent_closed.append((len(text_lines[b]) - len(text_lines[b].lstrip())))
+        	indent_closed.append((len(text_lines[b]) - len(text_lines[b].lstrip())))
             del indent_open[1]
             indent_open.append(8)
             indent_difference = [a - b for a, b in zip(indent_open,indent_closed)]
             for n,i in enumerate(indent_difference):
-        	    if i==-4:
-        		indent_difference[n]=2
+        	if i==-4:
+        	    indent_difference[n]=2
             # distinguishes between Doppler cuts and Surveillance cuts (necessary as they have inherently incompatible hiearchy; Doppler cuts contain sector data)
             strtest = ''.join(str(e) for e in indent_difference)
 	    index_start = [idx for idx,val in enumerate(strtest) if val == '0' and strtest[idx+1] == '0' and strtest[idx+2] == '4']
@@ -128,10 +128,10 @@ class VCP_command_control(object):
                 substr = substr.split()
                 break_length = len(substr)-1
                 for idx in xrange(0,break_length,2):
-            		if substr[idx+1].replace('.','').isdigit():
-            	    		temp1 = {substr[idx]:float(substr[idx+1])}
-            		else:
-            	    		temp = {substr[idx]:(substr[idx+1])}		    
+            	    if substr[idx+1].replace('.','').isdigit():
+            	    	temp1 = {substr[idx]:float(substr[idx+1])}
+            	    else:
+            	    	temp = {substr[idx]:(substr[idx+1])}		    
                 subdict.update(temp)
                 subdict.update(temp1)
                 elev_multi_dict.update(subdict)
@@ -143,27 +143,27 @@ class VCP_command_control(object):
                 line_num2 = 0
                 substr4 = newstr[3:len(newstr)]
                 for line in substr4:
-            		if line.find('SNR_thresh_dB') >= 0:
-            	    		break
-            		line_num1+=1
+            	    if line.find('SNR_thresh_dB') >= 0:
+            	    	break
+            	    line_num1+=1
                 del substr4[line_num1]
                 for line in substr4:
-            		if line.find('dop_pulses') >= 0:
-            	    		break
-            		line_num2 +=1	
+            	    if line.find('dop_pulses') >= 0:
+            	    	break
+            	    line_num2 +=1	
                 del substr4[line_num2]
                 substr4 = stripList(substr4)
                 substr4 = substr4.strip(',').split(',')
                 for elem in substr4:
-            		temp = elem.split()
-            		if temp == []:
-            	    		continue
-            		else:
-            	    		if str(temp).replace('.','').isdigit():
-            					temp_dict = {temp[0]:float(temp[1])}
-            	    		else:
-            					temp_dict = {temp[0]:(temp[1])}
-            		elev_multi_dict.update(temp_dict)
+            	    temp = elem.split()
+            	    if temp == []:
+            	    	continue
+            	    else:
+            	    	if str(temp).replace('.','').isdigit():
+            	  	    temp_dict = {temp[0]:float(temp[1])}
+            	    	else:
+            		    temp_dict = {temp[0]:(temp[1])}
+            	    elev_multi_dict.update(temp_dict)
                 newstr = "".join([text_lines[x] for x in xrange(start+1,start+28)])
 		edge_angles = [float(x.replace('edge_angle','').replace(' ','')) for x in newstr.split('\n') if 'edge_angle' in x]
 		dop_prfs = [float(x.replace('dop_prf','').replace(' ','')) for x in newstr.split('\n') if 'dop_prf' in x]
@@ -222,10 +222,11 @@ class VCP_command_control(object):
             allowable = {'allowable_prfs':[stripList(x.replace('allowable_prfs','')) for x in text_lines if 'allowable_prfs' in x]}	
 	    start_attr = text_lines.index((x for x in text_lines if 'VCP_attr' in x).next())
 	    end_attr = text_lines.index((x for x in text_lines if 'Elev_attr' in x).next())
-            main = filter(None,"".join([text_lines[x] for x in xrange(start_attr+2,end_attr-2)]).split('\n'))
+            main = filter(None,"".join([text_lines[x] for x in xrange(start_attr+2,end_attr-8)]).split('\n'))
 	    main_dict = {}
             for elem in main:
             	temp = elem.split()
+		print temp
             	if temp[1].replace('.','').isdigit():
             		temp_dict = {temp[0]:float(temp[1])}
             	else:
@@ -413,7 +414,7 @@ class Parse_VCPS(object):
 	allowable = {'allowable_prfs':[stripList(x.replace('allowable_prfs','')) for x in text_lines if 'allowable_prfs' in x]}	
 	start_attr = text_lines.index((x for x in text_lines if 'VCP_attr' in x).next())
         end_attr = text_lines.index((x for x in text_lines if 'Elev_attr' in x).next())
-        main = filter(None,"".join([text_lines[x] for x in xrange(start_attr+2,end_attr-2)]).split('\n'))
+        main = filter(None,"".join([text_lines[x] for x in xrange(start_attr+2,end_attr-8)]).split('\n'))
 	main_dict = {}
 	for elem in main:
 		temp = elem.split()
