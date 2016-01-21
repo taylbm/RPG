@@ -25,15 +25,28 @@ def stripList(list1):
         return str(list1).replace('[','').replace(']','').replace('\'','').strip().strip('\\n')
 def hasNumbers(inputString):
         return any(char.isdigit() for char in inputString)
+
+
+def RDA_state_init():
+    vcp_num = _rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER)
+    vel_res = _rpg.libhci.hci_current_vcp_get_vel_resolution()
+    vel_res_dict = {_rpg.orpgrda.CRDA_VEL_RESO_HIGH:'label-high',_rpg.orpgrda.CRDA_VEL_RESO_LOW:'label-low'}
+    return {'vcp_num':vcp_num,'vel_res':vel_res_dict[vel_res]}
+
+RDA_state = RDA_state_init()
+
+def RDA_state_callback():
+    RDA_state.update(RDA_state_init())
+
+_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RDA_STATUS_CHANGE,RDA_state_callback)
+
+
 ##
 # Retrieves current VCP 
 ##
 class Current_VCP(object):
     def GET(self):
-	vcp_num = _rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER)
-	vel_res = _rpg.libhci.hci_current_vcp_get_vel_resolution()
-	vel_res_dict = {_rpg.orpgrda.CRDA_VEL_RESO_HIGH:'label-high',_rpg.orpgrda.CRDA_VEL_RESO_LOW:'label-low'}
-        return json.dumps({'vcp_num':vcp_num,'vel_res':vel_res_dict[vel_res]})
+        return json.dumps(RDA_state)
 ##
 # Sends RDA Commands 
 ##
@@ -55,7 +68,7 @@ class Send_RDACOM(object):
 	return json.dumps(commanded)
 ##
 # Retrieves VCP list from cfg directory
-0##
+##
 class List_VCPS(object):
     def GET(self):
   	dir_list = [x for x in (os.listdir(vcp_dir)) if len(x.split('_')) < 3]
