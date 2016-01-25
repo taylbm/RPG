@@ -17,6 +17,7 @@ import cgi
 from templating import LOOKUP
 
 vcp_dir = CFG+'/vcp/'
+vcp_desc = CFG+'/web/static/static_vcp/vcp_desc.json'
 
 ##
 # Utility fxn defs
@@ -91,7 +92,7 @@ class VCP_command_control(object):
                 f = open(fname,'r')
                 text_lines = list(f)
             except Exception,e:
-            	print ("error")
+            	print ("vcp def read error")
             # creates custom display data
 	    elev_list = [x for x in text_lines if 'elev_ang_deg' in x]
             unique_elevs = len(set(elev_list))
@@ -239,7 +240,6 @@ class VCP_command_control(object):
 	    main_dict = {}
             for elem in main:
             	temp = elem.split()
-		print temp
             	if temp[1].replace('.','').isdigit():
             		temp_dict = {temp[0]:float(temp[1])}
             	else:
@@ -272,6 +272,12 @@ class VCP_command_control(object):
             # python dictionary returned 
             temp_fulldict = {vcp:full}
             complete.update(temp_fulldict)
+        try:
+            VCP_Desc = json.loads(open(vcp_desc).read())
+	    complete.update(VCP_Desc)
+        except Exception,e:
+            print ("vcp desc read error")
+
         return LOOKUP.VCP_command_control(**complete)
 ##
 # Parses VCP data in cfg/vcp for display -> output as .json 
