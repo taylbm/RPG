@@ -33,6 +33,21 @@
 ###
 ### body
 ###
+
+<%
+
+vcp_list = [x for x in context.keys() if x.isdigit()]
+
+%>
+
+
+
+<%
+check_url = "checkmark"
+x_url = "delete"
+e = "N/A"
+%>
+
 <div data-role="header">
     <a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
     <h2>VCP Mode and Control</h2>
@@ -40,7 +55,9 @@
 <a id="vcp-def-link" href="#vcp-def"></a>
 <a id="vel-pop-link" href="#vel-pop" data-rel="popup" data-position-to="window" data-transition="pop"></a>
 <div id="content">
-    <div data-role="popup" id="vcp-desc">
+
+% for vcp in vcp_list:
+    <div data-role="popup" id="vcp-desc-${vcp}">
         <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
         <div data-role="header">
             <h1 class="vcp-desc-title"></h1>
@@ -49,10 +66,22 @@
             <div id="vcp-desc-text" class="ui-body ui-body-a" style="height:600px; overflow:auto;">
                 <ul type="square" data-role="listview" data-inset="false" style="padding-top:0.5em;">
                     <li data-role="list-divider">Parameters</li>
+		% for param in context.get('vcp_'+vcp,e).get("DESC").get("Parameters"):
+		    <li>${param}</li>	
+		% endfor
+                    <li data-role="list-divider">Strengths/Applications</li>
+                % for strength_app in context.get('vcp_'+vcp,e).get("DESC").get("Strengths/Applications"):
+                    <li>${strength_app}</li>
+                % endfor
+                    <li data-role="list-divider">Limitations</li>
+                % for limit in context.get('vcp_'+vcp,e).get("DESC").get("Limitations"):
+                    <li>${limit}</li>
+                % endfor
                 </ul>
             </div>
         </div>
     </div>
+% endfor
     <div data-role="popup" id="vcp-confirm" data-dismissable="true" style="padding:25px;">
         <div data-role="header">
             <h1 class="vcp-prompt">Confirmation</h1>
@@ -74,20 +103,6 @@
 	    </div>
         </div>
     </div>
-<%
-
-vcp_list = [x for x in context.keys() if x.isdigit()]
-
-%>
-
-
-
-<%
-check_url = "checkmark"
-x_url = "delete"
-%>
-
-
 
 % for vcp in vcp_list:
     % if context.get(vcp).get("multi").get("bool"):
@@ -143,7 +158,7 @@ x_url = "delete"
                     <p style="font-size:12px">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p>        
                     <p class="interval">Update Interval: ${vcp} - ${context.get(vcp).get('update_interval')} / ${other_vcp} - ${context.get(other_vcp).get('update_interval')}</p>
                 </div>
-                <a href="#vcp-desc" id="${vcp}/${other_vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${vcp} Sample Info</p><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${other_vcp} Sample Info</p></a>
+                <a href="#vcp-desc-${vcp}" id="${vcp}/${other_vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="font-size:14px;text-indent:0.5em; padding-left:0.5em;">${context.get('vcp_'+vcp,e).get('INFO')}</p><p style="text-indent:0.5em; padding-left:0.5em;"></p></a>
             </div>
         </div>
     % else:			
@@ -174,7 +189,7 @@ x_url = "delete"
         	    </table>
         	    <p style="font-size:12px">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p><p class="interval">Update Interval: ${context.get(vcp).get('update_interval')}</p>
 		</div>
-                <a href="#vcp-desc" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="text-indent:0.5em; padding-left:0.5em;">VCP ${vcp} Info</p></a>
+                <a href="#vcp-desc-${vcp}" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="font-size:14px;text-indent:0.5em; padding-left:0.5em;">${context.get('vcp_'+vcp,e).get('INFO')}</p></a>
             </div>
     	</div>
     % endif

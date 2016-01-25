@@ -1,0 +1,159 @@
+{
+	"vcp_215": {
+		"INFO": "VCP 215 is designed for improved vertical coverage during routine weather surveillance. Duration 6 mins. AVSET and SAILS available. Non-severe events.",
+
+		"DESC": {
+			"Parameters": [
+				"Short pulse (1.57us; PRF 318 to 1304 Hz)",
+				"Unambiguous (Nyquist) velocity range 21 to 32 m/2 (41.5 to 62.5 knots)",
+				"Nine elevation angles",
+				"Seven-minute update rate",
+				"Velocity data within 300 km (161 nm) radius",
+				"Hydrometeorological data within 230 km (124 nm) radius",
+				"Reflectivity data within 460 km (248 nm) radius",
+				"Separate surveillance and Dopper scans are taken at the three lowest elevation angles to improve clutter filtering performance, maximize the velocity accuracy and unambiguous interval",
+				"SZ-2 Duppler processing for all three Split Cuts",
+				"All elevation angles are contiguous or overlap"
+			],
+			"Strengths/Applications": [
+				"Uses standard elevation set which result in seamless looping with precipitation mode VCPs",
+				"SZ-2 Doppler processing significantly reduces range-folded velocity data",
+				"Low signal-to-noise ratio (SNR) provides increased data coverage",
+				"Long azimuthal dwell times result in very good moment estimate standard deviation",
+				"Provides overlapping elevation coverage for the lowest levels of the atmosphere",
+				"Six elevation scans below 4&deg; (overlapping beam sampling)",
+				"Very good rainfall and snowfall estimates due to increased low-level scanning"
+			],
+			"Limitations": [
+				"Somewhat less sensitive than VCP 31",
+				"Cone of silence above 6.4&deg; elevation"
+			]
+		}
+	},
+	"vcp_212": {
+		"INFO": "VCP 212 is designed with good vertical resolution and SZ-2 Doppler processing for use in both deep severe and non-severe convective events.",
+		"DESC": {
+			"Parameters": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Strengths/Applications": [
+				"Best low level vertical sampling, uniform gaps aloft",
+				"Reduced RF data at low levels (SZ-2)",
+				"????",
+				"????"
+			],
+			"Limitations": [
+				"Doppler PRFs not editable on Split Cuts",
+				"????"
+			]
+		}
+	},
+	"vcp_121": {
+		"INFO": "VCP 121 provides rapid volume sampling updates to monitor changing radar echo patterns, while at the same time significantly reducing the amount of range folded (50-70% reduction) and incorrectly dealiased velocity data.",
+		"DESC": {
+			"Parameters": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Strengths/Applications": [
+				"Uniform low level sampling, significant gaps aloft",
+				"Almost no RF data at low levels (MPDA & SZ-2)",
+				"????",
+				"????"
+			],
+			"Limitations": [
+				"Doppler PRFs not editable",
+				"????"
+			]
+		}
+	},
+	"vcp_35": {
+		"INFO": "VCP 35 is designed for monitoring and tracking clear-air returns (e.g., discontinuities, boundary layer depth, vertical wind profiles, etc.,) and weak/shallow precipitation events.",
+		"DESC": {
+			"Parameters": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Strengths/Applications": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Limitations": [
+				"????",
+				"????"
+			]
+		}
+	},
+	"vcp_32": {
+		"INFO": "Designed to: 1) detect early formation of convective precipitation, 2) detect air mass discontinuities, 3) determine the depth of the mixing layer, 4) monitor precipitation onset, and 5) obtain wind profiles to supplement soundings.",
+		"DESC": {
+			"Parameters": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Strengths/Applications": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Limitations": [
+				"????",
+				"????"
+			]
+		}
+	},
+	"vcp_31": {
+		"INFO": "Designed to: 1) detect early formation of convective precipitation, 2) detect air mass discontinuities, 3) determine the depth of the mixing layer, 4) monitor precipitation onset, and 5) obtain wind profiles to supplement soundings.",
+		"DESC": {
+			"Parameters": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Strengths/Applications": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Limitations": [
+				"????",
+				"????"
+			]
+		}
+	},
+	"vcp_12": {
+		"INFO": "VCP 12 is designed for deep severe and non-severe convection, with good vertical resolution and the fastest volume scan update rate.",
+		"DESC": {
+			"Parameters": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Strengths/Applications": [
+				"????",
+				"????",
+				"????",
+				"????"
+			],
+			"Limitations": [
+				"????",
+				"????"
+			]
+		}
+	}
+}
