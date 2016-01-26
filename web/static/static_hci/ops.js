@@ -368,9 +368,6 @@ init();
 	$('#close').click(function(){
 		window.close();
 	});
-	$('#dqdbutton').click(function(){
-	    window.open("file:///export/home/orpg7/dqd/index.html","_blank")
-	});	
 		
     });
 	

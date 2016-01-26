@@ -853,6 +853,9 @@ $(document).ready(function(){
 	$('#rpg_misc').click(function(){
 		$.get("/button?id=hci_misc")
 	});
+	$('#rpg_dqd').click(function(){
+		$.get("/button?id=dqd")
+	});
 	$('#88D-ops').click(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");
         }); 	

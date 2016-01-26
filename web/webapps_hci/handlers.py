@@ -22,6 +22,7 @@ import gzip
 months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec']
 
 VCP_DIR = CFG+'/vcp/'
+cfg = str(CFG)
 DE = {'DISABLED':'off','ENABLED':'on'}
 SECONDS_PER_HOUR = 3600
 event_holder = {}
@@ -172,26 +173,29 @@ def RS_init():
 
 
 def CRDA_init():
-    CRDA_dict_init = {}
-    lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
-    RDA_COMMANDED = {
+    CRDA_dict_init = {'None':None}
+    try:
+        lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
+        RDA_COMMANDED = {
                 'RS_CMD':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'CMD' in x),
                 'RS_AVSET':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'AVSET' in x),
                 'RS_SUPER_RES':dict((lookup[x],DE[x.split('_')[1]]) for x in lookup.keys() if 'SR' in x)
-    }
-    for RCOM in RDA_COMMANDED.keys():
-        val = _rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,RCOM))
-        if val == -9999 or val == 0:
-            CRDA_dict_init.update({RCOM:'off'})
-        elif RCOM == 'RS_CMD' and val >= 1:
-            CRDA_dict_init.update({RCOM:'on'})
-        else:
-            CRDA_dict_init.update({RCOM:RDA_COMMANDED[RCOM][val]})
+        }
+        for RCOM in RDA_COMMANDED.keys():
+            val = _rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,RCOM))
+            if val == -9999 or val == 0:
+                CRDA_dict_init.update({RCOM:'off'})
+            elif RCOM == 'RS_CMD' and val >= 1:
+                CRDA_dict_init.update({RCOM:'on'})
+            else:
+                CRDA_dict_init.update({RCOM:RDA_COMMANDED[RCOM][val]})
+    except:
+        pass
     return CRDA_dict_init
 
 def RDA_alarms_init():
-    alarm_status = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_CODE)
     try:
+	alarm_status = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_CODE)
         latest_alarm_text = _rpg.liborpg.orpgrat_get_alarm_text(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_ALARM))
         yr = str(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_YEAR))
         mo = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_MONTH)
@@ -205,7 +209,7 @@ def RDA_alarms_init():
         ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
         uts = time.mktime(ts.timetuple())
         precedence = ts>tstamp_alarm
-        latest_alarm = {'precedence':precedence,'valid':1,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
+        latest_alarm = {'valid':1,'precedence':precedence,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
     except:
         latest_alarm = {'valid':0}
     return latest_alarm
@@ -606,7 +610,8 @@ def CFG():
 		    'allow_sails':allow_sails,
 		    'last_elev':last_elev,
 		    'super_res':super_res,
-		    'home':HOME
+		    'home':HOME,
+		    'cfg':cfg
 		    }
 	return CFG_dict 
 
