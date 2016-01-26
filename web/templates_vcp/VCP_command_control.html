@@ -115,7 +115,7 @@ e = "N/A"
                 vcp_list.remove(master)
 		other_vcp = master
         %>
-	<div class="ui-body ui-body-a ui-corner-all" style="height:120px;">
+	<div class="ui-body ui-body-a ui-corner-all" style="height:140px;">
             <div class="ui-grid-b">
                 <div class="ui-block-a">
                     <div class="ui-grid-a">
@@ -123,7 +123,7 @@ e = "N/A"
                             <li class="item${vcp} ui-first-child" data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${vcp}"href="#vcp-confirm" data-rel="popup">VCP ${vcp}</a></li>
                             <li class="item${other_vcp} ui-last-child" data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${other_vcp}"href="#vcp-confirm" data-rel="popup">VCP ${other_vcp}</a></li>
                         </ul>
-                        <a class="vcp-page-click ui-block-b" href="#vcp-${master}-page"><div id="vcp${master}-draw-overview" style="height:80px; width:160px;"></div></a>            
+                        <a class="vcp-page-click ui-block-b" href="#vcp-${master}-page"><div id="vcp${master}-draw-overview" style="height:100px; width:160px;"></div></a>            
                     </div>
                 </div>
                 <div class="vcp-multi ui-block-b ui-btn ui-corner-all ui-btn ui-btn-inline ui-btn-notext ui-corner-all">
@@ -158,7 +158,7 @@ e = "N/A"
                     <p style="font-size:12px">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # Batch Cuts: ${context.get(vcp).get('num_batch_cuts')}</p>        
                     <p class="interval">Update Interval: ${vcp} - ${context.get(vcp).get('update_interval')} / ${other_vcp} - ${context.get(other_vcp).get('update_interval')}</p>
                 </div>
-                <a href="#vcp-desc-${vcp}" id="${vcp}/${other_vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="font-size:14px;text-indent:0.5em; padding-left:0.5em;">${context.get('vcp_'+vcp,e).get('INFO')}</p><p style="text-indent:0.5em; padding-left:0.5em;"></p></a>
+                <a href="#vcp-desc-${vcp}" id="${vcp}/${other_vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="font-size:14px;text-indent:0.5em; padding-left:0.5em;">${context.get('vcp_'+vcp,e).get('INFO')}</p></a>
             </div>
         </div>
     % else:			
@@ -169,7 +169,7 @@ e = "N/A"
         		<ul data-role="listview" data-inset="true" class="ui-block-a ui-listview ui-listview-inset ui-corner-all ui-shadow">
                             <li class="ui-first-child ui-last-child"data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check"id="${vcp}" href="#vcp-confirm" data-rel="popup">VCP ${vcp}</a></li>
                   	</ul>
-        		<a class="vcp-page-click ui-block-b" href="#vcp-${vcp}-page"><div id="vcp${vcp}-draw-overview" style="height:80px; width:160px;"></div></a>	
+        		<a class="vcp-page-click ui-block-b" href="#vcp-${vcp}-page"><div id="vcp${vcp}-draw-overview" style="height:100px; width:160px;"></div></a>	
         	    </div>
         	</div>
                 <div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all">

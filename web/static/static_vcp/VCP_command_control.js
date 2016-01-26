@@ -169,7 +169,7 @@ $(document).ready(function(){
                             id:     'elev-' + zIdx + '-lower',
                             data:   [],
                             lines:  {
-                                lineWidth:  0
+                                lineWidth:  0.3,
                             }
                         };
 
@@ -178,8 +178,8 @@ $(document).ready(function(){
                             id:     'elev-' + zIdx,
                             data:   [],
                             lines:  {
-                                lineWidth:  0,
-                                fill:       0.5
+                                lineWidth:  0.3,
+                                fill:       0.8
                             },
                             fillBetween:    'elev-' + zIdx + '-lower'
                         };
