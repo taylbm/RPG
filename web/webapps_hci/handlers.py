@@ -314,6 +314,7 @@ def model_flag_init():
 def SAILS_init():
     sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
     sails_allowed = _rpg.liborpg.orpgsails_allowed()
+    print 'error?'
     return {
 	    'cuts':sails_cuts,
 	    'allowed':sails_allowed
@@ -587,6 +588,7 @@ def CFG():
 	allow_sails = {}
         last_elev = {}
         super_res = {}
+	mode = {}
         dir_list_parse = [x for x in os.listdir(VCP_DIR) if x.split('_')[0] == 'vcp']
         for vcp in dir_list_parse:
             fname = VCP_DIR+vcp
@@ -605,13 +607,15 @@ def CFG():
             last_elev.update({vcp.replace('vcp_',''):temp})
             temp = dict((x.replace('\n','').replace('elev_ang_deg','').replace(' ','').replace('{',''),text_lines[text_lines.index(x)+3].replace('super_res','').replace('\n','').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x)
             super_res.update({vcp.replace('vcp_',''):temp})
+	    mode.update({vcp.replace('vcp_',''):[x.replace('wx_mode','').lstrip().replace('\n','') for x in text_lines if 'wx_mode' in x][0]})
 	CFG_dict = {
 		    'max_sails':max_sails,
 		    'allow_sails':allow_sails,
 		    'last_elev':last_elev,
 		    'super_res':super_res,
 		    'home':HOME,
-		    'cfg':cfg
+		    'cfg':cfg,
+		    'mode':mode
 		    }
 	return CFG_dict 
 

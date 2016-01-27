@@ -97,15 +97,10 @@ init();
 	    case 1:
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
 		switch(attr.controlname){
-		case 'SAILS_Exception': 
-		    if (attr.newVal.confirmation == "on"){
-			$.post('/sails',{NUM_CUTS:attr.num_cuts});
-			delete actionflag.SAILS
-		    }
-		    else{
-			$.post('/sails',{NUM_CUTS:0});
-			delete actionflag.SAILS
-		    }
+		case 'SAILS_Exception':
+		    console.log(attr.num_cuts) 
+	  	    $.post('/sails',{NUM_CUTS:attr.num_cuts});
+		    delete actionflag.SAILS
 		    break;
 		case 'RS_AVSET': case 'RS_CMD': case 'RS_SUPER_RES':
 		    if (attr.displayname == 'AVSET'){flag = 0}else{flag=1};
@@ -174,31 +169,32 @@ init();
 		    $('#PRF_Mode').val(newVal.cancel).slider('refresh')
 		}
 		else{
-		    $("#popup-link").click();
+		    $("#sails-insert").html('')
 		    child1 = $(this).find("option:first-child").html()
 		    child2 = $(this).find("option:last-child").html()
 		    if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
-		        if (current=="on"){
-                            $("#id-confirm").html('You are about to enable '+displayname+'. Change will not take effect until the next start of volume scan. Do you want to continue?')
-			    if(displayname == 'SAILS'){
-                                $("#sails-insert").html($('#sails-form').html())
-                                $('#popupDialog').trigger('create')
-                                attr['num_cuts'] = $('#select-choice-0').val()
+			$("#popupDialog").popup('open');
+			if (displayname == 'SAILS'){
+			    $("#pop-title").html("SAILS Control")
+                            $("#sails-insert").html($('#sails-form').html())
+                            $("#id-confirm").html(DATA.SAILSDialog)
+                            $('#popupDialog').trigger('create')
+                        }
+			else {
+		            if (current=="on"){
+                                $("#id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
                             }
                             else{
-                            	$("#sails-insert").html('')
-                            } 
-                        }
-                        else{
-			    $("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child1+' ?')
-			}
+			        $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
+			    }
+		        }
 		    }
 		    else{
 		 	if (current=="off"){
-			    $("#id-confirm").html('Are you sure you want to change '+displayname +' to '+child1+' ?')
+			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
 			}
 			else{
-			    $("#id-confirm").html('Are you sure you want to change '+displayname+' to '+child2+' ?')
+			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
 			}
 		    }
 		    $("#pop-cancel").bind('click',{attr},function(event){
@@ -207,7 +203,10 @@ init();
                         $('#pop-cancel').unbind();						
 		    });
 		    $("#pop-confirm").bind('click',{attr},function(event){
-			toggleHandler(event.data.attr,1);
+			if (event.data.attr.displayname == 'SAILS') {
+			    event.data.attr['num_cuts'] = $('#sails-insert #select-choice-0').val();
+			}    
+			toggleHandler(event.data.attr,1)
 			$('#pop-confirm').unbind();
 			$('#pop-cancel').unbind();
 		    });

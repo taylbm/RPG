@@ -136,14 +136,8 @@ $(document).ready(function(){
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
 		switch(attr.controlname){
 		case 'RPG_SAILS': case 'SAILS_Exception':
-		if (attr.newVal.confirmation == "on"){
 		    $.post('/sails',{NUM_CUTS:attr.num_cuts});
 		    delete actionflag.SAILS
-		}
-		else{
-		    $.post('/sails',{NUM_CUTS:0});
-		    delete actionflag.SAILS
-		}
 		break;
 		case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
 		if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception'){flag = 0}else{flag=1}
@@ -256,7 +250,6 @@ $(document).ready(function(){
 	maincircle.stroke();
 	document.getElementById("radome").style.zIndex = 1;
 	$(".toggle").on('slidestop',function(){
-	    $('#popupDialog').popup('open')
 	    var controlname = $(this).attr("id")
 	    var title = $(this).attr("title")
 	    var displayname = $(this).attr("alt")
@@ -285,19 +278,23 @@ $(document).ready(function(){
 		$("#prf_control").click();
 	    }
 	    else {
-		$("#sails-insert").html('')
-		if (['SAILS','AVSET','CMD','Super-Res','SAILS-Exception','AVSET-Exception'].indexOf(displayname) >=0){
-		    var child1 = $(this).find("option:first-child").html()
-		    if (current=="on"){
-			$("#id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
-			if(displayname == 'SAILS' || displayname == 'SAILS-Exception'){
-			    $("#sails-insert").html($('#sails-form').html())
-			    $('#popupDialog').trigger('create')
-			    attr['num_cuts'] = $('#select-choice-0').val()		    
-			}
+                $("#sails-insert").html('')
+		if (['SAILS','AVSET','CMD','Super-Res','AVSET-Exception','SAILS-Exception'].indexOf(displayname) >=0){
+		    $('#popupDialog').popup('open')
+	            if (displayname == 'SAILS' || displayname == 'SAILS-Exception'){
+                        $("#pop-title").html("SAILS Control")
+                        $("#sails-insert").html($('#sails-form').html())	
+		        $("#id-confirm").html(DATA.SAILSDialog)
+                        $('#popupDialog').trigger('create')
 		    }
 		    else{
-			$("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
+		        var child1 = $(this).find("option:first-child").html()
+		        if (current=="on"){
+			     $("#id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
+		        }
+		        else{
+			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
+		        }
 		    }
 		    $("#pop-cancel").bind('click',{attr},function(event){
 			toggleHandler(event.data.attr,2);
@@ -305,6 +302,9 @@ $(document).ready(function(){
 			$('#pop-confirm').unbind()
 		    });
 		    $('#pop-confirm').bind('click',{attr},function(event){
+                        if (event.data.attr.displayname == 'SAILS' || displayname == 'SAILS-Exception') {
+                            event.data.attr['num_cuts'] = $('#sails-insert #select-choice-0').val();
+                        }
 			toggleHandler(event.data.attr,1);
 			$('#pop-confirm').unbind()
 			$('#pop-cancel').unbind()
