@@ -217,11 +217,12 @@ init();
 	$.getJSON("/perf",function(data){
             perfCheck(data['perf_check_time'])
         });
-	setInterval(function (){	
-	    $.getJSON("/update",function(data){
+	    var non_rapid = new EventSource('/update_s');
+	    non_rapid.addEventListener('RPG_dict',function(e) {
+		var RPG = JSON.parse(e.data)
 		var flags = Object.keys(actionflag)
 		for (flag in flags){
-		    if(actionflag[flags[flag]] != data['RPG_dict']['ORPGVST']){
+		    if(actionflag[flags[flag]] != RPG['ORPGVST']){
 		 	delete actionflag[flags[flag]]
 		    }
 		}
@@ -230,7 +231,7 @@ init();
 		    var exception = exception_list[e]
 		    if(Object.keys(actionflag).indexOf(exception) <0){
 			var cookieCheck = getCookie(exception,1)
-			if(data['RPG_dict'][exception]){
+			if(RPG[exception]){
 			    $('#'+exception).val('on').slider('refresh');
 			}
 			else{
@@ -238,26 +239,10 @@ init();
 			}
 		    }
 		}
-		if (Object.keys(actionflag).indexOf('AVSET') < 0){
-		    var cookieCheck = getCookie('AVSET',1)
-		    if(cookieCheck == "NULL"){
-			$('#AVSET_Exception').val(data['RS_dict']['RS_AVSET']).slider('refresh')
-			$('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED')
-		    }	
-		    else{
-			if(cookieCheck){
-			    $('#AVSET_Exception').val('on').slider('refresh')
-			}
-			else{
-			    $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING')
-			    $('#AVSET_Exception').val('off').slider('refresh')
-			}
-		    }
-		}
 		if (Object.keys(actionflag).indexOf('SAILS') < 0){
-		    if(data['RPG_dict']['RPG_SAILS']){
+		    if(RPG['RPG_SAILS']){
 			$('#SAILS_Exception').val('on').slider('refresh');
-			if(data['RPG_dict']['sails_allowed']){
+			if(RPG['sails_allowed']){
 			    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
 			}
 			else{
@@ -268,8 +253,30 @@ init();
 			$('#SAILS_Exception').val('off').slider('refresh');
 		    }
 		}
+                var loadshed_cats = Object.keys(RPG['loadshed'])
+                $('#Load_Shed_contain').html('NORMAL')
+                for (lshd in loadshed_cats){
+                    if(RPG['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+                        $('#Load_Shed_contain').html(RPG['loadshed'][lshd])
+                        if(RPG['loadshed'][lshd] == 'ALARM'){
+                            $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')
+                        }
+                    }
+                }
+                if(RPG['RPG_state'] == "SHUTDOWN"){
+                    var unk_list = ['AVSET_Exception','RS_CMD','RS_SUPER_RES']
+                    for (unk in unk_list){
+                        $('#'+unk_list[unk]).val('off').slider('refresh')
+                        $('#'+unk_list[unk]+'_contain .ui-slider .ui-slider-label-b').text('????')
+                        $('#'+unk_list[unk]+'_status').removeClass('hide')
+                    }
+                }
+
+	    });
+	    non_rapid.addEventListener('PMD_dict',function(e) {
+		var PMD = JSON.parse(e.data)
 		if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
-		    switch(data['PMD_dict']['prf']){
+		    switch(PMD['prf']){
 			case 'CELL_BASED': case 'STORM_BASED':
 			    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
 			    $('#PRF_Mode').val('on').slider('refresh')
@@ -283,11 +290,11 @@ init();
 			    break;
 		    }
 		}
-		if(data['PMD_dict']['mode_trans']){
+		if(PMD['mode_trans']){
 		    $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
 		}
 		else{
-		    if(data['PMD_dict']['mode_conflict']){
+		    if(PMD['mode_conflict']){
 		        $("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
 		    }
 		    else{
@@ -295,16 +302,19 @@ init();
 		    }
 		}
 
-		if(data['PMD_dict']['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
+		if(PMD['mode_conflict']){$("#Mode_Conflict_contain").html('YES').addClass('minor-alarm')}
 		else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
-		if(data['PMD_dict']['current_precip_status']){$('#Precip_contain').html('ACCUM')}
+		if(PMD['current_precip_status']){$('#Precip_contain').html('ACCUM')}
 		else{$('#Precip_contain').html('NO ACCUM')}
+	    });
+ 	    non_rapid.addEventListener('RS_dict',function(e) {
+	        var RS = JSON.parse(e.data)
 		var item = ['RS_SUPER_RES','RS_CMD']; 
 		for (i in item){
 		    var value = item[i]
 		    if(Object.keys(actionflag).indexOf(value) < 0){
 			var cookieCheck = getCookie(value,1)
-			var val = data['RS_dict'][value]
+			var val = RS[value]
 			if(cookieCheck != "NULL"){
 			    if(cookieCheck){
 				$("#"+value).val('on').slider("refresh")
@@ -319,27 +329,25 @@ init();
 			} 
 		    }
 		}
-		$("#RS_VCP_NUMBER").html(data['RS_dict']['RS_VCP_NUMBER'])
-		var loadshed_cats = Object.keys(data['RPG_dict']['loadshed'])
-		$('#Load_Shed_contain').html('NORMAL')
-		for (lshd in loadshed_cats){
-		    if(data['RPG_dict']['loadshed'][loadshed_cats[lshd]] != 'NONE'){
-			$('#Load_Shed_contain').html(data['RPG_dict']['loadshed'][lshd])
-			if(data['RPG_dict']['loadshed'][lshd] == 'ALARM'){
-			    $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')                                  
-			}
-		    }
-		}
-		if(data['RPG_dict']['RPG_state'] == "SHUTDOWN"){
-		    var unk_list = ['AVSET_Exception','RS_CMD','RS_SUPER_RES']
-		    for (unk in unk_list){
-			$('#'+unk_list[unk]).val('off').slider('refresh')
-			$('#'+unk_list[unk]+'_contain .ui-slider .ui-slider-label-b').text('????')
-			$('#'+unk_list[unk]+'_status').removeClass('hide')
-		    }
-		}
+                if (Object.keys(actionflag).indexOf('AVSET') < 0){
+                    var cookieCheck = getCookie('AVSET',1)
+                    if(cookieCheck == "NULL"){
+                        $('#AVSET_Exception').val(RS['RS_AVSET']).slider('refresh')
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED')
+                    }
+                    else{
+                        if(cookieCheck){
+                            $('#AVSET_Exception').val('on').slider('refresh')
+                        }
+                        else{
+                            $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING')
+                            $('#AVSET_Exception').val('off').slider('refresh')
+                        }
+                    }
+                }
+
+		$("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    });
-	},DATA.refreshInterval);
 
 	$('#refreshPage').click(function(){
 		location.reload()

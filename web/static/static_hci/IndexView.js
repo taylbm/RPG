@@ -257,18 +257,18 @@ $(document).ready(function(){
 	    var date0 = new Date();
 	    date0.setTime(date0.getTime()+DATA.rdaCommandStickyToggleTimeout)		
 	    if(displayname.split('-')[0] == "SAILS"){
-		$.getJSON("/update",function(data){
-		    actionflag['SAILS'] = data['RPG_dict']['ORPGVST']
+		$.getJSON("/vst",function(data){
+		    actionflag['SAILS'] = data['ORPGVST']
 		});
 	    }
 	    else if(displayname.split('-')[0] == "AVSET"){
-		$.getJSON("/update",function(data){
-		    actionflag['AVSET'] = data['RPG_dict']['ORPGVST']
+		$.getJSON("/vst",function(data){
+		    actionflag['AVSET'] = data['ORPGVST']
 		});
 	    }
 	    else{
-		$.getJSON("/update",function(data){
-		    actionflag[controlname] = data['RPG_dict']['ORPGVST']
+		$.getJSON("/vst",function(data){
+		    actionflag[controlname] = data['ORPGVST']
 		});
 
 	    }

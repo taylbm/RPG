@@ -1,4 +1,4 @@
-import simplejson as json
+import json
 import os
 import web
 import sys
@@ -37,7 +37,7 @@ class Current_VCP(object):
         vcp_num = _rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER)
         vel_res = _rpg.libhci.hci_current_vcp_get_vel_resolution()
         vel_res_dict = {_rpg.orpgrda.CRDA_VEL_RESO_HIGH:'label-high',_rpg.orpgrda.CRDA_VEL_RESO_LOW:'label-low'}
-        return {'vcp_num':vcp_num,'vel_res':vel_res_dict[vel_res]}
+        return json.dumps({'vcp_num':vcp_num,'vel_res':vel_res_dict[vel_res]})
 
 
 ##
@@ -240,6 +240,7 @@ class VCP_command_control(object):
             main_dict.update(allowable)
             sails = filter(lambda x: 'allow_sails' in x, text_lines) != []
             sz2 = filter(lambda x: 'phase' in x, text_lines) != []
+	    multi_helper = ""
 	    if unique_elevs == 5:
 	        multi_helper = ("32","31")
 	    if len(elev_list) == 17:

@@ -1,4 +1,4 @@
-import simplejson as json
+import json
 from templating import LOOKUP
 import sys
 import os
@@ -113,6 +113,20 @@ def RADOME_callback(event, msg_data):
 			    'last_elev':msg.last_ele_flag
 
 			})
+##
+# Initialize items used by init functions
+##
+
+prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
+nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
+
+RS_states = RDA_static()
+RDA_alarms_all = [x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
+
+RS_dict_init = {}
+
+
+
 #######################################################################
 # Fxn defs to initialize data on initial server connect and on callbacks
 #######################################################################
@@ -135,15 +149,6 @@ def RPG_state_init():
     if not RPG_state:
         RPG_state.append("SHUTDOWN")
     return ",".join(RPG_state)
-
-##
-# Initialize RDA lookup dict
-##
-
-RS_states = RDA_static()
-RDA_alarms_all = [x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
-
-RS_dict_init = {}
 
 def RS_init():
     RS_dict = {}
@@ -171,9 +176,8 @@ def RS_init():
     }
 
 
-
 def CRDA_init():
-    CRDA_dict_init = {'None':None}
+    CRDA_dict_init = {}
     try:
         lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
         RDA_COMMANDED = {
@@ -189,8 +193,11 @@ def CRDA_init():
                 CRDA_dict_init.update({RCOM:'on'})
             else:
                 CRDA_dict_init.update({RCOM:RDA_COMMANDED[RCOM][val]})
+	print CRDA_dict_init
     except:
         pass
+	print "CRDA Exception"
+	print CRDA_dict_init
     return CRDA_dict_init
 
 def RDA_alarms_init():
@@ -204,30 +211,39 @@ def RDA_alarms_init():
         min = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_MINUTE)
         sec = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_SECOND)
         latest_alarm_timestamp = months[mo-1]+' '+str(day)+','+yr[2]+yr[3]+' ['+'%02d' % hr+':'+'%02d' % min+':'+'%02d' % sec+']'
-        alarm = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
-        tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
-        ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
-        uts = time.mktime(ts.timetuple())
-        precedence = ts>tstamp_alarm
+        alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
+	if alarm[0] > 0:
+            tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
+            ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
+            uts = time.mktime(ts.timetuple())
+            precedence = ts>tstamp_alarm
+	else:
+ 	    precedence = True
         latest_alarm = {'valid':1,'precedence':precedence,'alarm_status':alarm_status,'timestamp':latest_alarm_timestamp,'text':latest_alarm_text}
     except:
+	print 'RDA_alarms except'
         latest_alarm = {'valid':0}
     return latest_alarm
 
 def RPG_alarm_init():
     RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
     RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
-    alarm = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
-    parse_alarm = alarm[1][:alarm[0]-1].split(' ')
-    alarm_final = [x for x in parse_alarm if '\\x' not in repr(x)]
-    alarm_state = {'cleared':'CLEARED' in alarm_final,'activated':'ACTIVATED' in alarm_final}
-    tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
-    at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
-    at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')
-    if not alarm_final:
-        rpg_alarm_suppl = ''
+    
+    alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
+    if alarm[0] > 0:
+        parse_alarm = alarm[1][:alarm[0]-1].split(' ')
+        alarm_final = [x for x in parse_alarm if '\\x' not in repr(x)]
+        alarm_state = {'cleared':'CLEARED' in alarm_final,'activated':'ACTIVATED' in alarm_final}
+        tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
+        at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
+        at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')
+        if not alarm_final:
+            rpg_alarm_suppl = ''
+        else:
+            rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join(alarm_final).replace('\n','')
     else:
-        rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join(alarm_final).replace('\n','');
+	rpg_alarm_suppl = ''
+	alarm_state = {'cleared':False,'activated':False}
     RDA_alarm_valid = 1
     precedence = 0
     try:
@@ -287,20 +303,26 @@ def ADAPT_init():
     }
 
 def RPG_status_init():
-    s = _rpg.liborpg.orpgda_read(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
-    parse_s = s[1][:s[0]-1].split(' ')
-    tstamp = s[2]
-    tstamp_s = s[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
-    s1 = months[int(datetime.datetime.fromtimestamp(tstamp_s).strftime('%m'))-1]
-    s2 = datetime.datetime.fromtimestamp(tstamp_s).strftime('%-d,%y [%H:%M:%S]')
-    rpg_status = s1+' '+s2+' >> '+" ".join([x for x in parse_s if '\\x' not in repr(x)]).replace('\n','');
+    print "RPG_Status called"
+    print _rpg.liborpg.orpgda_write_permission(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST)
+    s = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
+    print s
+    if s[0] > 0:
+        parse_s = s[1][:s[0]-1].split(' ')
+        tstamp = s[2]
+        tstamp_s = s[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR)
+        s1 = months[int(datetime.datetime.fromtimestamp(tstamp_s).strftime('%m'))-1]
+        s2 = datetime.datetime.fromtimestamp(tstamp_s).strftime('%-d,%y [%H:%M:%S]')
+        rpg_status = s1+' '+s2+' >> '+" ".join([x for x in parse_s if '\\x' not in repr(x)]).replace('\n','')
+    else:
+	rpg_status = ''
+	rpg_status_ts = ''
     return {
 	    'rpg_status':rpg_status,
 	    'rpg_status_ts':tstamp_s
     }
 
 
-nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
 
 def HCI_status_init():
     nb = _rpg.libhci.hci_get_nb_connection_status()
@@ -312,9 +334,13 @@ def model_flag_init():
     return model_flag
 
 def SAILS_init():
-    sails_cuts = _rpg.liborpg.orpgsails_get_num_cuts()
+    sails_status = _rpg.liborpg.orpgda_read_sails(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID)
+    if sails_status[0] > 0:
+	sails_cuts = sails_status[1]
+    else:
+	print "ORPGDAT_GSM_DATA read failed:%d" % sails_status[0]
+	sails_cuts = 0
     sails_allowed = _rpg.liborpg.orpgsails_allowed()
-    print 'error?'
     return {
 	    'cuts':sails_cuts,
 	    'allowed':sails_allowed
@@ -341,8 +367,6 @@ def WX_init():
 def PRECIP_init():
     precip = _rpg.libhci.hci_get_precip_status().current_precip_status    
     return precip
-
-prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for x in _rpg.Prf_status_t.__dict__ if 'PRF_COMMAND' in x)
 
 def PRF_init():
     prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
@@ -386,11 +410,12 @@ Global_dict = {
 
 def VAD_callback(event,msg_data):
     Global_dict.update({'vad_flag':VAD_init()})   
-
+    
 def PMD_callback(event,msg_data):
     Global_dict.update({'PMD':PMD_init()})
 
 def RPG_state_callback(event,msg_data):
+    pass
     Global_dict.update({'RPG':{'RPG_state':RPG_state_init()}})    
 
 def CRDA_callback(event,msg_data):
@@ -449,7 +474,6 @@ _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, RADOME_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_ENVWND_UPDATE,VAD_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_PERF_MAIN_RECEIVED,PMD_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RPG_STATUS_CHANGE,RPG_state_callback)
-_rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_START_OF_VOLUME,CRDA_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RDA_STATUS_CHANGE,RDA_state_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RDA_ALARMS_UPDATE,RDA_alarms_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RPG_ALARM,RPG_alarm_callback)
@@ -457,19 +481,20 @@ _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_LOAD_SHED_CAT,LOADSHED_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RPG_OPSTAT_CHANGE,RPG_op_callback)
 _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_ADAPT_UPDATE,ADAPT_callback)
 
-################################################
+###############################################
 # Register LB Update Notification (UN) Callbacks
 ################################################
 
-_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.lb.LB_ALL,RPG_status_callback)
+_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,1,RPG_status_callback)
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PROD_INFO_STATUS_MSG_ID,HCI_callback) 
 
 ewt_data_id = ((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)
 _rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,model_data_callback)
-_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,SAILS_callback)
-_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,ORPGVST_callback)
+#_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,SAILS_callback)
+#_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.RDA_STATUS_ID,CRDA_callback)
+#_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,ORPGVST_callback)
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_RPG_INFO,_rpg.orpgdat.Orpginfo_msgids_t.ORPGINFO_STATEFL_SHARED_MSGID,STATEFL_callback) 
-_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,WX_callback)
+#_rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,WX_callback)
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,PRECIP_callback)
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,PRF_callback)
 
@@ -688,6 +713,14 @@ class Radome(object):
 class Performance(object):
     def GET(self):
  	return json.dumps({'perf_check_time':_rpg.libhci.hci_get_orda_pmd_ptr().pmd.perf_check_time})
+##
+# Retrieves the Volume Scan Start Time 
+##
+
+class ORPGVST(object):
+    def GET(self):
+        return json.dumps({'ORPGVST':ORPGVST_init()})
+
 ##
 # Operations Sub-Menu
 ##
