@@ -253,16 +253,6 @@ init();
 			$('#SAILS_Exception').val('off').slider('refresh');
 		    }
 		}
-                var loadshed_cats = Object.keys(RPG['loadshed'])
-                $('#Load_Shed_contain').html('NORMAL')
-                for (lshd in loadshed_cats){
-                    if(RPG['loadshed'][loadshed_cats[lshd]] != 'NONE'){
-                        $('#Load_Shed_contain').html(RPG['loadshed'][lshd])
-                        if(RPG['loadshed'][lshd] == 'ALARM'){
-                            $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')
-                        }
-                    }
-                }
                 if(RPG['RPG_state'] == "SHUTDOWN"){
                     var unk_list = ['AVSET_Exception','RS_CMD','RS_SUPER_RES']
                     for (unk in unk_list){
@@ -306,7 +296,36 @@ init();
 		else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
 		if(PMD['current_precip_status']){$('#Precip_contain').html('ACCUM')}
 		else{$('#Precip_contain').html('NO ACCUM')}
+                var loadshed_cats = Object.keys(PMD['loadshed'])
+                $('#Load_Shed_contain').html('NORMAL')
+                for (lshd in loadshed_cats){
+                    if(PMD['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+                        $('#Load_Shed_contain').html(PMD['loadshed'][lshd])
+                        if(PMD['loadshed'][lshd] == 'ALARM'){
+                            $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')
+                        }
+                    }
+                }
+
 	    });
+
+	    non_rapid.addEventListener('ADAPT',function(e) {
+		var ADAPT = JSON.parse(e.data)
+                exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
+                for (e in exception_list){
+                    var exception = exception_list[e]
+                    if(Object.keys(actionflag).indexOf(exception) <0){
+                        var cookieCheck = getCookie(exception,1)
+                        if(ADAPT[exception]){
+                            $('#'+exception).val('on').slider('refresh');
+                        }
+                        else{
+                            $('#'+exception).val('off').slider('refresh');
+                        }
+                    }
+                }
+	    });
+
  	    non_rapid.addEventListener('RS_dict',function(e) {
 	        var RS = JSON.parse(e.data)
 		var item = ['RS_SUPER_RES','RS_CMD']; 
