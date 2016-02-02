@@ -1,0 +1,127 @@
+###
+### control_rpg - this is a sub-menu for the hci
+###
+
+<%include file="jquery.mako" args="all=True" />
+
+
+<%block name="extra_header_markup">
+
+
+
+<script src="static/static_hci/control_rpg.js"></script>
+	
+
+
+</%block>
+
+
+
+###
+### body
+###
+
+	
+    
+    <div id="content">
+	<div data-role="navbar">
+            <ul>
+            <li><a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="#">Close</a></li>
+	    <li>            
+ 	    <div class="ui-grid-a center" style="width:100%">
+                <div class="ui-block-a">
+                    <div style="font-weight:bold" align="center" class="bar-border1">State:</div>
+                    <div style="font-weight:bold" align="center" class="bar-border1">Oper:</div>
+                </div>
+                <div class="ui-block-b">
+                    <div id="RPG_state" style="font-weight:bold" align="center" class="bar-border2">N/A</div>
+                    <div id="RPG_oper" style="font-weight:bold" align="center" class="bar-border2">N/A</div>
+                </div>
+            </div>
+            </li>
+	    <li><button style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button></li>
+            </ul>
+        </div>
+
+        <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:94%;background-color:#4bacc6" >
+	    <div class="ui-btn ui-corner-all">    	
+	        <h3 style="color:black;margin:0" align="center">RPG System Control</h3>
+		<form id="MRPG">	
+		    <div class="ui-grid-a">
+		        <div class="ui-block-a">
+      		            <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-alert">
+        	                Standby
+        	                <input data-enhanced="true" value="MRPG_STANDBY" class="ui-btn control-item" type="button">
+    		            </div>
+                            <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-power">
+                                Startup
+                                <input data-enhanced="true" value="MRPG_STARTUP" type="button">
+                            </div>
+		        </div>
+		    <div class="ui-grid-b">
+                        <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-power">
+                            Shutdown
+                            <input data-enhanced="true" value="MRPG_SHUTDOWN" type="button">
+                        </div>
+                        <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-recycle">
+                            Clean Startup
+                            <input data-enhanced="true" value="MRPG_CLEANUP" type="button">
+                        </div>
+		    </div>
+		</form>
+	    </div>
+            <div class="ui-btn ui-corner-all"> 
+                <h4 style="color:black;margin:0" align="center">Archive II Control</h4>
+                <form id="ArchiveII" style="margin:0">        
+                    <a value="MRPG_STANDBY" class="control-item control-shadow" style="width:50%;margin-left:auto;margin-right:auto"data-role="button" data-mini="true">Archive II<a/>
+                </form>
+            </div>
+            <div style="font-size:13px"class="ui-btn ui-corner-all">
+                <h3 style="color:black;margin:0" align="center">Initialization Control</h3>
+		The following items denote various functions. The selectivity <br>
+		state of each item depends on the RPG state. After items <br>
+		are selected the Activate button invokes the function(s).
+	    </div>
+	    <div class="ui-grid-a ui-btn ui-corner-all">
+		<div class="ui-block-a ui-btn ui-corner-all">
+	            <h4 style="color:black;margin:0" align="center">Reset Hydromet</h4>
+    		    <fieldset  data-role="controlgroup" data-mini="true">
+	   	        <input type="checkbox" name="hydromet" id="snow-accum" class="custom" />
+	   		<label for="snow-accum">Snow Accumulation</label>
+                        <input type="checkbox" name="hydromet" id="legacy-pps" class="custom" />
+                        <label for="legacy-pps">Legacy PPS (excludes USP Database)</label>
+                        <input type="checkbox" name="hydromet" id="dualpol-qpe" class="custom" />
+                        <label for="dualpol-qpe">Dual-Pol QPE (excludes DUA Database)</label>
+                        <input type="checkbox" name="hydromet" id="differences" class="custom" />
+                        <label for="differences">Differences (Dual-Pol QPE - Legacy PPS)</label> 
+		    </fieldset>
+		</div>
+		<div class="ui-block-b ui-btn ui-corner-all">
+                    <h4 style="color:black;margin:0" align="center">State Data</h4>
+                    <fieldset  data-role="controlgroup" data-mini="true">
+                        <input type="checkbox" name="state" id="rpg-syslog" class="custom" />
+                        <label for="rpg-syslog">RPG System Status Log</label>
+                        <input type="checkbox" name="state" id="prod-database" class="custom" />
+                        <label for="prod-database">Product Database</label>
+                        <input type="checkbox" name="state" id="rda-alarms-log" class="custom" />
+                        <label for="rda-alarms-log">RDA Alarms Log</label>
+                        <input type="checkbox" name="state" id="rpg-state-data" class="custom" />
+                        <label for="rpg-state-data">RPG State Data</label>
+                        <input type="checkbox" name="state" id="rpg-task-log" class="custom" />
+                        <label for="rpg-task-log">RPG Task Log Files</label>
+                    </fieldset>
+		</div>
+	    </div>
+            <form id="Initialization" style="margin:0">
+                <a class="control-item control-shadow" style="width:50%;margin-left:auto;margin-right:auto"data-role="button" data-mini="true">Activate<a/>
+            </form>
+        </div>
+    </div>
+</div>
+	
+
+
+
+	
+
+

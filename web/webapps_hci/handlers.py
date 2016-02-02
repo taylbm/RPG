@@ -1,4 +1,9 @@
-import json
+from platform import architecture
+word_size = int(architecture()[0].replace('bit',''))
+if word_size == 32:
+    import simplejson as json
+else:
+    import json
 from templating import LOOKUP
 import sys
 import os
@@ -32,6 +37,9 @@ moments = {
 	    _rpg.orpgevt.RADIAL_ACCT_WIDTH:'W',
 	    _rpg.orpgevt.RADIAL_ACCT_DUALPOL:'D'
 	  }
+##
+# Global Flags initialized as True for initialization of hci. Updated by the callback functions, set to false after being updated, set to True on callback 
+##
 
 Global_flags = {
                 'model_update':True,
@@ -490,8 +498,8 @@ def PRF_init():
 	return False
 
 ##
-# Init functions initialize this global dictionary, callback functions update it, and then the server checks for changes and pushes updates when necessary
-# //TODO: There are still several RPG items that are being polled every 2 seconds, need to implement ORPGDA_UN_register to get callbacks for them.
+# Init functions initialize the global dictionary. The callback functions below then set flags which are checked by the init functions and updates when flag is True. 
+# The server then checks for changes and pushes updates when necessary
 ##
 
 
@@ -527,16 +535,13 @@ Global_dict = {
 ################################################################################
 
 def VAD_callback(event,msg_data):
-    Global_flags['vad_flag'] = True   
-    
+    Global_flags['vad_flag'] = True 
+
 def PMD_callback(event,msg_data):
     Global_flags['PMD'] = True
 
 def RPG_state_callback(event,msg_data):
-    Global_flags['RPG']['RPG_state'] = True    
-
-def CRDA_callback(event):
-    Global_flags['RDA']['CRDA'] = True
+    Global_flags['RPG']['RPG_state'] = True
 
 def RDA_state_callback(event,msg_data):
     Global_flags['RDA']['RDA_static'] = True
@@ -555,6 +560,9 @@ def RPG_op_callback(event,msg_data):
 
 def ADAPT_callback(event,msg_data):
     Global_flags['ADAPT'] = True 
+
+def CRDA_callback(event):
+    Global_flags['RDA']['CRDA'] = True
 
 def RPG_status_callback(event):
     Global_flags['RPG']['RPG_status'] = True
@@ -615,6 +623,18 @@ _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_da
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,PRECIP_callback)
 _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,PRF_callback)
 
+##
+# RPG Control function
+##
+
+class MRPG(object):
+    def POST(self):	
+	data = cgi.parse_qs(web.data())
+	status = _rpg.mrpg.orpgmgr_send_command(getattr(_rpg.mrpg.commands,data['COM'][0]))
+	if status < 0:	
+	    print "ORPGMGR_send_command failed %d" % status
+	return status
+	
 ##
 # STATEFL flag setting function
 ##
@@ -956,6 +976,16 @@ class ORPGVST(object):
 class Operations(object):
     def GET(self):
 	return LOOKUP.ops(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'CFG_dict':CFG()})
+
+##
+# Operations Sub-Menu
+##
+ 
+class Control_RPG(object):
+    def GET(self):
+        return LOOKUP.control_rpg()
+
+
 ##
 # Spawns subtasks
 ##

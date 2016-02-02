@@ -615,7 +615,7 @@ $(document).ready(function(){
 			$('#RPG_state').attr('class','bar-border2 minor-alarm');
 			break;
 		case 'SHUTDOWN':
-			$('#RPG_state').atrr('class','inop-indicator')
+			$('#RPG_state').attr('class','bar-border2 inop-indicator')
 			$('#RDA_STATE').html('UNKNOWN').attr('class','bar-border2 inop-indicator')
 			$('#OPERABILITY_LIST').html('UNKNOWN').attr('class','bar-border2 inop-indicator')      	
 			$('#AVSET_Exception_contain').removeClass('hide')
@@ -833,7 +833,8 @@ $(document).ready(function(){
 		$.get("/button?id=hci_rda_orda")
 	});	
 	$('#rpg_control').click(function(){
-		$.get("/button?id=hci_rpc")
+	/*	$.get("/button?id=hci_rpc") */
+		window.open("/control_rpg","_blank","width = 460, height = 750");
 	});	
 	$('#rpg_status').click(function(){
 		$.get("/button?id=hci_status")

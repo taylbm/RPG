@@ -1,4 +1,9 @@
-import json
+from platform import architecture
+word_size = int(architecture()[0].replace('bit',''))
+if word_size == 32:
+    import simplejson as json
+else:
+    import json
 import os
 import web
 import sys

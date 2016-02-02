@@ -34,7 +34,7 @@
         </select>
     </div>
 
- 
+
     <body id="top_level">
         ${next.body()}
 
