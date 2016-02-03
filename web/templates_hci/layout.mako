@@ -1,5 +1,5 @@
 ###
-### layout.mako - this is the main layout for, it's designed to be inherited
+## layout.mako - this is the main layout for the hci, it's designed to be inherited
 ###
 
 ###

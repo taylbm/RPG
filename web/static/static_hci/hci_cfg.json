@@ -71,6 +71,27 @@
 					" to ",
 					" ?"
 					],
+	"controlRPG":
+				{
+				"SHUTDOWN":"You are about to stop all of the RPG processes.",
+				"SUB":
+				      [
+					  "You are about to restart all of the RPG processes.",
+					  " Do you want to continue?"
+					  ],
+				"MRPG_STARTUP":
+					  {
+						"MRPG_ST_STANDBY":" Contents of datastores will be preserved.",
+						"MRPG_ST_SHUTDOWN":" Contents of some datastores will be reinitialized.",
+						"MRPG_ST_OPERATING":" Contents of datastores will be preserved.",
+						"FAIL":"RPG Startup only valid in Standby, Shutdown, and Operate states."
+					  },
+				"MRPG_CLEANUP":
+					  {
+						"SUCESS":"Using this Clean Startup option will empty the contents of ALL datastores and then restart all of the RPG processes.",
+						"FAIL":"RPG Clean Startup only valid in Standby, Shutdown, and Operate states."
+					  }
+				},
 	"SAILSDialog":"Selecting \"0\" cuts will disable SAILS. All non-zero numbers are additional scans of the lowest elevation beyond any already defined in the VCP",
 	"canvasHeight":285,
 	"superResFont":"bold 50px Helvetica",

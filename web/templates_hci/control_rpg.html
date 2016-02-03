@@ -20,9 +20,6 @@
 ###
 ### body
 ###
-
-	
-    
     <div id="content">
 	<div data-role="navbar">
             <ul>
@@ -39,9 +36,30 @@
                 </div>
             </div>
             </li>
-	    <li><button style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button></li>
+	    <li><button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button></li>
             </ul>
         </div>
+        <div data-role="popup" id="popupDialog" data-dismissible="false">
+            <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+                <h1 id="pop-title" class="ui-title" role="heading">Confirm Action</h1>
+            </div>
+            <div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
+                <h3 align="center"id="id-confirm" class="ui-title"></h3>
+                <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
+                <a id="pop-confirm" value="N/A"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
+	    </div>
+        </div>
+        <div data-role="popup" id="popupAlert" data-dismissible="false">
+            <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+                <h1 id="pop-title" class="ui-title" role="heading">Alert</h1>
+            </div>
+            <div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
+                <h3 align="center"id="id-info" class="ui-title"></h3>
+                <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
+            </div>
+        </div>
+
+
 
         <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:94%;background-color:#4bacc6" >
 	    <div class="ui-btn ui-corner-all">    	
@@ -70,6 +88,7 @@
 		    </div>
 		</form>
 	    </div>
+	    EVERYTHING BELOW HERE DOES NOT WORK YET
             <div class="ui-btn ui-corner-all"> 
                 <h4 style="color:black;margin:0" align="center">Archive II Control</h4>
                 <form id="ArchiveII" style="margin:0">        
@@ -83,31 +102,31 @@
 		are selected the Activate button invokes the function(s).
 	    </div>
 	    <div class="ui-grid-a ui-btn ui-corner-all">
-		<div class="ui-block-a ui-btn ui-corner-all">
+		<div id="reset-hydromet" class="ui-block-a ui-btn ui-corner-all">
 	            <h4 style="color:black;margin:0" align="center">Reset Hydromet</h4>
     		    <fieldset  data-role="controlgroup" data-mini="true">
-	   	        <input type="checkbox" name="hydromet" id="snow-accum" class="custom" />
+	   	        <input disabled="true" type="checkbox" name="hydromet" id="snow-accum" class="custom" />
 	   		<label for="snow-accum">Snow Accumulation</label>
-                        <input type="checkbox" name="hydromet" id="legacy-pps" class="custom" />
+                        <input disabled="true" type="checkbox" name="hydromet" id="legacy-pps" class="custom" />
                         <label for="legacy-pps">Legacy PPS (excludes USP Database)</label>
-                        <input type="checkbox" name="hydromet" id="dualpol-qpe" class="custom" />
+                        <input disabled="true" type="checkbox" name="hydromet" id="dualpol-qpe" class="custom" />
                         <label for="dualpol-qpe">Dual-Pol QPE (excludes DUA Database)</label>
-                        <input type="checkbox" name="hydromet" id="differences" class="custom" />
+                        <input disabled="true" type="checkbox" name="hydromet" id="differences" class="custom" />
                         <label for="differences">Differences (Dual-Pol QPE - Legacy PPS)</label> 
 		    </fieldset>
 		</div>
-		<div class="ui-block-b ui-btn ui-corner-all">
+		<div id="state-data" class="ui-block-b ui-btn ui-corner-all">
                     <h4 style="color:black;margin:0" align="center">State Data</h4>
                     <fieldset  data-role="controlgroup" data-mini="true">
-                        <input type="checkbox" name="state" id="rpg-syslog" class="custom" />
+                        <input disabled="true" type="checkbox" name="state" id="rpg-syslog" class="custom" />
                         <label for="rpg-syslog">RPG System Status Log</label>
-                        <input type="checkbox" name="state" id="prod-database" class="custom" />
+                        <input disabled="true" type="checkbox" name="state" id="prod-database" class="custom" />
                         <label for="prod-database">Product Database</label>
-                        <input type="checkbox" name="state" id="rda-alarms-log" class="custom" />
+                        <input disabled="true" type="checkbox" name="state" id="rda-alarms-log" class="custom" />
                         <label for="rda-alarms-log">RDA Alarms Log</label>
-                        <input type="checkbox" name="state" id="rpg-state-data" class="custom" />
+                        <input disabled="true" type="checkbox" name="state" id="rpg-state-data" class="custom" />
                         <label for="rpg-state-data">RPG State Data</label>
-                        <input type="checkbox" name="state" id="rpg-task-log" class="custom" />
+                        <input disabled="true" type="checkbox" name="state" id="rpg-task-log" class="custom" />
                         <label for="rpg-task-log">RPG Task Log Files</label>
                     </fieldset>
 		</div>

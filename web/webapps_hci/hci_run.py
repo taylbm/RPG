@@ -38,7 +38,9 @@ URLS = (
     '/send_cmd','handlers.Send_RDACOM',
     '/sails','handlers.ORPGSAILS_set',
     '/set_flag','handlers.Set_Flag',
-    '/mrpg','handlers.MRPG'
+    '/mrpg','handlers.MRPG',
+    '/mrpg_state','handlers.MRPG_state',
+    '/mrpg_clean','handlers.MRPG_clean'
 )
 #def deau_loadhook():
 #    n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA) 

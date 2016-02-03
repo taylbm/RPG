@@ -970,6 +970,20 @@ class ORPGVST(object):
         return json.dumps({'ORPGVST':ORPGVST_init()})
 
 ##
+# Retrieves the current mrpg state
+##
+
+class MRPG_state(object):
+    def GET(self):
+	state = _rpg.mrpg.orpgmgr_get_rpg_states()
+	if state[0] < 0:
+	    print "ORPGMGR_get_RPG_states failed: %d" % state[0]
+	    return json.dumps({'MRPG_state':state[0]})
+	else:
+	    mrpg = str(_rpg.mrpg.states.values[state[1]])
+            return json.dumps({'MRPG_state':mrpg})
+
+##
 # Operations Sub-Menu
 ##
  
@@ -985,13 +999,20 @@ class Control_RPG(object):
     def GET(self):
         return LOOKUP.control_rpg()
 
-
 ##
 # Spawns subtasks
 ##
+
 class Button(object):
     def GET(self):
 	selected_button = web.input(id=None)
 	if selected_button.id not in commands.getoutput('ps -A'):
 	    return subprocess.Popen(selected_button.id).wait() # //TODO: using wait() can be dangerous, find another way to implement this 
+##
+# MRPG Clean Startup 
+##
 
+class MRPG_clean(object):
+    def GET(self):
+	ret = subprocess.call(['mrpg','-p','startup'])
+	return ret

@@ -6,17 +6,20 @@
 ### see if we should include a full page layout
 ###
 
+<%
+layout = self.attr.layout_name
+%>
 
-
-
+% try:
+    % if self.attr.inherit_layout is True:
+        <%inherit file="layout.mako" />
+    % endif
+% except:
+    ### just swallow this, we only care if it exists
+% endtry
  
-<%inherit file= "layout.mako"/>
-	
 
 			
-
-    ### just swallow this, we only care if it exists
-
 
 ###
 ### content
