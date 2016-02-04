@@ -372,6 +372,9 @@ def ADAPT_init():
         zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
         ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
         max_sails = _rpg.librpg.deau_get_string_values('pbd.n_sails_cuts')
+	default_wx_mode = _rpg.librpg.deau_get_string_values(_rpg.librpg.ORPGSITE_DEA_WX_MODE)
+	default_mode_A_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_A_VCP,1)
+        default_mode_B_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_B_VCP,1)
         precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
         clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()
 	Global_flags['ADAPT'] = False
@@ -382,7 +385,10 @@ def ADAPT_init():
 	    'ptype':ptype[1],
 	    'max_sails':max_sails,
 	    'mode_A_auto_switch':precip_switch,
-	    'mode_B_auto_switch':clear_air_switch
+	    'mode_B_auto_switch':clear_air_switch,
+	    'default_wx_mode':default_wx_mode[1].replace(' ','-'),
+	    'default_mode_A':default_mode_A_vcp[1][0],
+	    'default_mode_B':default_mode_B_vcp[1][0]
         }
     else:
 	return False
@@ -1016,3 +1022,24 @@ class MRPG_clean(object):
     def GET(self):
 	ret = subprocess.call(['mrpg','-p','startup'])
 	return ret
+
+##
+# DEAU set function
+##
+
+class DEAU_set(object):
+    def POST(self):
+        data = cgi.parse_qs(web.data())
+	set = data['SET'][0].replace('-',' ')	
+	flag = data['FLAG'][0]
+	if int(flag):
+            mode = data['MODE'][0]
+	    ret = _rpg.librpg.deau_set_values(getattr(_rpg.librpg,'ORPGSITE_DEA_DEF_MODE_'+mode+'_VCP'),int(set))
+	else:
+	    ret = _rpg.librpg.deau_set_string_values(_rpg.librpg.ORPGSITE_DEA_WX_MODE,set)
+	return ret
+	
+
+
+
+

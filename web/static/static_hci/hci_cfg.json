@@ -92,6 +92,14 @@
 						"FAIL":"RPG Clean Startup only valid in Standby, Shutdown, and Operate states."
 					  }
 				},
+	"popTitle":"Confirm Action",
+	"popTitleSAILS":"SAILS Control",
+	"defaults":{	
+				"Pre":"Do you want to permanently change the",
+				"defModeA":" Default VCP for Mode A to",
+				"defModeB":" Default VCP for Mode B to ",
+				"defWx":" Default Weather Mode to "
+			    },
 	"SAILSDialog":"Selecting \"0\" cuts will disable SAILS. All non-zero numbers are additional scans of the lowest elevation beyond any already defined in the VCP",
 	"canvasHeight":285,
 	"superResFont":"bold 50px Helvetica",

@@ -279,13 +279,14 @@ $(document).ready(function(){
 	    }
 	    else {
                 $("#sails-insert").html('')
+                $('#popupDialog').popup('open')
+                $("#pop-title").html(DATA.popTitle)
 		if (['SAILS','AVSET','CMD','Super-Res','AVSET-Exception','SAILS-Exception'].indexOf(displayname) >=0){
 		    $('#popupDialog').popup('open')
 	            if (displayname == 'SAILS' || displayname == 'SAILS-Exception'){
-                        $("#pop-title").html("SAILS Control")
+                        $("#pop-title").html(DATA.popTitleSAILS)
                         $("#sails-insert").html($('#sails-form').html())	
 		        $("#id-confirm").html(DATA.SAILSDialog)
-                        $('#popupDialog').trigger('create')
 		    }
 		    else{
 		        var child1 = $(this).find("option:first-child").html()
@@ -296,6 +297,7 @@ $(document).ready(function(){
 			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
 		        }
 		    }
+                    $('#popupDialog').trigger('create')
 		    $("#pop-cancel").bind('click',{attr},function(event){
 			toggleHandler(event.data.attr,2);
 			$('#pop-cancel').unbind()

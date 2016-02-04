@@ -40,7 +40,8 @@ URLS = (
     '/set_flag','handlers.Set_Flag',
     '/mrpg','handlers.MRPG',
     '/mrpg_state','handlers.MRPG_state',
-    '/mrpg_clean','handlers.MRPG_clean'
+    '/mrpg_clean','handlers.MRPG_clean',
+    '/deau_set','handlers.DEAU_set'
 )
 #def deau_loadhook():
 #    n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA) 

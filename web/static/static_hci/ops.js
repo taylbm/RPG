@@ -21,6 +21,7 @@
         });
     }
 init();
+DEFAULTS = {}
     function GetClock(){
     var d=new Date();
     var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
@@ -98,7 +99,6 @@ init();
 		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
 		switch(attr.controlname){
 		case 'SAILS_Exception':
-		    console.log(attr.num_cuts) 
 	  	    $.post('/sails',{NUM_CUTS:attr.num_cuts});
 		    delete actionflag.SAILS
 		    break;
@@ -136,11 +136,65 @@ init();
 	};
 	$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 	$(".nav-item").css('background-color','#002060');
-
+	$(".default-select").on('click',function(){
+	    var element = $(this);
+	    var value = element.attr('value');
+	    var id = element.parent().attr('id');
+	    switch(id) {
+		case 'default_wx_mode':	
+		    $('#id-confirm').html(DATA.defaults.Pre+DATA.defaults.defWx+' '+value+' ?');
+		    break;
+		case 'default_mode_A':
+                    $('#pop-confirm').attr("alt","A");
+                    $('#id-confirm').html(DATA.defaults.Pre+DATA.defaults.defModeA+' '+value+' ?');
+		    break;
+		case 'default_mode_B':	
+		    $('#pop-confirm').attr("alt","B");
+                    $('#id-confirm').html(DATA.defaults.Pre+DATA.defaults.defModeB+' '+value+' ?');
+		    break;
+	    };
+	    $('#pop-cancel').attr("alt",id);
+	    $('#pop-confirm').attr("value",value);	
+	    $("#popupDialog").popup('open');
+	    $("#pop-title").html(DATA.popTitle);
+	
+	});
+	$("#pop-confirm").on('click',function(){
+	    var command = $(this).attr("value");
+            var mode = $(this).attr("alt");
+	    if(command != "") {
+	        if($.isNumeric(command))
+	            $.post('/deau_set',{SET:command,FLAG:1,MODE:mode});
+	        else 
+                    $.post('/deau_set',{SET:command,FLAG:0});
+	    }	
+	});
+	$("#pop-cancel").on('click',function(){
+	    var id = $(this).attr("alt");
+            if(id != "") 
+		$("#"+id).val(DEFAULTS[id]).selectmenu("refresh")
+	});
+        $("#pass-protect").click(function(){
+            if ($(this).attr("value") == "locked") {
+                $("#pass-protect").attr("class","ui-btn ui-icon-edit ui-btn-icon-left control-item control-shadow")
+                $(this).attr("value","unlocked")
+                $(this).html("Unlocked")
+                $("#default-contain :input").not(":button").selectmenu('enable');
+            }
+            else {
+                $("#pass-protect").attr("class","ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow")
+                $(this).attr("value","locked")
+                $(this).html("Locked")
+                $("#default-contain :input").not(":button").selectmenu('disable');
+            }
+        });
+ 
 	$(".toggle").on('slidestop',function(){
-	    var controlname = $(this).attr("id")
-	    var displayname = $(this).attr("alt")
-	    var current = $(this).val();
+	    $("#pop-confirm").attr("value","");	
+	    var element = $(this)
+	    var controlname = element.attr("id")
+	    var displayname = element.attr("alt")
+	    var current = element.val();
 	    var date0 = new Date();
 	    date0.setTime(date0.getTime()+900000)
 	    if(displayname.split('-')[0] == "SAILS"){
@@ -149,18 +203,18 @@ init();
 		});
 	    }
 	    else if(displayname.split('-')[0] == "AVSET"){
-		$.getJSON("/update",function(data){
-		    actionflag["AVSET"] = data['RPG_dict']['ORPGVST']
+		$.getJSON("/vst",function(data){
+		    actionflag["AVSET"] = data['ORPGVST']
 		});
 	    }
 	    else{
-		$.getJSON("/update",function(data){
-		    actionflag[controlname] = data['RPG_dict']['ORPGVST']
+		$.getJSON("/vst",function(data){
+		    actionflag[controlname] = data['ORPGVST']
 		});
 	    }
 	    if (controlname != "RDA_Messages"){
-		$.getJSON("/update",function(data){
-                    actionflag[controlname] = data['RPG_dict']['ORPGVST']
+		$.getJSON("/vst",function(data){
+                    actionflag[controlname] = data['ORPGVST']
 		});
 		if (current=="on"){newVal = {cancel:"off",confirmation:"on"}}else{newVal = {cancel:"on",confirmation:"off"}}
 		attr = {controlname:controlname,displayname:displayname,date0:date0,newVal:newVal,current:current}
@@ -168,14 +222,15 @@ init();
 		    $("#prf_control").click();
 		    $('#PRF_Mode').val(newVal.cancel).slider('refresh')
 		}
-		else{
+	        else{
+  		    $("#popupDialog").popup('open');
+	            $("#pop-title").html(DATA.popTitle)
 		    $("#sails-insert").html('')
-		    child1 = $(this).find("option:first-child").html()
-		    child2 = $(this).find("option:last-child").html()
+		    child1 = element.find("option:first-child").html()
+		    child2 = element.find("option:last-child").html()
 		    if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
-			$("#popupDialog").popup('open');
 			if (displayname == 'SAILS'){
-			    $("#pop-title").html("SAILS Control")
+			    $("#pop-title").html(DATA.popTitleSails)
                             $("#sails-insert").html($('#sails-form').html())
                             $("#id-confirm").html(DATA.SAILSDialog)
                             $('#popupDialog').trigger('create')
@@ -197,6 +252,7 @@ init();
 			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
 			}
 		    }
+                    $('#popupDialog').trigger('create')
 		    $("#pop-cancel").bind('click',{attr},function(event){
 		        toggleHandler(event.data.attr,2)
                         $('#pop-confirm').unbind();
@@ -226,24 +282,11 @@ init();
 		 	delete actionflag[flags[flag]]
 		    }
 		}
-		exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
-		for (e in exception_list){
-		    var exception = exception_list[e]
-		    if(Object.keys(actionflag).indexOf(exception) <0){
-			var cookieCheck = getCookie(exception,1)
-			if(RPG[exception]){
-			    $('#'+exception).val('on').slider('refresh');
-			}
-			else{
-			    $('#'+exception).val('off').slider('refresh');
-			}
-		    }
-		}
 		if (Object.keys(actionflag).indexOf('SAILS') < 0){
 		    if(RPG['RPG_SAILS']){
 			$('#SAILS_Exception').val('on').slider('refresh');
 			if(RPG['sails_allowed']){
-			    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+data['RPG_dict']['sails_cuts'])
+			    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts'])
 			}
 			else{
 			    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
@@ -324,6 +367,13 @@ init();
                         }
                     }
                 }
+		default_list = ['default_wx_mode','default_mode_A','default_mode_B']
+		for (d in default_list) {
+		    var def = default_list[d];
+		    $('#'+def).val(ADAPT[def]).selectmenu('refresh');
+		    DEFAULTS[def] = ADAPT[def];	
+		}
+		    
 	    });
 
  	    non_rapid.addEventListener('RS_dict',function(e) {
