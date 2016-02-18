@@ -340,7 +340,7 @@ $(document).ready(function(){
 	$.getJSON("/update",function(data){
             cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
             maincircle.fillStyle = 'white';maincircle.font = DATA.sailsAvsetFont;
-            maincircle.fillText(data['ADAPT']['ICAO'],125,350)
+            maincircle.fillText(data['ADAPT_dict']['ICAO'],125,350)
 
         });
 
@@ -348,6 +348,14 @@ $(document).ready(function(){
 	    perfCheck(data['perf_check_time'])
 	});
 	var source = new EventSource('/radome');
+        source.onerror = function() {
+            console.log('radome uncaught error')
+        };
+
+	$(window).unload(function(){
+	    console.log('closed')
+	    source.close();
+	});
 	source.addEventListener('message',function(e) {
 	    var radome = JSON.parse(e.data)
 	    if(stopCheck['action'] != radome.az){
@@ -433,6 +441,13 @@ $(document).ready(function(){
 	    
 	},false);
 	var non_rapid = new EventSource('/update_s');
+	non_rapid.onerror = function() {
+            console.log('non_rapid uncaught error')
+	};
+        $(window).unload(function(){
+            console.log('update_s closed')
+            non_rapid.close();
+        });
 	non_rapid.addEventListener('PMD_dict',function(e) {
 	    var PMD = JSON.parse(e.data)
 	    if(PMD['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
@@ -491,7 +506,7 @@ $(document).ready(function(){
 	});
 
 
-	non_rapid.addEventListener('ADAPT',function(e) {
+	non_rapid.addEventListener('ADAPT_dict',function(e) {
 	    var ADAPT = JSON.parse(e.data)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    switch(Number(ADAPT['ZR_mult'])){
@@ -641,7 +656,6 @@ $(document).ready(function(){
 
 	non_rapid.addEventListener('RS_dict',function(e) {
 	    var RS = JSON.parse(e.data)
-	    console.log(RS)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
 	    for (b in state){
