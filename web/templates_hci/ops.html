@@ -5,8 +5,8 @@
 <%!
     inherit_layout = True 
     layout_name = "layout.mako" 
-    page_id = 'main-page'
-    page_title = 'demo-page'
+    page_id = 'ops-page'
+    page_title = 'WSR-88D Operations'
     page_classes = ''
 %>
 
@@ -41,14 +41,6 @@
 	
     
     <div id="content">
-	<div data-role="navbar">
-            <ul>
-            <li><div style="font-size:14px;background-color:#DCDBD6;font-weight:bold" class="contain-clock"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
-	    <li><a data-theme="a" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
-            <li><button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button></li>
-            <li><a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="#">Close</a></li>
-	    </ul>
-        </div>
 	<a id="prf_control" style="color:white" class="nav-item control-shadow" href="#"></a>	
 	<div data-role="popup" id="popupDialog" data-dismissible="false">
 	    <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
@@ -64,13 +56,13 @@
 
         <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
             <div class="ui-grid-b">
-		<div class="ui-block-a ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+		<div class="ui-block-a" style="background-color:#4bacc6">
 		    <div id="vcp-button" class="ui-grid-a">
 		        <div class="ui-block-a" style="text-decoration : none; color : #000000;">
 			    <button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
 			</div>
 			<div class="ui-block-b" style="text-decoration : none; color : #000000;">
-			    <button id="RS_VCP_NUMBER" type="button" style="font-size:48px;background-color:white" data-theme="b">N/A</button>
+			    <button id="RS_VCP_NUMBER" type="button" style="font-size:48px;background-color:white;width:100%" data-theme="b">N/A</button>
 			</div>
 		    </div>
 	 	    <div class="ui-grid-a center button-line" id="PRF_Mode_block">
@@ -114,14 +106,14 @@
 		    </div>
 		    <div class="ui-grid-a center" style="width:80%;">
 			<div class="ui-block-a">
-			     <div style="font-size:11px"class="bar-border1">Perf. Check in</div>
+			     <div align="center" class="bar-border1">Perf. Check in</div>
 			</div>
 			<div class="ui-block-b">
-			    <div id="perf_check_time" style="font-size:11px"class="bar-border2">-9999</div>
+			    <div align="center" id="perf_check_time" class="bar-border2">-9999</div>
 			</div>
 		    </div>
 		</div>	
-                <div class="ui-block-b ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+                <div class="ui-block-b" style="background-color:#4bacc6">
 		    <div class="ui-grid-a center button-line">
 			<div class="ui-block-a">
 			    <button type="button" class="display-button" id="Mode_Conflict" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
@@ -157,13 +149,13 @@
 			</div>
 		    </div>	
 		    <div id="default-contain">
-			<h2 style="margin:0px">Select Defaults</h2>
+			<h2 style="margin:0px;text-align:center;">Select Defaults</h2>
 			<div class="ui-grid-a center button-line" id="wx_mode_default">
 			    <div class="ui-block-a">
 			        <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Mode</button>
 			    </div>
 			    <div class="ui-block-b">
-			        <div style="float:left" class="containing-element-lg">
+			        <div style="float:left" class="defaults-contain">
 			      	    <select disabled="true" name="default-wx-mode" id="default_wx_mode" data-mini="true">	
 				        <option class="default-select" value="Precipitation">Precipitation</option>
 					<option class="default-select" select value="Clear-Air">Clear-Air</option>
@@ -176,7 +168,7 @@
 			        <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">VCP Mode A</button>
 			    </div>
 			    <div class="ui-block-b">
-			        <div id="mode-A-insert" style="float:left" class="containing-element-lg">
+			        <div id="mode-A-insert" style="float:left" class="defaults-contain">
 			       	    <select disabled="true" name="default-mode-A" id="default_mode_A" data-mini="true">
 				    % for vcp in context.get('CFG_dict').get('mode'):
 				        % if context.get('CFG_dict').get('mode')[vcp] == 'A':
@@ -192,7 +184,7 @@
 			        <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">VCP Mode B</button>
 			    </div>
 			    <div class="ui-block-b">
-			        <div id="mode-B-insert" style="float:left" class="containing-element-lg">
+			        <div id="mode-B-insert" style="float:left" class="defaults-contain">
 			   	    <select disabled="true" name="default-mode-B" id="default_mode_B" data-mini="true">
 				    % for vcp in context.get('CFG_dict').get('mode'):
 				        % if context.get('CFG_dict').get('mode')[vcp] == 'B':
@@ -205,7 +197,7 @@
 			</div>
 		    </div>		
 		</div>
-                <div class="ui-block-c ui-btn ui-btn-inline ui-btn-notext ui-corner-all" style="background-color:#4bacc6">
+                <div class="ui-block-c" style="background-color:#4bacc6">
 		    <div class="ui-grid-a center button-line" id="Precip_status">
 			<div class="ui-block-a">
 			    <button id="Precip" class="display-button"type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Status</button>

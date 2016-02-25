@@ -2,7 +2,7 @@
 ### control_rpg - this is a sub-menu for the hci
 ###
 
-<%include file="jquery.mako" args="all=True" />
+
 
 
 <%block name="extra_header_markup">
@@ -20,26 +20,9 @@
 ###
 ### body
 ###
-    <div id="content">
-	<div data-role="navbar">
-            <ul>
-            <li><a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="#">Close</a></li>
-	    <li>            
- 	    <div class="ui-grid-a center" style="width:100%">
-                <div class="ui-block-a">
-                    <div style="font-weight:bold" align="center" class="bar-border1">State:</div>
-                    <div style="font-weight:bold" align="center" class="bar-border1">Oper:</div>
-                </div>
-                <div class="ui-block-b">
-                    <div id="RPG_state" style="font-weight:bold" align="center" class="bar-border2">N/A</div>
-                    <div id="RPG_oper" style="font-weight:bold" align="center" class="bar-border2">N/A</div>
-                </div>
-            </div>
-            </li>
-	    <li><button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button></li>
-            </ul>
-        </div>
-        <div data-role="popup" id="popupDialog" data-dismissible="false">
+<%block name="content">
+    <div data-transition="slidefade" data-role="panel" id="rpg_control_panel" data-display="overlay" data-position="right" style="width:25em" data-theme="b">
+        <div data-role="popup" id="popupDialogRPG" data-dismissible="false">
             <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
                 <h1 id="pop-title" class="ui-title" role="heading">Confirm Action</h1>
             </div>
@@ -58,10 +41,8 @@
                 <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
             </div>
         </div>
+        <button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button>
 
-
-
-        <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:94%;background-color:#4bacc6" >
 	    <div class="ui-btn ui-corner-all">    	
 	        <h3 style="color:black;margin:0" align="center">RPG System Control</h3>
 		<form id="MRPG">	
@@ -88,7 +69,7 @@
 		    </div>
 		</form>
 	    </div>
-	    EVERYTHING BELOW HERE DOES NOT WORK YET
+	    EVERYTHING BELOW HERE<br>DOES NOT WORK YET
             <div class="ui-btn ui-corner-all"> 
                 <h4 style="color:black;margin:0" align="center">Archive II Control</h4>
                 <form id="ArchiveII" style="margin:0">        
@@ -97,9 +78,10 @@
             </div>
             <div style="font-size:13px"class="ui-btn ui-corner-all">
                 <h3 style="color:black;margin:0" align="center">Initialization Control</h3>
-		The following items denote various functions. The selectivity <br>
-		state of each item depends on the RPG state. After items <br>
-		are selected the Activate button invokes the function(s).
+		The following items denote various functions.<br> 
+		The selectivity state of each item depends<br> 
+		on the RPG state. After items are selected <br>
+		the Activate button invokes the function(s).
 	    </div>
 	    <div class="ui-grid-a ui-btn ui-corner-all">
 		<div id="reset-hydromet" class="ui-block-a ui-btn ui-corner-all">
@@ -136,8 +118,7 @@
             </form>
         </div>
     </div>
-</div>
-	
+</%block>	
 
 
 

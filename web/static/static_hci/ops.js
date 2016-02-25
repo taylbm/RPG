@@ -195,6 +195,7 @@ DEFAULTS = {}
 	    var controlname = element.attr("id")
 	    var displayname = element.attr("alt")
 	    var current = element.val();
+	    console.log(current)
 	    var date0 = new Date();
 	    date0.setTime(date0.getTime()+900000)
 	    if(displayname.split('-')[0] == "SAILS"){
@@ -228,6 +229,8 @@ DEFAULTS = {}
 		    $("#sails-insert").html('')
 		    child1 = element.find("option:first-child").html()
 		    child2 = element.find("option:last-child").html()
+		    console.log(child1)
+		    console.log(child2)
 		    if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
 			if (displayname == 'SAILS'){
 			    $("#pop-title").html(DATA.popTitleSails)
@@ -246,7 +249,7 @@ DEFAULTS = {}
 		    }
 		    else{
 		 	if (current=="off"){
-			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
+			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
 			}
 			else{
 			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
@@ -352,7 +355,7 @@ DEFAULTS = {}
 
 	    });
 
-	    non_rapid.addEventListener('ADAPT',function(e) {
+	    non_rapid.addEventListener('ADAPT_dict',function(e) {
 		var ADAPT = JSON.parse(e.data)
                 exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
                 for (e in exception_list){

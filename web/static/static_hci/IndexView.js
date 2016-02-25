@@ -123,6 +123,7 @@ init();
         setInterval(GetClock,DATA.clockInterval);
     }
 
+    var statusCheck = {'RDA':0,'RPG':0}
     var actionflag = {}
     var cookieRaid = {'inserted':1}
     var rpgStatusMsgs = {'new':0} 
@@ -286,54 +287,116 @@ $(document).ready(function(){
 	            if (displayname == 'SAILS' || displayname == 'SAILS-Exception'){
                         $("#pop-title").html(DATA.popTitleSAILS)
                         $("#sails-insert").html($('#sails-form').html())	
-		        $("#id-confirm").html(DATA.SAILSDialog)
+		        $("#popupDialog #id-confirm").html(DATA.SAILSDialog)
 		    }
 		    else{
 		        var child1 = $(this).find("option:first-child").html()
 		        if (current=="on"){
-			     $("#id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
+			     $("#popupDialog #id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
 		        }
 		        else{
-			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
+			    $("#popupDialog #id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
 		        }
 		    }
                     $('#popupDialog').trigger('create')
-		    $("#pop-cancel").bind('click',{attr},function(event){
+		    $("#popupDialog #pop-cancel").bind('click',{attr},function(event){
 			toggleHandler(event.data.attr,2);
-			$('#pop-cancel').unbind()
-			$('#pop-confirm').unbind()
+			$('#popupDialog #pop-cancel').unbind()
+			$('#popupDialog #pop-confirm').unbind()
 		    });
-		    $('#pop-confirm').bind('click',{attr},function(event){
+		    $('#popupDialog #pop-confirm').bind('click',{attr},function(event){
                         if (event.data.attr.displayname == 'SAILS' || displayname == 'SAILS-Exception') {
                             event.data.attr['num_cuts'] = $('#sails-insert #select-choice-0').val();
                         }
 			toggleHandler(event.data.attr,1);
-			$('#pop-confirm').unbind()
-			$('#pop-cancel').unbind()
+			$('#popupDialog #pop-confirm').unbind()
+			$('#popupDialog #pop-cancel').unbind()
 		    });
 		}
 		else{
 		    var child1 = $(this).find("option:first-child").html()
 		    var child2 = $(this).find("option:last-child").html()
 		    if (current=="on"){
-			$("#id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
+			$("#popupDialog #id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
 		    }
 		    else{
-			$("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
+			$("#popupDialog #id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
 		    }
-		    $("#pop-cancel").bind('click',{attr},function(event){
+		    $("#popupDialog #pop-cancel").bind('click',{attr},function(event){
 			toggleHandler(event.data.attr,4);
-			$('#pop-confirm').unbind()
-			$('#pop-cancel').unbind()
+			$('#popupDialog #pop-confirm').unbind()
+			$('#popupDialog #pop-cancel').unbind()
 		    });			
-		    $("#pop-confirm").bind('click',{attr},function(event){
+		    $("#popupDialog #pop-confirm").bind('click',{attr},function(event){
 			toggleHandler(event.data.attr,3);
-			$('#pop-confirm').unbind()
-			$('#pop-cancel').unbind()
+			$('#popupDialog #pop-confirm').unbind()
+			$('#popupDialog #pop-cancel').unbind()
 		    });
 		}
 	    }
 	});
+        $("#MRPG :input").click(function(){
+            var command = $(this).val();
+            $('#popupDialogRPG #pop-confirm').attr("value",command);
+            $.getJSON("/mrpg_state",function(data){
+                var mrpg_state = data['MRPG_state']
+                switch(command) {
+                    case 'MRPG_STARTUP':
+                        if( mrpg_state == 'MRPG_ST_STANDBY' ||
+                            mrpg_state == 'MRPG_ST_SHUTDOWN'||
+                            mrpg_state == 'MRPG_ST_OPERATING' ) {
+                            $("#popupDialogRPG #id-confirm").html(DATA.controlRPG.SUB[0]+DATA.controlRPG.MRPG_STARTUP[mrpg_state]+DATA.controlRPG.SUB[1])
+                            $("#popupDialogRPG").popup('open');
+                        }
+                        else {
+                            $("#popupAlert").popup('open');
+                            $("#id-info").html(DATA.controlRPG.MRPG_STARTUP.FAIL)
+                        }
+                        break;
+                    case 'MRPG_CLEANUP':
+                        if( mrpg_state == 'MRPG_ST_STANDBY' ||
+                            mrpg_state == 'MRPG_ST_SHUTDOWN' ||
+                            mrpg_state == 'MRPG_ST_OPERATING' ) {
+                            $("#popupDialogRPG #id-confirm").html(DATA.controlRPG.MRPG_CLEANUP.SUCESS+DATA.controlRPG.SUB[1])
+                            $("#popupDialogRPG").popup('open');
+                        }
+                        else {
+                            $("#popupAlert").popup('open');
+                            $("#id-info").html(DATA.controlRPG.MRPG_CLEANUP.FAIL)
+                        }
+                        break;
+                    case 'MRPG_SHUTDOWN': case 'MRPG_STANDBY':
+                        $("#popupDialogRPG #id-confirm").html(DATA.controlRPG.SHUTDOWN+DATA.controlRPG.SUB[1])
+                        $("#popupDialogRPG").popup('open');
+                        break;
+                }
+            });
+            $('#popupDialogRPG').trigger('create')
+        });
+
+        $("#popupDialogRPG #pop-confirm").click(function(){
+            var command = $(this).attr("value")
+            if (command != 'MRPG_CLEANUP')
+                $.post('/mrpg',{COM:command});
+            else
+                $.get("/mrpg_clean");
+        });
+
+        $("#pass-protect").click(function(){
+            if ($(this).attr("value") == "locked") {
+                $("#pass-protect").attr("class","ui-btn ui-icon-edit ui-btn-icon-left control-item control-shadow")
+                $(this).attr("value","unlocked")
+                $(this).html("Unlocked")
+                $("input[type='checkbox']").checkboxradio('enable');
+            }
+            else {
+                $("#pass-protect").attr("class","ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow")
+                $(this).attr("value","locked")
+                $(this).html("Locked")
+                $("input[type='checkbox']").checkboxradio('disable');
+            }
+        });
+
 	var link = $('#squaresWaveG_long').html()
 	var item = DATA.rdaItems;
 	$('#marq-insert').html($('#marq-form').html())	
@@ -476,16 +539,16 @@ $(document).ready(function(){
 		case 'CELL_BASED': case 'STORM_BASED':
 		    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
 		    $('#PRF_Mode').val('on').slider('refresh')
-		    $('#PRF_Mode_block').attr('class','hide')
+		    $('#PRF_Mode_status').addClass('hide')
 		    break;
 		case 'AUTO_PRF':
 		    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
 		    $('#PRF_Mode').val('on').slider('refresh')
-		    $('#PRF_Mode_block').attr('class','hide')
+		    $('#PRF_Mode_status').addClass('hide')
 		    break;
 		case 'MANUAL_PRF':
 		    $('#PRF_Mode').val('off').slider('refresh')
-		    $('#PRF_Mode_block').attr('class','show')
+		    $('#PRF_Mode_status').removeClass('hide')
 		    break;
 	    }
             var loadshed_cats = Object.keys(PMD['loadshed'])
@@ -583,7 +646,7 @@ $(document).ready(function(){
 	        if(RPG['RPG_SAILS']){
 	       	    $('#RPG_SAILS').val('on').slider('refresh');
 		    $('#SAILS_Exception').val('on').slider('refresh');
-		    $('#SAILS_Exception_contain').addClass('hide');
+		    $('#SAILS_Exception_status').addClass('hide');
 		    if(RPG['sails_allowed']){
 		        $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts'])	
 		    }
@@ -594,7 +657,7 @@ $(document).ready(function(){
 		else{
 		    $('#RPG_SAILS').val('off').slider('refresh');
 		    $('#SAILS_Exception').val('off').slider('refresh');
-		    $('#SAILS_Exception_contain').removeClass('hide');
+		    $('#SAILS_Exception_status').removeClass('hide');
 		}
 	    }			
 	    $('#RPG_state').html(RPG['RPG_state'])
@@ -602,40 +665,51 @@ $(document).ready(function(){
 	    switch (RPG['RPG_op'].split(',')[0]){
 	 	case 'CMDSHDN':
 			$('#RPG_oper').attr('class','minor-alarm bar-border2')
+                        $('.RPG_STAT').removeClass('hide');
 			break;
 		case 'LOADSHED': case 'MAR':
 			$('#RPG_oper').attr('class','minor-alarm bar-border2')
 			$('#grid2').attr('class','minor-alarm-grid')
 			$('#Alarms').attr('class','minor-alarm')
+                        $('.RPG_STAT').removeClass('hide');
 			break;
 		case 'MAM':
 			$('#RPG_oper').attr('class','major-alarm bar-border2')
 			$('#grid2').attr('class','major-alarm-grid')
 			$('#Alarms').attr('class','major-alarm');
+			$('.RPG_STAT').removeClass('hide');
 			break;
 		case 'ONLINE':
-			if(RPG['RPG_alarms'] == 'NONE'){$('#grid2').attr('class','normal-ops-grid')}
+			if(RPG['RPG_alarms'] == 'NONE')
+			    $('#grid2').attr('class','normal-ops-grid')
 			$('#RPG_oper').attr('class','normal-ops bar-border2')
-			break;
+			if (RPG['RPG_state'] == 'OPER' || RPG['RPG_state'] == 'STANDBY')
+			    $('.RPG_STAT').addClass('hide');
+	 	   	break;
 		default:
 			$('#RPG_oper').attr('class','inop-indicator bar-border2')
 			$('#grid2').attr('class','normal-ops-grid')
+                        $('.RPG_STAT').removeClass('hide');
 	    }
 	    switch(RPG['RPG_state']){			
 		case 'OPER': case 'STANDBY': 
 			$('#RPG_state').attr('class','bar-border2 normal-ops');
+			if (RPG['RPG_op'].split(',')[0] == 'ONLINE')
+                            $('.RPG_STAT').addClass('hide');
 			break;
 		case 'RESTART': 
 			$('#RPG_state').attr('class','bar-border2 inop-indicator');
+                        $('.RPG_STAT').removeClass('hide');
 			break;
 		case 'TEST':
 			$('#RPG_state').attr('class','bar-border2 minor-alarm');
+                        $('.RPG_STAT').removeClass('hide');
 			break;
 		case 'SHUTDOWN':
 			$('#RPG_state').attr('class','bar-border2 inop-indicator')
 			$('#RDA_STATE').html('UNKNOWN').attr('class','bar-border2 inop-indicator')
-			$('#OPERABILITY_LIST').html('UNKNOWN').attr('class','bar-border2 inop-indicator')      	
-			$('#AVSET_Exception_contain').removeClass('hide')
+			$('#OPERABILITY_LIST').html('UNKNOWN').attr('class','bar-border2 inop-indicator') 
+                        $('.RPG_STAT').removeClass('hide');
 			var unk_list = ['AVSET_Exception','RS_AVSET','RS_CMD','RS_SUPER_RES']
 			for (unk in unk_list){
 			    $('#'+unk_list[unk]).val('off').slider('refresh')
@@ -658,6 +732,10 @@ $(document).ready(function(){
 	    var RS = JSON.parse(e.data)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
+	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
+	        $('#RDA_STAT').addClass('hide');
+	    else
+		$('#RDA_STAT').removeClass('hide');
 	    for (b in state){
 		var value2 = state[b];
 		$("#"+value2).html(RS['RDA_static'][value2])
@@ -712,10 +790,10 @@ $(document).ready(function(){
 		if(cookieCheck == "NULL"){cookieCheck = RS['RS_AVSET']}
 		$('#AVSET_Exception').val(cookieCheck).slider('refresh')
 		if(cookieCheck  =='on'){
-		    $('#AVSET_Exception_contain').addClass('hide')
+		    $('#AVSET_Exception_status').addClass('hide')
 		}
 		else{
-		    $('#AVSET_Exception_contain').removeClass('hide')
+		    $('#AVSET_Exception_status').removeClass('hide')
 		}
 	    }
 	    for (i in item){
