@@ -53,7 +53,6 @@ EN_flags = {
                 	    "ORPGEVT_RDA_STATUS_CHANGE":True,
                 	    "ORPGEVT_RDA_ALARMS_UPDATE":True,
                             "ORPGEVT_ADAPT_UPDATE":True,
-			    "ORPGEVT_LOAD_SHED_CAT":True,
 			    },
  		"UN_flags": {
 			    "ORPGDAT_GSM_DATA": {
@@ -69,6 +68,7 @@ EN_flags = {
 			     			},
 			    "ORPGDAT_PRF_COMMAND_INFO": {"ORPGDAT_PRF_STATUS_MSGID":True},
 			    "ORPGDAT_RPG_INFO": {"ORPGINFO_STATEFL_SHARED_MSGID":True},
+			    "ORPGDAT_LOAD_SHED_CAT":{"LATEST":True},
 			    "EWT_DATA_ID": {"LBID_EWT_UPT":True}
 			    },
 	 	"DEAU_flags": True
@@ -159,7 +159,7 @@ n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA)
 _rpg.librpg.deau_lb_name(n)
 
 
-def update_funcs(radome_queue,update_queue):
+def radome_funcs(radome_queue):
     
     ###########################################################
     # Register pbd radial update callbacks for HCI radome items 
@@ -177,17 +177,21 @@ def update_funcs(radome_queue,update_queue):
 	        'last_elev':msg.last_ele_flag
                 }
         radome_queue.put(data) 
+    
     _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, RADOME_callback)
-   
+    dummy_event.wait()
+
+def update_funcs(update_queue):
+
     AN_dict = dict((v,k) for k,v in _rpg.orpgevt.__dict__.iteritems() if 'ORPGEVT' in k)
 
     UN_msgids = {"ORPGDAT_GSM_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.values.iteritems())}
     UN_msgids.update({"ORPGDAT_RPG_INFO":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpginfo_msgids_t.values.iteritems())})
     UN_msgids.update({"ORPGDAT_HCI_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_hci_data_msg_id_t.values.iteritems())})
     UN_msgids.update({"ORPGDAT_SYSLOG_LATEST":{1:"LATEST"}})
+    UN_msgids.update({"ORPGDAT_LOAD_SHED_CAT":{1:"LATEST"}})
     UN_msgids.update({"ORPGDAT_PRF_COMMAND_INFO":{_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID:"ORPGDAT_PRF_STATUS_MSGID"}})
     UN_msgids.update({"EWT_DATA_ID":{_rpg.lb.LBID_EWT_UPT:"LBID_EWT_UPT"}})
-
     UN_dict = dict((_rpg.liborpg.orpgda_lbfd(v),k) for k,v in _rpg.orpgdat.__dict__.iteritems() if 'ORPGDAT' in k)
     UN_dict.update({((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE):"EWT_DATA_ID"})
 
@@ -198,7 +202,6 @@ def update_funcs(radome_queue,update_queue):
     def DEAU_callback(fd,msg):
         flag = ['DEAU_flags']
         update_queue.put(flag)
-
 
     _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,DEAU_callback)
     
@@ -234,13 +237,15 @@ def update_funcs(radome_queue,update_queue):
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,UN_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,UN_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,UN_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_LOAD_SHED_CAT,1,UN_callback)
    
      
     dummy_event.wait()  # hold the process so it doesn't return 
 
-update_process = Process(target=update_funcs, args=(radome_queue,update_queue))
+update_process = Process(target=update_funcs, args=(update_queue,))
 update_process.start()
-
+radome_process = Process(target=radome_funcs, args=(radome_queue,))
+radome_process.start()
 
 
 ##
@@ -400,30 +405,6 @@ def RPG_alarm_init():
     else:
 	return False
 
-def LOADSHED_init():
-    if (EN_flags['AN_flags']['ORPGEVT_LOAD_SHED_CAT']):
-        category_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_CATEGORY.values.items())
-        type_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_TYPE.values.items())
-        loadshed_dict = {}
-        loadshed = {}
-        for c in category_dict:
-            temp = {}
-            for t in type_dict:
-                temp.update({t:_rpg.liborpg.orpgload_get_data(category_dict[c],type_dict[t])[1]})
-            loadshed_dict.update({c:temp})
-	for cat in loadshed_dict:
-            if(loadshed_dict[cat]['LOAD_SHED_CURRENT_VALUE'] >=loadshed_dict[cat]['LOAD_SHED_WARNING_THRESHOLD']):
-                loadshed[cat] = 'WARNING'
-            elif(loadshed_dict[cat]['LOAD_SHED_CURRENT_VALUE'] >=loadshed_dict[cat]['LOAD_SHED_ALARM_THRESHOLD']):
-                loadshed[cat] = 'ALARM'
-            else:
-                loadshed[cat] = 'NONE'
-
-	EN_flags['AN_flags']['ORPGEVT_LOAD_SHED_CAT'] = False
-        return {'loadshed':loadshed}
-    else:
-	return False
-
 def RPG_op_init():
     if (EN_flags['AN_flags']['ORPGEVT_RPG_OPSTAT_CHANGE']):
         return {'RPG_op':'ONLINE'}
@@ -470,6 +451,30 @@ def AUTO_MODE_init():
 	}
     else:
 	return False
+
+def LOADSHED_init():
+    if (EN_flags['UN_flags']['ORPGDAT_LOAD_SHED_CAT']['LATEST']):
+        category_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_CATEGORY.values.items())
+        type_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_TYPE.values.items())
+        loadshed_dict = {}
+        loadshed = {}
+        for c in category_dict:
+            temp = {}
+            for t in type_dict:
+                temp.update({t:_rpg.liborpg.orpgload_get_data(category_dict[c],type_dict[t])[1]})
+            loadshed_dict.update({c:temp})
+        for cat in loadshed_dict:
+            if(loadshed_dict[cat]['LOAD_SHED_CURRENT_VALUE'] >=loadshed_dict[cat]['LOAD_SHED_WARNING_THRESHOLD']):
+                loadshed[cat] = 'WARNING'
+            elif(loadshed_dict[cat]['LOAD_SHED_CURRENT_VALUE'] >=loadshed_dict[cat]['LOAD_SHED_ALARM_THRESHOLD']):
+                loadshed[cat] = 'ALARM'
+            else:
+                loadshed[cat] = 'NONE'
+
+        EN_flags['UN_flags']['ORPGDAT_LOAD_SHED_CAT']['LATEST'] = False
+        return {'loadshed':loadshed}
+    else:
+        return False
 
 
 
@@ -911,7 +916,7 @@ class Update_Server(object):
 	attr = {'retry':'4000'}  # reconnect timeout for purposes of server error
 	update_dict = {'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT()}
 	function_dict = {'PMD':PMD,'RS':RS,'RPG':RPG,'ADAPT':ADAPT}
-	event_id = 0	
+	event_id = 0
 	initial_connect = True
 	while True:	
 	    check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
@@ -947,7 +952,7 @@ class Radome(object):
 	msg = {'retry':'4000'} # connection loss timeout
 	event_id = 0
 	while True:
-	    radome_update = radome_queue.get()
+	    radome_update = radome_queue.get(1)
             try:
                 moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
   	        radome_update.update({'moments':moments_list})
@@ -959,7 +964,6 @@ class Radome(object):
 	    })
 	    yield sse_pack_single(msg)
 	    event_id += 1 # provide unique event id so the client can distinguish between messages	
-
 
 
 ##

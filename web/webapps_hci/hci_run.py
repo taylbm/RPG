@@ -44,12 +44,8 @@ URLS = (
     '/deau_set','handlers.DEAU_set',
     '/rpgcntl_s','handlers.RPGCNTL_Server'
 )
-#def deau_loadhook():
-#    n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA) 
-#    _rpg.librpg.deau_lb_name(n)
 
 if __name__ == '__main__':
     app = web.application(URLS, globals())
-#    app.add_processor(web.loadhook(deau_loadhook))
     app.run()
 

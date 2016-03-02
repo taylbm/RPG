@@ -558,10 +558,12 @@ $(document).ready(function(){
                 if(PMD['loadshed'][loadshed_cats[lshd]] != 'NONE'){
                     $('#Load_Shed_contain').html(PMD['loadshed'][loadshed_cats[lshd]])
                     $('#Load_Shed_status').removeClass('hide')
+                    $('#Alarms').attr('class','bar-border loadshed')
                     if(PMD['loadshed'][lshd] == 'ALARM'){
-                        $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')
+                        $('#Load_Shed_contain').attr('style','font-size:14px;background-color:#00FFFF')
                     }
-                }
+	        }
+	
             }
 
 
@@ -623,8 +625,10 @@ $(document).ready(function(){
 		if(RPG['RPG_alarm_suppl'] == ''){
 		    $('#Alarms').attr('class','bar-border null-ops')
 		}
-		else{	
-		    $('#Alarms').attr('class','bar-border normal-ops')		
+		else{
+		    if ($('#Alarms').attr('class') != 'bar-border loadshed'){	
+		        $('#Alarms').attr('class','bar-border normal-ops')	
+		    }	
 		}
 	    }
 	    if(!RPG['precedence']){

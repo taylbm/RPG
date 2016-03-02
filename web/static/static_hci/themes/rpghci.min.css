@@ -594,6 +594,9 @@ table.no-spacing {
         border-color: #8B0000;
 
 }
+.loadshed {
+	background-color:#00FFFF; !important
+}
 
 .rda-alarm-indicator {
 	font-size:12px !important;
@@ -764,7 +767,6 @@ table.no-spacing {
 	width:100%;
 }
 #Alarms{
-	background-color:#51FF22;
 	border:solid 1px;
 	font-weight:bold;
 	width:100%;
