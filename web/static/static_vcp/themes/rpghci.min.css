@@ -16,12 +16,6 @@
 @font-face {
   font-family: 'Arimo';
   font-style: normal;
-  font-weight: 400;
-  src: url('/static/themes/fonts/Arimo.woff') format('woff');
-}
-@font-face {
-  font-family: 'Arimo';
-  font-style: normal;
   font-weight: 700;
   src: url('/static/themes/fonts/Arimo-Bold.woff') format('woff');
 }
@@ -39,7 +33,8 @@ button,
 	font-size: 1em;
 	line-height: 1.3;
 	  font-family: 'Arimo', sans-serif; /*{global-font-family}*/;
-	  font-weight: 400;
+	  font-weight: 700;
+	 
 }
 td .ui-table-cell-label,
 th .ui-table-cell-label {
@@ -607,4 +602,14 @@ table.no-spacing {
 .interval{
 	margin-top:-10px;
 	margin-bottom:0px;
+	text-align:center;
+}
+.info-box{
+	font-size:12px;
+	text-align:center;
+}
+.ui-icon-check-green:after {
+	background: url('/static/jquery.mobile-1.4.5/images/icons-png/check-green.png') no-repeat rgba(0,0,0,0) !important;
+	background-size: 18px 18px !important;
+	background-position: center center !important;
 }

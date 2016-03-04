@@ -76,6 +76,22 @@ class List_VCPS(object):
     	    if newstr[0] == 'vcp':
                 dir_list_parse.append(int(newstr[1]))
 	return json.dumps(dir_list_parse)
+
+
+class Elev_List(object):	
+    def GET(self):
+	el_dict = {}
+        dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
+        for vcp in dir_list_parse:
+            fname = vcp_dir+'/vcp_'+vcp
+            try:
+                f = open(fname,'r')
+                text_lines = list(f)
+            except Exception,e:
+                print ("vcp def read error")
+            el_list = [float(x.replace('elev_ang_deg','').replace("\n",'').replace(' ','')) for x in text_lines if 'elev_ang_deg' in x]
+	    el_dict.update({str(vcp):el_list})
+	return json.dumps(el_dict)
 ##
 # Renders the VCP Command Control page
 ##
@@ -83,7 +99,9 @@ class VCP_command_control(object):
     def GET(self):
         dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
         complete = {}
-        for vcp in dir_list_parse:	
+	vcp_num = _rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER)
+        print vcp_num
+	for vcp in dir_list_parse:	
             fname = vcp_dir+'/vcp_'+vcp
             try:
                 f = open(fname,'r')
@@ -93,7 +111,7 @@ class VCP_command_control(object):
             # creates custom display data
 	    elev_list = [x for x in text_lines if 'elev_ang_deg' in x]
             unique_elevs = len(set(elev_list))
-            num_split_cuts = len([x for x in text_lines if 'waveform_type' and 'CS' in x])
+            num_split_cuts = len([x for x in text_lines if 'waveform_type' and 'CS' in x])-1
             num_batch_cuts = len([x for x in text_lines if 'waveform_type' and 'BATCH' in x])
             # identifies open and closed braces
 	    text_open = [x for x,i in enumerate(text_lines) if '{' in i]
@@ -244,6 +262,10 @@ class VCP_command_control(object):
             	main_dict.update(temp_dict)
             main_dict.update(allowable)
             sails = filter(lambda x: 'allow_sails' in x, text_lines) != []
+	    if sails:
+		sails_cuts = int([x.replace('allow_sails','') for x in text_lines if 'allow_sails' in x][0])
+	    else:
+		sails_cuts = 0
             sz2 = filter(lambda x: 'phase' in x, text_lines) != []
 	    multi_helper = ""
 	    if unique_elevs == 5:
@@ -255,9 +277,10 @@ class VCP_command_control(object):
 	    scan_rate_sum = sum(360/float(stripList(x.replace('scan_rate_dps',''))) for x in text_lines if 'scan_rate_dps' in x)
 	    update_interval = str(datetime.timedelta(seconds=int(scan_rate_sum)))[2:]
             main_dict.update({
+				"vcp_num":vcp_num,
 				"update_interval":update_interval,
 				"unique_elevs":unique_elevs,
-				"num_batch_cuts":num_batch_cuts,
+				"sails_cuts":sails_cuts,
 				"num_split_cuts":num_split_cuts,
 				"multi":multi,
 				"strategies":{
@@ -291,7 +314,7 @@ class Parse_VCPS(object):
 	    return json.dumps({'error':True,'msg':'%s' %e})
 	# creates custom display data
         unique_elevs = len(set([x for x in text_lines if 'elev_ang_deg' in x]))
-        num_split_cuts = len([x for x in text_lines if 'waveform_type' and 'CS' in x])
+        num_split_cuts = len([x for x in text_lines if 'waveform_type' and 'CS' in x])-1
         num_batch_cuts = len([x for x in text_lines if 'waveform_type' and 'BATCH' in x])
 	# identifies open and closed braces
         text_open = [x for x,i in enumerate(text_lines) if '{' in i]

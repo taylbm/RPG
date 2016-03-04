@@ -41,8 +41,7 @@ URLS = (
     '/mrpg','handlers.MRPG',
     '/mrpg_state','handlers.MRPG_state',
     '/mrpg_clean','handlers.MRPG_clean',
-    '/deau_set','handlers.DEAU_set',
-    '/rpgcntl_s','handlers.RPGCNTL_Server'
+    '/deau_set','handlers.DEAU_set'
 )
 
 if __name__ == '__main__':

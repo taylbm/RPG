@@ -44,7 +44,6 @@ moments = {
 ##
 
 EN_flags = {
-		"AN_flags": {
                 	    "ORPGEVT_ENVWND_UPDATE":True,
                 	    "ORPGEVT_PERF_MAIN_RECEIVED":True,
                 	    "ORPGEVT_RPG_STATUS_CHANGE":True,
@@ -53,25 +52,22 @@ EN_flags = {
                 	    "ORPGEVT_RDA_STATUS_CHANGE":True,
                 	    "ORPGEVT_RDA_ALARMS_UPDATE":True,
                             "ORPGEVT_ADAPT_UPDATE":True,
-			    },
- 		"UN_flags": {
+                            "ORPGDAT_PRF_COMMAND_INFO": True,
+                            "ORPGDAT_RPG_INFO": True,
+                            "ORPGDAT_LOAD_SHED_CAT": True,
+                            "DEAU":True,
+                            "EWT_DATA_ID": True,
+                            "ORPGDAT_SYSLOG_LATEST": True,
 			    "ORPGDAT_GSM_DATA": {
 					   	"SAILS_STATUS_ID":True,
 						"RDA_STATUS_ID":True,
 						"VOL_STAT_GSM_ID":True,
 						"WX_STATUS_ID":True
 						},
-			    "ORPGDAT_SYSLOG_LATEST": {"LATEST":True},
 			    "ORPGDAT_HCI_DATA": {
 						"HCI_PRECIP_STATUS_MSG_ID":True,
 						"HCI_PROD_INFO_STATUS_MSG_ID":True
-			     			},
-			    "ORPGDAT_PRF_COMMAND_INFO": {"ORPGDAT_PRF_STATUS_MSGID":True},
-			    "ORPGDAT_RPG_INFO": {"ORPGINFO_STATEFL_SHARED_MSGID":True},
-			    "ORPGDAT_LOAD_SHED_CAT":{"LATEST":True},
-			    "EWT_DATA_ID": {"LBID_EWT_UPT":True}
-			    },
-	 	"DEAU_flags": True
+			     			}
 	   }
 
 
@@ -155,8 +151,6 @@ update_queue = Queue()
 # Setup DEAU Database LB
 ##
 
-n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA)
-_rpg.librpg.deau_lb_name(n)
 
 
 def radome_funcs(radome_queue):
@@ -181,71 +175,73 @@ def radome_funcs(radome_queue):
     _rpg.liben.en_register(_rpg.orpgevt.ORPGEVT_RADIAL_ACCT, RADOME_callback)
     dummy_event.wait()
 
+radome_process = Process(target=radome_funcs, args=(radome_queue,))
+radome_process.start()
+
+n = _rpg.liborpg.orpgda_lbname(_rpg.orpgdat.ORPGDAT_ADAPT_DATA)
+_rpg.librpg.deau_lb_name(n)
+
+
 def update_funcs(update_queue):
 
     AN_dict = dict((v,k) for k,v in _rpg.orpgevt.__dict__.iteritems() if 'ORPGEVT' in k)
-
-    UN_msgids = {"ORPGDAT_GSM_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.values.iteritems())}
-    UN_msgids.update({"ORPGDAT_RPG_INFO":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpginfo_msgids_t.values.iteritems())})
-    UN_msgids.update({"ORPGDAT_HCI_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_hci_data_msg_id_t.values.iteritems())})
-    UN_msgids.update({"ORPGDAT_SYSLOG_LATEST":{1:"LATEST"}})
-    UN_msgids.update({"ORPGDAT_LOAD_SHED_CAT":{1:"LATEST"}})
-    UN_msgids.update({"ORPGDAT_PRF_COMMAND_INFO":{_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID:"ORPGDAT_PRF_STATUS_MSGID"}})
-    UN_msgids.update({"EWT_DATA_ID":{_rpg.lb.LBID_EWT_UPT:"LBID_EWT_UPT"}})
     UN_dict = dict((_rpg.liborpg.orpgda_lbfd(v),k) for k,v in _rpg.orpgdat.__dict__.iteritems() if 'ORPGDAT' in k)
     UN_dict.update({((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE):"EWT_DATA_ID"})
+    EN_dict = AN_dict.copy()
+    EN_dict.update(UN_dict)
+    UN_msgids = {"ORPGDAT_GSM_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.values.iteritems())}
+    UN_msgids.update({"ORPGDAT_HCI_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_hci_data_msg_id_t.values.iteritems())})
+    
+
+    def generic_callback(fd,msg):
+        if msg == 1564 or msg == 1565:
+   	    flag = ['DEAU']
+	elif EN_dict[fd] == 'ORPGDAT_GSM_DATA' or EN_dict[fd] == 'ORPGDAT_HCI_DATA':
+	    flag = [EN_dict[fd],UN_msgids[EN_dict[fd]][msg]]
+	else:
+	    flag = [EN_dict[fd]]
+	update_queue.put(flag)
+
 
     #############################################
     # Register DEAU Update Notification Callback
     #############################################
 
-    def DEAU_callback(fd,msg):
-        flag = ['DEAU_flags']
-        update_queue.put(flag)
-
-    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,DEAU_callback)
+    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)
     
     ###################################################
     # Register Application Notification (AN) Callbacks  
     ###################################################
 
-    def AN_callback(event,msg_data):
-        flag = ['AN_flags',AN_dict[event]]
-	update_queue.put(flag)
     
     AN_reg = dict((k,v) for k,v in _rpg.orpgevt.__dict__.iteritems() if 'ORPGEVT' in k and 'RADIAL_ACCT' not in k)
     for k,v in AN_reg.iteritems():
-        _rpg.liben.en_register(v,AN_callback)
+        _rpg.liben.en_register(v,generic_callback)
 
     #################################################
     # Register LB Update Notification (UN) Callbacks 
     #################################################
 
-    def UN_callback(fd,msg):
-        flag = ['UN_flags',UN_dict[fd],UN_msgids[UN_dict[fd]][msg]]	
-	update_queue.put(flag)
   
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,1,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PROD_INFO_STATUS_MSG_ID,UN_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,1,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PROD_INFO_STATUS_MSG_ID,generic_callback)
 
     ewt_data_id = ((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)
-    _rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.RDA_STATUS_ID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_RPG_INFO,_rpg.orpgdat.Orpginfo_msgids_t.ORPGINFO_STATEFL_SHARED_MSGID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,UN_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_LOAD_SHED_CAT,1,UN_callback)
+    _rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.RDA_STATUS_ID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_RPG_INFO,_rpg.orpgdat.Orpginfo_msgids_t.ORPGINFO_STATEFL_SHARED_MSGID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_LOAD_SHED_CAT,1,generic_callback)
    
      
     dummy_event.wait()  # hold the process so it doesn't return 
 
 update_process = Process(target=update_funcs, args=(update_queue,))
 update_process.start()
-radome_process = Process(target=radome_funcs, args=(radome_queue,))
-radome_process.start()
 
 
 ##
@@ -260,25 +256,24 @@ RDA_alarms_all = [x.replace('AS_','') for x in RS_states['alarmsummary'].values(
 
 RS_dict_init = {}
 
-RPG_control_event = threading.Event()
 
 #######################################################################
 # Fxn defs to initialize data on initial server connect and on callbacks
 #######################################################################
 
 def VAD_init():	
-    if (EN_flags['AN_flags']['ORPGEVT_ENVWND_UPDATE']):
+    if (EN_flags['ORPGEVT_ENVWND_UPDATE']):
         vad_flag = _rpg.libhci.hci_get_vad_update_flag()
-	EN_flags['AN_flags']['ORPGEVT_ENVWND_UPDATE'] = False
+	EN_flags['ORPGEVT_ENVWND_UPDATE'] = False
         return {'VAD_Update':vad_flag}
     else:
 	return False
 
 def PMD_init():
-    if (EN_flags['AN_flags']['ORPGEVT_PERF_MAIN_RECEIVED']):	
+    if (EN_flags['ORPGEVT_PERF_MAIN_RECEIVED']):	
         pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
     	
-    	EN_flags['AN_flags']['ORPGEVT_PERF_MAIN_RECEIVED'] = False
+    	EN_flags['ORPGEVT_PERF_MAIN_RECEIVED'] = False
 	return {
    	    'cnvrtd_gnrtr_fuel_lvl':pmd.cnvrtd_gnrtr_fuel_lvl,
    	    'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
@@ -288,21 +283,20 @@ def PMD_init():
 	return False
 
 def RPG_state_init():
-    if (EN_flags['AN_flags']['ORPGEVT_RPG_STATUS_CHANGE']):
+    if (EN_flags['ORPGEVT_RPG_STATUS_CHANGE']):
         RPG_state_list = [x for x in dir(_rpg.orpgmisc) if 'ORPGMISC' in x]
         RPG_state = [task.replace('ORPGMISC_IS_RPG_STATUS_','') for task in RPG_state_list if _rpg.liborpg.orpgmisc_is_rpg_status(getattr(_rpg.orpgmisc,task))]
         if not RPG_state:
             RPG_state.append("SHUTDOWN")
 	
-	EN_flags['AN_flags']['ORPGEVT_RPG_STATUS_CHANGE'] = False	
-        RPG_control_event.set()
+	EN_flags['ORPGEVT_RPG_STATUS_CHANGE'] = False	
 	return {'RPG_state':",".join(RPG_state)}
 
     else:
 	return False
 
 def RS_init():
-    if (EN_flags['AN_flags']['ORPGEVT_RDA_STATUS_CHANGE']):
+    if (EN_flags['ORPGEVT_RDA_STATUS_CHANGE']):
         RS_dict = {}
         RS_list = [x for x in dir(_rpg.rdastatus) if 'RS' in x]
         for task in RS_list:
@@ -318,7 +312,7 @@ def RS_init():
         alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
         RS_dict_init.update(RS_dict)
 	
-	EN_flags['AN_flags']['ORPGEVT_RDA_STATUS_CHANGE'] = False
+	EN_flags['ORPGEVT_RDA_STATUS_CHANGE'] = False
         return {
 	'RDA_static':
 	    {
@@ -336,7 +330,7 @@ def RS_init():
 
 
 def RDA_alarms_init():
-    if (EN_flags['AN_flags']['ORPGEVT_RDA_ALARMS_UPDATE']):
+    if (EN_flags['ORPGEVT_RDA_ALARMS_UPDATE']):
         try:
 	    alarm_status = _rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_CODE)
             latest_alarm_text = _rpg.liborpg.orpgrat_get_alarm_text(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_ALARM))
@@ -359,13 +353,13 @@ def RDA_alarms_init():
         except:
             latest_alarm = {'valid':0}
 
-	EN_flags['AN_flags']['ORPGEVT_RDA_ALARMS_UPDATE'] = False
+	EN_flags['ORPGEVT_RDA_ALARMS_UPDATE'] = False
         return {'latest_alarm':latest_alarm}
     else:
 	False
 
 def RPG_alarm_init():
-    if(EN_flags['AN_flags']['ORPGEVT_RPG_ALARM']):
+    if(EN_flags['ORPGEVT_RPG_ALARM']):
         RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
         RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
     
@@ -393,7 +387,7 @@ def RPG_alarm_init():
         except:
             RDA_alarm_valid = 0
 	
-	EN_flags['AN_flags']['ORPGEVT_RPG_ALARM'] = False
+	EN_flags['ORPGEVT_RPG_ALARM'] = False
 	
         return {
 	    'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
@@ -406,18 +400,17 @@ def RPG_alarm_init():
 	return False
 
 def RPG_op_init():
-    if (EN_flags['AN_flags']['ORPGEVT_RPG_OPSTAT_CHANGE']):
+    if (EN_flags['ORPGEVT_RPG_OPSTAT_CHANGE']):
         return {'RPG_op':'ONLINE'}
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
         RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
         return {'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_','')}
-	RPG_control_event.set()
-        EN_flags['AN_flags']['ORPGEVT_RPG_OPSTAT_CHANGE'] = False
+        EN_flags['ORPGEVT_RPG_OPSTAT_CHANGE'] = False
     else:
 	return False
 
 def ADAPT_init():
-    if (EN_flags['AN_flags']['ORPGEVT_ADAPT_UPDATE']):
+    if (EN_flags['ORPGEVT_ADAPT_UPDATE']):
         ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
         zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
         zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
@@ -426,7 +419,7 @@ def ADAPT_init():
 	default_wx_mode = _rpg.librpg.deau_get_string_values(_rpg.librpg.ORPGSITE_DEA_WX_MODE)
         default_mode_A_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_A_VCP,1)
         default_mode_B_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_B_VCP,1)	
-	EN_flags['AN_flags']['ORPGEVT_ADAPT_UPDATE'] = False
+	EN_flags['ORPGEVT_ADAPT_UPDATE'] = False
         return {
 	    'ICAO':ICAO[1],
 	    'ZR_mult':zr_mult[1][0],
@@ -441,10 +434,10 @@ def ADAPT_init():
 	return False
 
 def AUTO_MODE_init():
-    if (EN_flags["DEAU_flags"]):
+    if (EN_flags['DEAU']):
         precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
         clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()
-	EN_flags["DEAU_flags"] = False
+	EN_flags['DEAU'] = False
 	return {
                 'mode_A_auto_switch':precip_switch,
                 'mode_B_auto_switch':clear_air_switch
@@ -453,7 +446,7 @@ def AUTO_MODE_init():
 	return False
 
 def LOADSHED_init():
-    if (EN_flags['UN_flags']['ORPGDAT_LOAD_SHED_CAT']['LATEST']):
+    if (EN_flags['ORPGDAT_LOAD_SHED_CAT']):
         category_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_CATEGORY.values.items())
         type_dict = dict((str(v),k) for k,v in _rpg.liborpg.LOAD_SHED_TYPE.values.items())
         loadshed_dict = {}
@@ -471,7 +464,7 @@ def LOADSHED_init():
             else:
                 loadshed[cat] = 'NONE'
 
-        EN_flags['UN_flags']['ORPGDAT_LOAD_SHED_CAT']['LATEST'] = False
+        EN_flags['ORPGDAT_LOAD_SHED_CAT'] = False
         return {'loadshed':loadshed}
     else:
         return False
@@ -479,7 +472,7 @@ def LOADSHED_init():
 
 
 def CRDA_init():
-    if (EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['RDA_STATUS_ID']):
+    if (EN_flags['ORPGDAT_GSM_DATA']['RDA_STATUS_ID']):
         CRDA_dict_init = {}
         try:
             lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
@@ -499,14 +492,14 @@ def CRDA_init():
         except:
             pass
 
-        EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['RDA_STATUS_ID'] = False
+        EN_flags['ORPGDAT_GSM_DATA']['RDA_STATUS_ID'] = False
         return CRDA_dict_init
     else:
         return False
 
 
 def RPG_status_init():
-    if (EN_flags['UN_flags']['ORPGDAT_SYSLOG_LATEST']['LATEST']):
+    if (EN_flags['ORPGDAT_SYSLOG_LATEST']):
         s = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
         if s[0] > 0:
             parse_s = s[1][:s[0]-1].split(' ')
@@ -518,7 +511,7 @@ def RPG_status_init():
         else:
             rpg_status = ''
             rpg_status_ts = ''
-	EN_flags['UN_flags']['ORPGDAT_SYSLOG_LATEST']['LATEST'] = False
+	EN_flags['ORPGDAT_SYSLOG_LATEST'] = False
 	
 	return {
             'RPG_status':rpg_status,
@@ -529,25 +522,25 @@ def RPG_status_init():
 
 
 def NB_status_init():
-    if (EN_flags['UN_flags']['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID']): 
+    if (EN_flags['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID']): 
         nb = _rpg.libhci.hci_get_nb_connection_status()
         
-	EN_flags['UN_flags']['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID'] = False
+	EN_flags['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID'] = False
 	
 	return {'narrowband':nb_dict[nb]}
     else:
 	return False
 
 def model_flag_init():
-    if (EN_flags['UN_flags']['EWT_DATA_ID']['LBID_EWT_UPT']):
+    if (EN_flags['EWT_DATA_ID']):
         model_flag = _rpg.libhci.hci_get_model_update_flag()
-        EN_flags['UN_flags']['EWT_DATA_ID']['LBID_EWT_UPT'] = False
+        EN_flags['EWT_DATA_ID'] = False
 	return {'Model_Update':model_flag}
     else:
 	return False
 
 def SAILS_init():
-    if (EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['SAILS_STATUS_ID']):
+    if (EN_flags['ORPGDAT_GSM_DATA']['SAILS_STATUS_ID']):
 	sails_status = _rpg.liborpg.orpgda_read_sails(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID)
 	if sails_status[0] > 0:
 	    sails_cuts = sails_status[1]
@@ -555,7 +548,7 @@ def SAILS_init():
 	    print "ORPGDAT_GSM_DATA read failed:%d" % sails_status[0]
 	    sails_cuts = 0
         sails_allowed = _rpg.liborpg.orpgsails_allowed()
-	EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['SAILS_STATUS_ID'] = False
+	EN_flags['ORPGDAT_GSM_DATA']['SAILS_STATUS_ID'] = False
         return {
 	    'sails_cuts':sails_cuts,
 	    'sails_allowed':sails_allowed
@@ -564,16 +557,16 @@ def SAILS_init():
 	return False
  
 def ORPGVST_init():
-    if (EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['VOL_STAT_GSM_ID']):
+    if (EN_flags['ORPGDAT_GSM_DATA']['VOL_STAT_GSM_ID']):
         ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
-	EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['VOL_STAT_GSM_ID'] = False
+	EN_flags['ORPGDAT_GSM_DATA']['VOL_STAT_GSM_ID'] = False
         return {'ORPGVST':ORPGVST}
     else:
 	return False
 
 def STATEFL_init():
-    if (EN_flags['UN_flags']['ORPGDAT_RPG_INFO']['ORPGINFO_STATEFL_SHARED_MSGID']):
-	EN_flags['UN_flags']['ORPGDAT_RPG_INFO']['ORPGINFO_STATEFL_SHARED_MSGID'] = False
+    if (EN_flags['ORPGDAT_RPG_INFO']):
+	EN_flags['ORPGDAT_RPG_INFO'] = False
         return {
     	    'RPG_AVSET':_rpg.liborpg.orpginfo_is_avset_enabled(),
     	    'RPG_SAILS':_rpg.liborpg.orpginfo_is_sails_enabled()
@@ -582,11 +575,11 @@ def STATEFL_init():
 	return False
 
 def WX_init():
-    if (EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['WX_STATUS_ID']):
+    if (EN_flags['ORPGDAT_GSM_DATA']['WX_STATUS_ID']):
         mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
         mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
     
-	EN_flags['UN_flags']['ORPGDAT_GSM_DATA']['WX_STATUS_ID'] = False
+	EN_flags['ORPGDAT_GSM_DATA']['WX_STATUS_ID'] = False
 	return { 
 	    'mode_conflict':mode_conflict,
 	    'mode_trans':mode_trans
@@ -595,19 +588,19 @@ def WX_init():
 	return False
 
 def PRECIP_init():
-    if (EN_flags['UN_flags']['ORPGDAT_HCI_DATA']['HCI_PRECIP_STATUS_MSG_ID']):
+    if (EN_flags['ORPGDAT_HCI_DATA']['HCI_PRECIP_STATUS_MSG_ID']):
         precip = _rpg.libhci.hci_get_precip_status().current_precip_status    
     
-	EN_flags['UN_flags']['ORPGDAT_HCI_DATA']['HCI_PRECIP_STATUS_MSG_ID'] = False
+	EN_flags['ORPGDAT_HCI_DATA']['HCI_PRECIP_STATUS_MSG_ID'] = False
 	return {'current_precip_status':precip}
     else:
 	return False
 
 def PRF_init():
-    if (EN_flags['UN_flags']['ORPGDAT_PRF_COMMAND_INFO']['ORPGDAT_PRF_STATUS_MSGID']):
+    if (EN_flags['ORPGDAT_PRF_COMMAND_INFO']):
         prf = _rpg.libhci.hci_get_prf_mode_status_msg().state
 
-	EN_flags['UN_flags']['ORPGDAT_PRF_COMMAND_INFO']['ORPGDAT_PRF_STATUS_MSGID'] = False
+	EN_flags['ORPGDAT_PRF_COMMAND_INFO'] = False
 
         return {'prf':prf_dict[prf]}
     else:
@@ -881,30 +874,6 @@ class IndexView(object):
 class Update(object):
     def GET(self):
 	return gzip_response(json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT(),'CFG_dict':CFG()}))
-##
-# RPG Control SSE
-##
-
-class RPGCNTL_Server(object):
-    def GET(self):
-        web.header("Content-Type","text/event-stream")
-        web.header("Cache-Control","no-cache")
-        msg = {'retry':'4000'}  # reconnect timeout for purposes of server error
-        event_id = 0
-        initial_connect = True
-	while True:	
-	    if initial_connect:
-		initial_connect = False
-	    else:
-	        RPG_control_event.wait()
-	    msg.update({
-                'data':json.dumps(RPG()),
-                'id':event_id
-            })
-	    yield sse_pack_single(msg)
-	    event_id += 1
-	    RPG_control_event.clear()
-	    print event_id    
 
 ##
 # Main Server Sent Updates (SSE) servlet.  
@@ -923,12 +892,12 @@ class Update_Server(object):
             global EN_flags
             flag = update_queue.get(1)
 	    flag_check = flag[0]
-	    if flag_check == "DEAU_flags":
-		EN_flags["DEAU_flags"] = True
-	    elif flag_check == "AN_flags":
-                EN_flags["AN_flags"][flag[1]] = True
-	    elif flag_check == "UN_flags":
-	        EN_flags["UN_flags"][flag[1]][flag[2]] = True
+	    if flag_check == "DEAU":
+		EN_flags["DEAU"] = True
+	    elif flag_check == "ORPGDAT_GSM_DATA" or flag_check == "ORPGDAT_HCI_DATA":
+                EN_flags[flag[0]][flag[1]] = True
+	    else:
+	        EN_flags[flag[0]] = True
 	    if initial_connect:
 	        initial_connect = False
 	    else:
