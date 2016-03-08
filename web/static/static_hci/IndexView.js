@@ -122,6 +122,19 @@ init();
         GetClock();
         setInterval(GetClock,DATA.clockInterval);
     }
+    var colorMsgs = {
+		     'MAR':'minor-alarm',
+		     'MAM':'major-alarm',
+		     'INOP':'inop',
+		     'LS':'loadshed',
+		     'NA':'',
+		     'SEC':'white',
+		     'WARN':'minor-alarm',
+		     'INFO':'gray',
+		     'COMMS':'seagreen',
+		     'GEN':'',
+    }
+
 
     var statusCheck = {'RDA':0,'RPG':0}
     var actionflag = {}
@@ -622,19 +635,10 @@ $(document).ready(function(){
 	    }
 	    if(!RPG['RDA_alarm_valid']){
 		$('#Alarms').html(RPG['RPG_alarm_suppl'])
-		if(RPG['RPG_alarm_suppl'] == ''){
-		    $('#Alarms').attr('class','bar-border null-ops')
-		}
-		else{
-		    if ($('#Alarms').attr('class') != 'bar-border loadshed'){	
-		        $('#Alarms').attr('class','bar-border normal-ops')	
-		    }	
-		}
 	    }
 	    if(!RPG['precedence']){
-		$('#Alarms').html(RPG['RPG_alarm_suppl']).attr('class','bar-border normal-ops')
+		$('#Alarms').html(RPG['RPG_alarm_suppl'])
 	    }
-
 	    var cts = Math.round((new Date()).getTime() / 1000);	
 	    if(cts - RPG['RPG_status_ts'] == DATA.noSystemChangeTimeout){
 		rpgStatusMsgs['new'] = timeStamp() + DATA.noSystemChangeMsg 
@@ -645,6 +649,36 @@ $(document).ready(function(){
 	    else{ 
 		$('#Status').html(RPG['RPG_status'])
 	    }
+	    if (RPG['msg_type']) {
+	        status_class_string = 'bar-border '+colorMsgs[RPG['msg_type'].split('_')[2]]	
+	        $('#Status').attr('class',status_class_string)	
+	    }
+	    else {
+		if (RPG['error']) 
+		    $('#Status').attr('class','bar-border minor-alarm')
+		else
+		    $('#Status').attr('class','bar-border')
+	    }
+	    if (!RPG['active']) 
+	        $('#Status').attr('class','bar-border normal-ops')
+	    if (RPG['alarm_msg_type']) {
+	        alarm_class_string = 'bar-border '+colorMsgs[RPG['alarm_msg_type'].split('_')[2]]
+	        $('#Alarms').attr('class',alarm_class_string)
+	    }
+	    else {
+		if (RPG['alarm_error']) 
+		    $('#Alarms').attr('class','bar-border minor-alarm')
+		else 
+		    $('#Alarms').attr('class','bar-border')
+	    }
+	    if (!RPG['alarm_active']) 
+		$('#Alarms').attr('class','bar-border normal-ops')
+
+
+ 
+		
+	           
+		        
 	    $('#VCP_start_time').html(" "+RPG['ORPGVST'])
 	    if (Object.keys(actionflag).indexOf('SAILS') < 0){
 	        if(RPG['RPG_SAILS']){
@@ -664,42 +698,46 @@ $(document).ready(function(){
 		    $('#SAILS_Exception_status').removeClass('hide');
 		}
 	    }			
-	    $('#RPG_state').html(RPG['RPG_state'])
-	    $('#RPG_oper').html(RPG['RPG_op'].split(',')[0])	
-	    switch (RPG['RPG_op'].split(',')[0]){
-	 	case 'CMDSHDN':
+
+	    $('#RPG_oper').html(RPG['RPG_op'][RPG['RPG_op'].length-1])
+	    for (i in RPG['RPG_op']) {
+	        switch (RPG['RPG_op'][i]){
+	 	    case 'CMDSHDN':
 			$('#RPG_oper').attr('class','minor-alarm bar-border2')
                         $('.RPG_STAT').removeClass('hide');
 			break;
-		case 'LOADSHED': case 'MAR':
+		    case 'LOADSHED': case 'MAR':
+			if (RPG['RPG_op'][i] == 'MAR')
+			    $('#RPG_oper').html('MAINT REQ')
 			$('#RPG_oper').attr('class','minor-alarm bar-border2')
 			$('#grid2').attr('class','minor-alarm-grid')
-			$('#Alarms').attr('class','minor-alarm')
                         $('.RPG_STAT').removeClass('hide');
 			break;
-		case 'MAM':
-			$('#RPG_oper').attr('class','major-alarm bar-border2')
+		    case 'MAM':
+			$('#RPG_oper').html('MAINT MAND').attr('class','major-alarm bar-border2')
 			$('#grid2').attr('class','major-alarm-grid')
-			$('#Alarms').attr('class','major-alarm');
 			$('.RPG_STAT').removeClass('hide');
 			break;
-		case 'ONLINE':
+		    case 'ONLINE':
 			if(RPG['RPG_alarms'] == 'NONE')
-			    $('#grid2').attr('class','normal-ops-grid')
+			    $('#grid2').attr('class','normal-ops-grid')		
 			$('#RPG_oper').attr('class','normal-ops bar-border2')
 			if (RPG['RPG_state'] == 'OPER' || RPG['RPG_state'] == 'STANDBY')
 			    $('.RPG_STAT').addClass('hide');
 	 	   	break;
-		default:
+		    default:
 			$('#RPG_oper').attr('class','inop-indicator bar-border2')
 			$('#grid2').attr('class','normal-ops-grid')
                         $('.RPG_STAT').removeClass('hide');
+	        }
 	    }
+
+            $('#RPG_state').html(RPG['RPG_state'])
 	    switch(RPG['RPG_state']){			
-		case 'OPER': case 'STANDBY': 
+		case 'OPER': case 'STANDBY':
+			if (RPG['RPG_state'] == 'OPER')
+			    $('#RPG_state').html('OPERATE') 
 			$('#RPG_state').attr('class','bar-border2 normal-ops');
-			if (RPG['RPG_op'].split(',')[0] == 'ONLINE')
-                            $('.RPG_STAT').addClass('hide');
 			break;
 		case 'RESTART': 
 			$('#RPG_state').attr('class','bar-border2 inop-indicator');
@@ -736,7 +774,7 @@ $(document).ready(function(){
 	    var RS = JSON.parse(e.data)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
-	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
+	    if (RS['RDA_static']['OPERABILITY_LIST'][0] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
 	        $('#RDA_STAT').addClass('hide');
 	    else
 		$('#RDA_STAT').removeClass('hide');
@@ -848,7 +886,7 @@ $(document).ready(function(){
 	    for (a in all_alarms){
 		$('#'+all_alarms[a]).addClass('hide')
 	    };
-	    var current_alarms = RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'].split('<br>')
+	    var current_alarms = RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST']
 	    for (alarm in current_alarms){
 		$('#'+current_alarms[alarm]).removeClass('hide')
 		var i = all_alarms.indexOf(alarm);
@@ -867,8 +905,8 @@ $(document).ready(function(){
 		    $('#CONTROL_STATUS').html('EITHER')
 		    break;
 	    }
-	    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
-	    var gen_list = RS['RDA_static']['AUX_GEN_LIST'].split('<br>')
+	    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'][0] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
+	    var gen_list = RS['RDA_static']['AUX_GEN_LIST']
 	    if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
 	    stopCheck['WIDEBAND'] = RS['RDA_static']['WIDEBAND']
 	    switch (RS['RDA_static']['WIDEBAND']){
@@ -931,7 +969,6 @@ $(document).ready(function(){
 		$.get("/button?id=hci_rda_orda")
 	});	
 	$('#rpg_control').click(function(){
-	/*	$.get("/button?id=hci_rpc") */
 		window.open("/control_rpg","_blank","width = 460, height = 750");
 	});	
 	$('#rpg_status').click(function(){

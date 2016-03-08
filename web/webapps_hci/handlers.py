@@ -39,6 +39,13 @@ moments = {
 	    _rpg.orpgevt.RADIAL_ACCT_WIDTH:'W',
 	    _rpg.orpgevt.RADIAL_ACCT_DUALPOL:'D'
 	  }
+RPG_op_priority = {
+		    'ONLINE':1,
+		    'CMDSHDN':2,	
+		    'MAR':3,
+		    'MAM':4,
+		    'LOADSHED':5
+		  }
 ##
 # Global Flags initialized as True for initialization of hci. Updated by the callback functions, set to false after being updated, set to True on callback 
 ##
@@ -200,6 +207,7 @@ def update_funcs(update_queue):
 	    flag = [EN_dict[fd],UN_msgids[EN_dict[fd]][msg]]
 	else:
 	    flag = [EN_dict[fd]]
+	print flag
 	update_queue.put(flag)
 
 
@@ -207,14 +215,14 @@ def update_funcs(update_queue):
     # Register DEAU Update Notification Callback
     #############################################
 
-    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)
+    #_rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)
     
     ###################################################
     # Register Application Notification (AN) Callbacks  
     ###################################################
 
     
-    AN_reg = dict((k,v) for k,v in _rpg.orpgevt.__dict__.iteritems() if 'ORPGEVT' in k and 'RADIAL_ACCT' not in k)
+    AN_reg = dict((k,v) for k,v in _rpg.orpgevt.__dict__.iteritems() if 'ORPGEVT' in k and 'RADIAL_ACCT' not in k and 'LOAD_SHED' not in k)
     for k,v in AN_reg.iteritems():
         _rpg.liben.en_register(v,generic_callback)
 
@@ -235,7 +243,6 @@ def update_funcs(update_queue):
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,generic_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,generic_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_LOAD_SHED_CAT,1,generic_callback)
    
      
     dummy_event.wait()  # hold the process so it doesn't return 
@@ -318,9 +325,9 @@ def RS_init():
 	    {
                'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
                'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
-               'OPERABILITY_LIST':",".join(oper_list),
-               'AUX_GEN_LIST':"<br>".join(aux_gen_list),
-               'RS_RDA_ALARM_SUMMARY_LIST':"<br>".join(filter(None,alarm_list)),
+               'OPERABILITY_LIST':oper_list,
+               'AUX_GEN_LIST':aux_gen_list,
+               'RS_RDA_ALARM_SUMMARY_LIST':filter(None,alarm_list),
                'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),
                'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')
 	    }
@@ -371,6 +378,14 @@ def RPG_alarm_init():
             tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
             at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
             at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')
+            mask = [alarm[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and alarm[3] & v > 0]
+	    if mask:
+                msg_type = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' not in k and v == mask[0]][0]	
+	    else:
+		msg_type = False
+            active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and alarm[3] & v > 0] == []
+            error = alarm[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0
+
             if not alarm_final:
                 rpg_alarm_suppl = ''
             else:
@@ -394,17 +409,22 @@ def RPG_alarm_init():
             'RPG_alarm_suppl':rpg_alarm_suppl,
             'alarm_state':alarm_state,
             'RDA_alarm_valid':RDA_alarm_valid,
-            'precedence':precedence
+            'precedence':precedence,
+	    'alarm_msg_type':msg_type.replace('HCI_LE_',''),
+	    'alarm_active':active,
+	    'alarm_error':error
         }
     else:
 	return False
 
 def RPG_op_init():
     if (EN_flags['ORPGEVT_RPG_OPSTAT_CHANGE']):
-        return {'RPG_op':'ONLINE'}
 	RPG_op_iter = _rpg.orpginfo.opstatus.values.iteritems()
-        RPG_op = [str(v) for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
-        return {'RPG_op':",".join(RPG_op).replace('ORPGINFO_STATEFL_RPGOPST_','')}
+        RPG_op = [str(v).replace('ORPGINFO_STATEFL_RPGOPST_','') for k,v in RPG_op_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgopst()[1] > 0]
+        RPG_op_tupled = [(RPG_op_priority[x],x) for x in RPG_op]
+	RPG_op_tupled_sort = sorted(RPG_op_tupled, key=lambda op: op[0])
+	RPG_op = [x[1] for x in RPG_op_tupled_sort]
+	return {'RPG_op':RPG_op}
         EN_flags['ORPGEVT_RPG_OPSTAT_CHANGE'] = False
     else:
 	return False
@@ -508,14 +528,27 @@ def RPG_status_init():
             s1 = months[int(datetime.datetime.fromtimestamp(tstamp_s).strftime('%m'))-1]
             s2 = datetime.datetime.fromtimestamp(tstamp_s).strftime('%-d,%y [%H:%M:%S]')
             rpg_status = s1+' '+s2+' >> '+" ".join([x for x in parse_s if '\\x' not in repr(x)]).replace('\n','')
-        else:
+	    mask = [s[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and s[3] & v > 0]
+	    if mask:
+	        msg_type = [k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == mask[0]][0]
+            else:
+		msg_type = False
+	    active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and s[3] & v > 0] == []
+	    error = s[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0 
+	else:
             rpg_status = ''
             rpg_status_ts = ''
+	    msg_type = ''
+	    active = ''
+	    error = ''
 	EN_flags['ORPGDAT_SYSLOG_LATEST'] = False
 	
 	return {
             'RPG_status':rpg_status,
-            'RPG_status_ts':tstamp_s
+            'RPG_status_ts':tstamp_s,
+	    'msg_type':msg_type,
+	    'active':active,
+	    'error':error
         }
     else:
 	return False
@@ -890,18 +923,18 @@ class Update_Server(object):
 	while True:	
 	    check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
             global EN_flags
-            flag = update_queue.get(1)
-	    flag_check = flag[0]
-	    if flag_check == "DEAU":
-		EN_flags["DEAU"] = True
-	    elif flag_check == "ORPGDAT_GSM_DATA" or flag_check == "ORPGDAT_HCI_DATA":
-                EN_flags[flag[0]][flag[1]] = True
+	    if not initial_connect:
+		flag = update_queue.get()
+	        flag_check = flag[0]
+	        if flag_check == "DEAU":
+		    EN_flags["DEAU"] = True
+	        elif flag_check == "ORPGDAT_GSM_DATA" or flag_check == "ORPGDAT_HCI_DATA":
+                    EN_flags[flag[0]][flag[1]] = True
+	        else:
+	            EN_flags[flag[0]] = True
+		update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v) # compare dicts for changes
 	    else:
-	        EN_flags[flag[0]] = True
-	    if initial_connect:
 	        initial_connect = False
-	    else:
-	        update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v) # compare dicts for changes 
 	    data = {}
 	    if update_dict == {}:
 	        pass
@@ -910,7 +943,7 @@ class Update_Server(object):
   	            data.update({idx:val,'data'+str(idx):json.dumps(update_dict[val])})
 		    event_id += 1
 	    	    attr.update({'id'+str(idx):event_id})
-	        yield sse_pack(data,attr)
+	        yield sse_pack(data,attr)	
 ##
 # Radome Rapid Update 
 ##

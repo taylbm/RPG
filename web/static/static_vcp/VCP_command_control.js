@@ -7,7 +7,7 @@ var vcps = []
 var i;
 var full_dataset = [];
 var VCP_LATEST = {'SET':0};
-var colorTable = {"CS/CD":"rgb(128, 0, 0)","BATCH":"rgb(0, 0, 128)","CDBATCH":"rgb(0, 128, 0)"}
+var colorTable = {"CS/CD":"rgb(40, 255, 40)","BATCH":"rgb(255, 40, 40)","CDBATCH":"rgb(40, 40, 255)"}
 
 
 if (!String.prototype.format) {
@@ -91,7 +91,7 @@ function plotVCPs(vcps){
 			    label: waveform[zVal],
                             lines:  {
                                 lineWidth:  0.3,
-                                fill:       0.8
+                                fill:       0.5
                             },
 			    color: colorTable[waveform[zVal]],
                             fillBetween:    'elev-' + zIdx + '-lower'
@@ -103,7 +103,7 @@ function plotVCPs(vcps){
                             data:   [],
                             lines:  {
                                 lineWidth:  0.3,
-                                fill:       0.8
+                                fill:       0.5
                             },
                             color: colorTable[waveform[zVal]],
                             fillBetween:    'elev-' + zIdx + '-lower'
