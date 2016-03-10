@@ -101,6 +101,11 @@
 				"defWx":" Default Weather Mode to "
 			    },
 	"SAILSDialog":"Selecting \"0\" cuts will disable SAILS. All non-zero numbers are additional scans of the lowest elevation beyond any already defined in the VCP",
+    "SAILSfeedback":[
+                    " >> SAILS Disabled",
+                    " >> SAILS set to ",
+                    " cut(s) "
+                    ],
 	"canvasHeight":285,
 	"superResFont":"bold 50px Helvetica",
 	"sailsSeqFont":"bold 30px Helvetica",

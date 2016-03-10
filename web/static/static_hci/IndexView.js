@@ -145,33 +145,37 @@ init();
 $(document).ready(function(){
 	init();
     	function toggleHandler(attr,switchval){	
-	    switch(switchval){
+	    switch (switchval) {
 		case 1:	
-		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-		switch(attr.controlname){
-		case 'RPG_SAILS': case 'SAILS_Exception':
-		    $.post('/sails',{NUM_CUTS:attr.num_cuts});
-		    delete actionflag.SAILS
-		break;
-		case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
-		if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception'){flag = 0}else{flag=1}
-		if (attr.newVal.confirmation == "on"){
-		     $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
-		}
-		else{
-			$.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
-		}
-		break;
-		case 'Model_Update': case 'VAD_Update':
-		if(attr.newVal.confirmation == "on"){
-			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
-		}
-		else{
-			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
-		}
-		break;
-		}   
-		if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
+		    if (attr.controlname == 'AVSET_Exception')
+			attr.controlname = 'RS_AVSET'
+		    switch(attr.controlname){
+		        case 'RPG_SAILS': case 'SAILS_Exception':
+			    if (attr.num_cuts == 0)
+				$('#Feedback').html(timeStamp() + DATA.SAILSfeedback[0])
+			    else
+			        $('#Feedback').html(timeStamp() + DATA.SAILSfeedback[1] + attr.num_cuts + DATA.SAILSfeedback[2]) 
+		            $.post('/sails',{NUM_CUTS:attr.num_cuts});
+		            delete actionflag.SAILS
+		            break;
+		        case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
+		            if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception')
+			        flag = 0
+			    else
+				flag=1
+		            if (attr.newVal.confirmation == "on")
+		                $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
+			    else
+			        $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
+			    break;
+			case 'Model_Update': case 'VAD_Update':
+			    if(attr.newVal.confirmation == "on")
+			        $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
+			    else
+				$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
+			    break;
+		    }   
+		    if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
 			if (attr.newVal.confirmation=="on"){
 				$('#RS_AVSET').val('on').slider('refresh')
 					$('#AVSET_Exception').val('on').slider('refresh')
@@ -184,37 +188,33 @@ $(document).ready(function(){
 					$('#AVSET_Exception').val('off').slider('refresh')
 					$('#AVSET_Exception_contain').removeClass('hide')
 			}
-		}
-		if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
+		    }  
+		    if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
 			$("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
 			if (attr.newVal.confirmation == "on"){
 			    $("#"+attr.controlname+"_status").addClass("hide")
 			}
-		}
-		if(attr.displayname.split('-')[0] == "AVSET"){
+		    }
+		    if(attr.displayname.split('-')[0] == "AVSET")
 			document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		}
-		else{
+	 	    else
 			document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		}
-		break;
+		    break;
 		case 2:
-		$('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
-		break;
+		    $('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
+		    break;
 		case 3:
-		if(attr.title == 'flag'){
+		    if(attr.title == 'flag')
 			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
-		}
-		$("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
-			$('#'+attr.controlname+'_status').addClass('hide')
-			document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		break;
+		    $("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
+		    $('#'+attr.controlname+'_status').addClass('hide')
+		    document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
+		    break;
 		case 4:
-		if(attr.title == 'flag'){
+		    if(attr.title == 'flag')
 			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
-		}
-		$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
-			break;	
+		    $("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
+		    break;	
 	    }
 	}
 	var animcheck = document.getElementById("squaresWaveG_long_1")
@@ -292,14 +292,14 @@ $(document).ready(function(){
 		$("#prf_control").click();
 	    }
 	    else {
-                $("#sails-insert").html('')
+                $("#optional-insert").html('')
                 $('#popupDialog').popup('open')
                 $("#pop-title").html(DATA.popTitle)
 		if (['SAILS','AVSET','CMD','Super-Res','AVSET-Exception','SAILS-Exception'].indexOf(displayname) >=0){
 		    $('#popupDialog').popup('open')
 	            if (displayname == 'SAILS' || displayname == 'SAILS-Exception'){
                         $("#pop-title").html(DATA.popTitleSAILS)
-                        $("#sails-insert").html($('#sails-form').html())	
+                        $("#optional-insert").html($('#sails-form').html())	
 		        $("#popupDialog #id-confirm").html(DATA.SAILSDialog)
 		    }
 		    else{
@@ -319,7 +319,7 @@ $(document).ready(function(){
 		    });
 		    $('#popupDialog #pop-confirm').bind('click',{attr},function(event){
                         if (event.data.attr.displayname == 'SAILS' || displayname == 'SAILS-Exception') {
-                            event.data.attr['num_cuts'] = $('#sails-insert #select-choice-0').val();
+                            event.data.attr['num_cuts'] = $('#optional-insert #select-choice-0').val();
                         }
 			toggleHandler(event.data.attr,1);
 			$('#popupDialog #pop-confirm').unbind()
@@ -362,8 +362,7 @@ $(document).ready(function(){
                             $("#popupDialogRPG").popup('open');
                         }
                         else {
-                            $("#popupAlert").popup('open');
-                            $("#id-info").html(DATA.controlRPG.MRPG_STARTUP.FAIL)
+			    alert(DATA.controlRPG.MRPG_STARTUP.FAIL)
                         }
                         break;
                     case 'MRPG_CLEANUP':
@@ -374,8 +373,7 @@ $(document).ready(function(){
                             $("#popupDialogRPG").popup('open');
                         }
                         else {
-                            $("#popupAlert").popup('open');
-                            $("#id-info").html(DATA.controlRPG.MRPG_CLEANUP.FAIL)
+			    alert(DATA.controlRPG.MRPG_CLEANUP.FAIL)
                         }
                         break;
                     case 'MRPG_SHUTDOWN': case 'MRPG_STANDBY':
@@ -396,19 +394,42 @@ $(document).ready(function(){
         });
 
         $("#pass-protect").click(function(){
-            if ($(this).attr("value") == "locked") {
-                $("#pass-protect").attr("class","ui-btn ui-icon-edit ui-btn-icon-left control-item control-shadow")
-                $(this).attr("value","unlocked")
-                $(this).html("Unlocked")
-                $("input[type='checkbox']").checkboxradio('enable');
-            }
-            else {
-                $("#pass-protect").attr("class","ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow")
-                $(this).attr("value","locked")
-                $(this).html("Locked")
-                $("input[type='checkbox']").checkboxradio('disable');
-            }
+	    $('#popupDialogPass').popup('open')
         });
+        $('#pop-submit').on('click', function(event){
+            user = $(":radio:checked").attr('id')
+            $.ajax
+                  ({
+                        type:'GET',
+                        url:'/auth',
+                        dataType:'json',
+                        async: true,
+                        headers: {
+                                "Authorization": "Basic " + btoa(user+":"+$('#password').val())
+                        },
+                        success: function (data) {
+			    if ($("#pass-protect").attr("value") == "locked") {
+				$("#pass-protect").attr("class","ui-btn ui-icon-edit ui-btn-icon-left control-item control-shadow")
+				$("#pass-protect").attr("value","unlocked").html("Unlocked")
+				$("input[type='checkbox']").checkboxradio('enable');
+			    }
+			    else {
+				$("#pass-protect").attr("class","ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow")
+				$("#pass-protect").attr("value","locked").html("Locked")
+				$("input[type='checkbox']").checkboxradio('disable');
+			    }
+                            $('#password').val('')
+
+                        },
+			error: function(xhr,status,error) {
+			    if (error == "Unauthorized") {
+				alert('Incorrect Password')
+			    }
+                            $('#password').val('')	
+			}
+                 });
+        });
+
 
 	var link = $('#squaresWaveG_long').html()
 	var item = DATA.rdaItems;
@@ -634,10 +655,10 @@ $(document).ready(function(){
 		cookieRaid['initial'] = RPG['ORPGVST']
 	    }
 	    if(!RPG['RDA_alarm_valid']){
-		$('#Alarms').html(RPG['RPG_alarm_suppl'])
+		$('#Alarms').html(RPG['RPG_alarm_text'])
 	    }
 	    if(!RPG['precedence']){
-		$('#Alarms').html(RPG['RPG_alarm_suppl'])
+		$('#Alarms').html(RPG['RPG_alarm_text'])
 	    }
 	    var cts = Math.round((new Date()).getTime() / 1000);	
 	    if(cts - RPG['RPG_status_ts'] == DATA.noSystemChangeTimeout){

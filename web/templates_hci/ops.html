@@ -53,6 +53,26 @@
 		<a id="pop-confirm" value="" class="ui-btn ui-btn-up-b ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
 	    </div>
 	</div>
+        <div data-role="popup" id="popupDialogPass" data-dismissible="false">
+            <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+                <h1 id="pop-title" class="ui-title" role="heading">HCI Password</h1>
+            </div>
+            <div class="ui-corner-bottom" data-theme="d" data-role="content" role="main">
+                <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                    <legend>Select User (LOCA):</legend>
+                    <input name="User" id="Agency" type="radio">
+                    <label for="Agency">Agency</label>
+                    <input name="User" id="ROC" type="radio">
+                    <label for="ROC">ROC</label>
+                    <input name="User" id="URC" type="radio">
+                    <label for="URC">URC</label>
+                </fieldset>
+                <label for="password">Password:</label>
+                <input name="password" id="password" value="" autocomplete="off" type="password">
+                <a id="pop-submit" class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Submit</a>
+                <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
+            </div>
+        </div>
 
         <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4bacc6" >
             <div class="ui-grid-b">

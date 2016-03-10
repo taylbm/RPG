@@ -25,6 +25,7 @@ import StringIO
 from gzip import GzipFile
 from multiprocessing import Queue, Process, Event
 import threading
+import base64
 
 
 VCP_DIR = CFG+'/vcp/'
@@ -77,6 +78,10 @@ EN_flags = {
 			     			}
 	   }
 
+update_dict = {}
+msg = {'retry':'4000'} # connection loss timeout for radome SSE
+update_event = threading.Event()
+radome_event = threading.Event()
 
 
 ##                          
@@ -207,7 +212,6 @@ def update_funcs(update_queue):
 	    flag = [EN_dict[fd],UN_msgids[EN_dict[fd]][msg]]
 	else:
 	    flag = [EN_dict[fd]]
-	print flag
 	update_queue.put(flag)
 
 
@@ -215,7 +219,7 @@ def update_funcs(update_queue):
     # Register DEAU Update Notification Callback
     #############################################
 
-    #_rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)
+    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)
     
     ###################################################
     # Register Application Notification (AN) Callbacks  
@@ -368,13 +372,11 @@ def RDA_alarms_init():
 def RPG_alarm_init():
     if(EN_flags['ORPGEVT_RPG_ALARM']):
         RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
-        RPG_alarms = [str(v) for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
+        RPG_alarms = [str(v).replace('ORPGINFO_STATEFL_RPGALRM','') for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
     
         alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	if alarm[0] > 0:
-            parse_alarm = alarm[1][:alarm[0]-1].split(' ')
-            alarm_final = [x for x in parse_alarm if '\\x' not in repr(x)]
-            alarm_state = {'cleared':'CLEARED' in alarm_final,'activated':'ACTIVATED' in alarm_final}
+	    parse_alarm = alarm[1].split(':')
             tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
             at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
             at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')
@@ -386,28 +388,25 @@ def RPG_alarm_init():
             active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and alarm[3] & v > 0] == []
             error = alarm[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0
 
-            if not alarm_final:
-                rpg_alarm_suppl = ''
-            else:
-                rpg_alarm_suppl = at1+' '+at2+' >> '+" ".join(alarm_final).replace('\n','')
+            RPG_alarm_text = at1+' '+at2+' >> '+' '+' '+":".join(parse_alarm[1:]).replace('\n','')
         else:
-	    rpg_alarm_suppl = ''
-	    alarm_state = {'cleared':False,'activated':False}
-        RDA_alarm_valid = 1
-        precedence = 0
+	    RPG_alarm_text = 'ORPGDA_read error'
+        
+	RDA_alarm_valid = True
+        precedence = True
         try:
             latest_alarm_text = _rpg.liborpg.orpgrat_get_alarm_text(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_ALARM))
             ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
             precedence = ts>tstamp_alarm
         except:
-            RDA_alarm_valid = 0
+	    precedence = False
+            RDA_alarm_valid = False
 	
 	EN_flags['ORPGEVT_RPG_ALARM'] = False
 	
         return {
-	    'RPG_alarms':",".join(RPG_alarms).replace('ORPGINFO_STATEFL_RPGALRM_',''),
-            'RPG_alarm_suppl':rpg_alarm_suppl,
-            'alarm_state':alarm_state,
+	    'RPG_alarms':RPG_alarms,
+            'RPG_alarm_text':RPG_alarm_text,
             'RDA_alarm_valid':RDA_alarm_valid,
             'precedence':precedence,
 	    'alarm_msg_type':msg_type.replace('HCI_LE_',''),
@@ -520,23 +519,23 @@ def CRDA_init():
 
 def RPG_status_init():
     if (EN_flags['ORPGDAT_SYSLOG_LATEST']):
-        s = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
-        if s[0] > 0:
-            parse_s = s[1][:s[0]-1].split(' ')
-            tstamp = s[2]
-            tstamp_s = s[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR)
+        status = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
+        if status[0] > 0:
+            parse_status = status[1].split(':')
+	    text_status = ":".join(parse_status[1:]).replace('\n','')
+            tstamp_s = status[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR)
             s1 = months[int(datetime.datetime.fromtimestamp(tstamp_s).strftime('%m'))-1]
             s2 = datetime.datetime.fromtimestamp(tstamp_s).strftime('%-d,%y [%H:%M:%S]')
-            rpg_status = s1+' '+s2+' >> '+" ".join([x for x in parse_s if '\\x' not in repr(x)]).replace('\n','')
-	    mask = [s[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and s[3] & v > 0]
+	    rpg_status = s1 + " " + s2 +" >> " + text_status
+	    mask = [status[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and status[3] & v > 0]
 	    if mask:
 	        msg_type = [k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == mask[0]][0]
             else:
 		msg_type = False
-	    active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and s[3] & v > 0] == []
-	    error = s[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0 
+	    active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and status[3] & v > 0] == []
+	    error = status[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0 
 	else:
-            rpg_status = ''
+            rpg_status = 'ORPGDA_read error'
             rpg_status_ts = ''
 	    msg_type = ''
 	    active = ''
@@ -908,6 +907,29 @@ class Update(object):
     def GET(self):
 	return gzip_response(json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT(),'CFG_dict':CFG()}))
 
+
+##
+# Generates Update Dicts for Consumption by SSE
+##
+class update_generator(threading.Thread):
+    def run(self):
+        function_dict = {'PMD':PMD,'RS':RS,'RPG':RPG,'ADAPT':ADAPT}	
+	while True:
+            check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
+	    global EN_flags
+            flag = update_queue.get()
+            if len(flag) > 1:
+                EN_flags[flag[0]][flag[1]] = True
+            else:
+               EN_flags[flag[0]] = True
+            update_dict.update(dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v)) # compare dicts for changes
+	    if update_dict:	
+		update_event.set()
+		update_event.clear()
+
+update_gen = update_generator()
+update_gen.start()
+
 ##
 # Main Server Sent Updates (SSE) servlet.  
 ## 
@@ -916,34 +938,50 @@ class Update_Server(object):
         web.header("Content-Type","text/event-stream")
 	web.header("Cache-Control","no-cache")
 	attr = {'retry':'4000'}  # reconnect timeout for purposes of server error
-	update_dict = {'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT()}
-	function_dict = {'PMD':PMD,'RS':RS,'RPG':RPG,'ADAPT':ADAPT}
 	event_id = 0
 	initial_connect = True
-	while True:	
-	    check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
-            global EN_flags
-	    if not initial_connect:
-		flag = update_queue.get()
-	        flag_check = flag[0]
-	        if flag_check == "DEAU":
-		    EN_flags["DEAU"] = True
-	        elif flag_check == "ORPGDAT_GSM_DATA" or flag_check == "ORPGDAT_HCI_DATA":
-                    EN_flags[flag[0]][flag[1]] = True
-	        else:
-	            EN_flags[flag[0]] = True
-		update_dict = dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v) # compare dicts for changes
+	while True:
+	    if initial_connect:
+		update_dict.update({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT()})
 	    else:
 	        initial_connect = False
-	    data = {}
-	    if update_dict == {}:
-	        pass
-	    else:
-	        for idx,val in enumerate(update_dict):
-  	            data.update({idx:val,'data'+str(idx):json.dumps(update_dict[val])})
-		    event_id += 1
-	    	    attr.update({'id'+str(idx):event_id})
-	        yield sse_pack(data,attr)	
+	    data = {}	
+	    for idx,val in enumerate(update_dict):
+  	        data.update({idx:val,'data'+str(idx):json.dumps(update_dict[val])})
+	        event_id += 1
+	        attr.update({'id'+str(idx):event_id})
+	    yield sse_pack(data,attr)
+            update_event.wait()
+
+
+
+##
+# Generates radome update messages 
+##
+
+class radome_generator(threading.Thread):
+    def run(self):
+	event_id = 0
+        while True:
+            radome_update = radome_queue.get()
+            try:
+                moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
+                radome_update.update({'moments':moments_list})
+            except:
+                radome_update.update({'moments':['False']})
+            msg.update({
+                'data':json.dumps(radome_update),
+                'id':event_id
+            })
+	    radome_event.set()
+	    radome_event.clear()
+            event_id += 1 # provide unique event id so the client can distinguish between messages      
+
+radome_gen = radome_generator()
+radome_gen.start()
+	
+
+	
 ##
 # Radome Rapid Update 
 ##
@@ -951,21 +989,9 @@ class Radome(object):
     def GET(self):
 	web.header("Content-Type","text/event-stream")
 	web.header("Cache-Control","no-cache") # caching must be turned off or it will fill up quickly
-	msg = {'retry':'4000'} # connection loss timeout
-	event_id = 0
 	while True:
-	    radome_update = radome_queue.get(1)
-            try:
-                moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
-  	        radome_update.update({'moments':moments_list})
-            except:
-	        radome_update.update({'moments':['False']})
-	    msg.update({
-	        'data':json.dumps(radome_update),
-		'id':event_id
-	    })
+	    radome_event.wait()
 	    yield sse_pack_single(msg)
-	    event_id += 1 # provide unique event id so the client can distinguish between messages	
 
 
 ##
@@ -1047,6 +1073,22 @@ class DEAU_set(object):
 	    ret = _rpg.librpg.deau_set_string_values(_rpg.librpg.ORPGSITE_DEA_WX_MODE,set)
 	return ret
 
+allowed = (
+	('ROC','roc1'),
+	('URC','urc1'),
+	('AGENCY','agency1')
+)
 
+##
+# Authentication for password protected items
+##
 
+class Basic_Auth(object):
+    def GET(self):
+	auth = web.ctx.env.get("HTTP_AUTHORIZATION").replace('Basic ','')	
+	username,password = base64.decodestring(auth).split(':')
+	if (username,password) not in allowed:
+            web.header('WWW-Authenticate','Basic realm="pass-protect"')
+            web.ctx.status = '401 Unauthorized'
+	return json.dumps(auth) 
 

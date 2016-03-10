@@ -175,19 +175,41 @@ DEFAULTS = {}
 		$("#"+id).val(DEFAULTS[id]).selectmenu("refresh")
 	});
         $("#pass-protect").click(function(){
-            if ($(this).attr("value") == "locked") {
-                $("#pass-protect").attr("class","ui-btn ui-icon-edit ui-btn-icon-left control-item control-shadow")
-                $(this).attr("value","unlocked")
-                $(this).html("Unlocked")
-                $("#default-contain :input").not(":button").selectmenu('enable');
-            }
-            else {
-                $("#pass-protect").attr("class","ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow")
-                $(this).attr("value","locked")
-                $(this).html("Locked")
-                $("#default-contain :input").not(":button").selectmenu('disable');
-            }
+            $('#popupDialogPass').popup('open')
         });
+        $('#pop-submit').on('click', function(event){
+            user = $(":radio:checked").attr('id')
+            $.ajax
+                 ({
+                        type:'GET',
+                        url:'/auth',
+                        dataType:'json',
+                        async: true,
+                        headers: {
+                                "Authorization": "Basic " + btoa(user+":"+$('#password').val())
+                        },
+                        success: function (data) {
+                            if ($("#pass-protect").attr("value") == "locked") {
+                                $("#pass-protect").attr("class","ui-btn ui-icon-edit ui-btn-icon-left control-item control-shadow")
+                                $("#pass-protect").attr("value","unlocked").html("Unlocked")
+                                $("#default-contain :input").not(":button").selectmenu('enable');
+                            }
+                            else {
+                                $("#pass-protect").attr("class","ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow")
+                                $("#pass-protect").attr("value","locked").html("Locked")
+				$("#default-contain :input").not(":button").selectmenu('disable');
+                            }
+			    $('#password').val('')
+                        },
+                        error: function(xhr,status,error) {
+                            if (error == "Unauthorized") {
+                                alert('Incorrect Password')
+                            }
+			    $('#password').val('')
+                        }
+                 });
+        });
+
  
 	$(".toggle").on('slidestop',function(){
 	    $("#pop-confirm").attr("value","");	
