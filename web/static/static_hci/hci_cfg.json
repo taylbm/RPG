@@ -92,9 +92,15 @@
 						"FAIL":"RPG Clean Startup only valid in Standby, Shutdown, and Operate states."
 					  }
 				},
+    "controlRDA":
+               {
+                "STATE":"You are about to change the RDA state. Do you want to continue?"
+               },
+
 	"popTitle":"Confirm Action",
 	"popTitleSAILS":"SAILS Control",
-	"defaults":{	
+	"defaults":
+               {	
 				"Pre":"Do you want to permanently change the",
 				"defModeA":" Default VCP for Mode A to",
 				"defModeB":" Default VCP for Mode B to ",
@@ -106,6 +112,28 @@
                     " >> SAILS set to ",
                     " cut(s) "
                     ],
+    "perfCheck":
+                {
+                 "Accept":"You have selected to force a Performance Check after completion of the current volume scan. The Performance Check will take approximately two minutes to complete. <br> Do you wish to continue?",
+                 "Reject":"A Performance Check can only be initated when the RDA is in Operate and the RPG has control of the RDA."
+                },
+    "CRDA_PERF_CHECK":"Initiating Performance Check after current volume",
+    "CRDA_STANDBY":"Change RDA to Standby state",
+    "CRDA_RESTART":"Change RDA to Restart state",
+    "CRDA_OPERATE":"Change RDA to Operate state",
+    "CRDA_OFFOPER":"Change RDA to Offline Operate state",
+    "RDAStatus":"Requesting RDA Status data",
+    "RS_DATA_TRANS_ENABLED":
+                    {
+                     "0":"NONE",  
+                     "1":"R",
+                     "2":"V",
+                     "3":"R V",
+                     "4":"W",
+                     "5":"R W",
+                     "6":"V W",
+                     "7":"R V W"
+                    },
 	"canvasHeight":285,
 	"superResFont":"bold 50px Helvetica",
 	"sailsSeqFont":"bold 30px Helvetica",

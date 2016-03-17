@@ -1,0 +1,111 @@
+###
+### control_rda - this is a sub-menu for the hci
+###
+
+
+
+
+<%block name="extra_header_markup">
+
+
+</%block>
+
+
+
+###
+### body
+###
+<%block name="content">
+        <div data-role="popup" id="popupDialogRDA" data-dismissible="false">
+            <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+                <h1 id="pop-title" class="ui-title" role="heading">Warning Popup</h1>
+            </div>
+            <div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
+                <h3 align="center"id="id-confirm" class="ui-title"></h3>
+                <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
+                <a id="pop-confirm" value="N/A"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
+            </div>
+        </div>
+
+    <div data-transition="slidefade" data-role="panel" id="rda_control_status" data-display="overlay" class="ui-page ui-page-a" data-position="left" style="width:26em;" data-theme="b">
+	<div data-role="header" style="overflow:hidden;">
+	<h1>RDA Control/Status</h1>
+	    <div data-role="navbar">
+		<ul>
+		    <li><a style="color:white" id="refresh_rda" class="nav-item control-shadow ui-btn ui-icon-refresh ui-btn-icon-right" href="#">Refresh Status</a></li>
+		    <li><a style="color:white" class="nav-item control-shadow ui-btn ui-icon-audio ui-btn-icon-left" href="#">RDA Alarms</a></li>
+		</ul>
+	    </div>
+	</div>
+	<br>
+        <div class="custom-corners ui-corner-all">
+	    <div class="ui-bar ui-bar-a" style="text-align:center">
+                <h3 style="color:black;margin:0">RDA State</h3>
+	    </div>
+	    <div class="ui-body ui-body-a">
+                    <fieldset data-corners="false" data-role="controlgroup" data-type="horizontal">
+			<input name="RDA_state" id="STANDBY" value="CRDA_STANDBY" type="radio">	
+                        <label style="text-align:center" for="STANDBY">Standby</label>
+                        <input name="RDA_state" id="RESTART" value="CRDA_RESTART" type="radio">
+                        <label style="text-align:center" for="RESTART">Restart</label>
+			<input name="RDA_state" id="OPERATE"value="CRDA_OPERATE" checked="true" type="radio">
+                        <label style="text-align:center" for="OPERATE">Operate</label>
+                        <input name="RDA_state" id="OFFOPER" value="CRDA_OFFOPER" type="radio">
+                        <label style="text-align:center" for="OFFOPER">Offline Operate</label>
+                    </fieldset>
+	    </div>
+        </div>
+        <div class="custom-corners ui-corner-all">
+            <div class="containing-element-lg ui-body ui-body-a ui-grid-a">
+		<div class="ui-block-a">
+	        <label for="RDA_power">RDA Power Source</label>
+	        <select id="RDA_power" data-role="slider">
+		    <option value="CRDA_AUXGEN">Auxiliary</option>
+		    <option select value="CRDA_UTIL">Utility</option>
+	        </select>
+		</div>	
+		<div class="ui-block-b">
+                <label for="RDA_control">RDA Control</label>
+                <select id="RDA_control" data-role="slider">
+                    <option value="CRDA_ENLOCAL">Local (RDA)</option>
+                    <option select value="CRDA_REREMOTE">Remote (RPG)</option>
+                </select>
+		</div>
+	    </div>
+        </div>
+    <div class="ui-grid-a">
+        <div class="ui-block-a custom-corners ui-corner-all">
+            <button type="button">Performance Check</button>
+        </div>
+        <div class="ui-block-b custom-corners ui-corner-all">
+            <button id="RS_PERF_CHECK_STATUS" type="button">N/A</button>
+        </div>
+    </div>
+    <button type="submit" value="CRDA_PERF_CHECK" id="init_perf_check" class="ui-btn ui-btn-icon-right ui-icon-check">Initiate Performance Check</button>
+
+    <div class="center" style="width:75%;display:table;">
+	<div style="display: table-row">
+	    <div style="width: 0px; display: table-cell;"><div class="rda-table contain-gray">Control Authority</div></div>
+	    <div style="display: table-cell;"><div id="RS_RDA_CONTROL_AUTH" style="color:black" class="rda-table contain-white">N/A</div></div>
+	</div>
+	<div style="display: table-row">
+	    <div style="width: 0px; display: table-cell;"><div class="rda-table contain-gray">Transmitter Power</div></div>
+	    <div style="display: table-cell;"><div id="RS_AVE_TRANS_POWER" style="color:black" class="rda-table contain-white">-9999</div></div>
+	</div>
+	<div style="display: table-row">
+	    <div style="width: 0px; display: table-cell;"><div style="font-size:14px"class="rda-table contain-gray">Moments Enabled</div></div>
+	    <div style="display: table-cell;"><div style="color:black" id="RS_DATA_TRANS_ENABLED" class="rda-table contain-white">N/A</div></div>
+	</div>
+    </div>
+
+
+
+
+    </div>
+</%block>	
+
+
+
+	
+
+

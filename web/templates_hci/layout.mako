@@ -7,6 +7,8 @@
 ### namespaces
 ###
 <%namespace name="control_rpg" file="control_rpg.html" inheritable="True"/>
+<%namespace name="control_rda" file="control_rda.html" inheritable="True"/>
+
 
 ###
 ### body
@@ -38,9 +40,13 @@
 
 
     <body id="top_level">
-
         ${next.body()}
-
     </body>
+    % if self.attr.page_id == "main-page":
+        ${self.control_rpg.content()}
+        ${self.control_rda.content()}
+    % endif
+
+
 </html>
 

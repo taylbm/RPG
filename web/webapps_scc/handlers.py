@@ -24,8 +24,18 @@ def SCC():
        id = filter(None,out_id[out_id_len].split(' '))
        final.update({id[0]:id[1],id[2]:id[3]+' '+id[4]})
        item = filter(None,out_item.split('\n'))
-       item_list = [i.split(': ') for i in item if '\\x' not in repr(i)]
-       final.update(dict((k.strip(),v.strip()) for k,v in iter(item_list))) 
+       item_dict = dict((i,v.split(': ')) for i,v in enumerate(item) if '\\x' not in repr(v) and ':' in v)
+       extra_items = dict((k,v) for k,v in enumerate(item) if '\\x' not in repr(v) and ':' not in v)
+       for k in extra_items.keys():
+            if ':' not in item[k-1]:
+                extra_items[k-1] += ','+extra_items[k].strip()
+                del extra_items[k]
+                break
+       for k in extra_items.keys():
+            item_dict[k-1][1] += ','+extra_items[k].strip()
+       final_list = [item_dict[x] for x in item_dict]
+       final.update(dict((k.strip(),v.strip()) for k,v in iter(final_list)))
+
    return final 
 
 ##

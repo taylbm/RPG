@@ -35,16 +35,15 @@ layout = self.attr.layout_name
         <li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
         <li><a id="enviro_data" style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
 	% else:
-        <li><button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left control-item control-shadow">Locked</button></li>
+        <li><button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left nav-item control-shadow">Locked</button></li>
         <li><a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back" href="#">Close</a></li>
 	% endif
     </ul>
 </div>
 
-% if self.attr.page_id == "main-page":
-    ${self.control_rpg.content()}
-% endif 
-
 ${next.body()}
+
 </div>
+
+
 

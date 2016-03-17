@@ -105,10 +105,10 @@
 		<div style="position:relative;left:50px;margin-top:-145px">
 		    <div id="grid1" class="center normal-ops-grid">
 			<p id="grid1title" style="color:black;border:none;text-align:center">RDA</p>
-			<ul data-role="listview" data-inset="true">
-			    <li><a id="rda_control" class="control-item control-shadow" style="color:white;text-align:center" href="#" data-rel="dialog">Control</a></li>
-			    <li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Performance<br> Data</a></li>
-			    <li><a id="rda_alarms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Alarms</a></li>
+			<ul id="rdaButtons" data-icon="false" data-role="listview" data-inset="true">
+			    <li><a id="rda_control" class="control-item control-shadow ui-btn ui-btn-icon-left ui-icon-carat-l" style="color:white;text-align:center" href="#rda_control_status">Control</a></li>
+			    <li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Performance<br> Data</a></li>
+			    <li><a id="rda_alarms" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Alarms</a></li>
 			<ul>
 		    </div>						
 		<div id="moments_sq">
@@ -165,18 +165,18 @@
 	    </div>
 	</div>
 	<div class="ui-block-b" style="background-color:#4bacc6">					
-	   <div class="center" style="width:75%;display:table;">
+	    <div class="center" style="width:75%;display:table;">
 		<div style="display: table-row">
-		    <div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
-		    <div style="font-size:11px;display: table-cell;"><div id="h_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
+		    <div style="width: 0px; display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
+		    <div style="display: table-cell;"><div id="h_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
 		</div>
 		<div style="display: table-row">
-		    <div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">V Delta dBZ0:</div></div>
-		    <div style="font-size:11px;display: table-cell;"><div id="v_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
+		    <div style="width: 0px; display: table-cell;"><div class="contain-gray">V Delta dBZ0:</div></div>
+		    <div style="display: table-cell;"><div id="v_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
 		</div>
                 <div style="display: table-row">
-                    <div style="font-size:11px;width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">Perf. Check in</div></div>
-                    <div style="font-size:11px;display: table-cell;"><div style="color:black" id="perf_check_time" class="contain-white">-9999</div></div>
+                    <div style="width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">Perf. Check in</div></div>
+                    <div style="display: table-cell;"><div style="color:black" id="perf_check_time" class="contain-white">-9999</div></div>
                 </div>
 	    </div>
 	    <div id="vcp-button" class="ui-grid-a">
@@ -216,9 +216,9 @@
 		    <p style="text-align:center;color:black">RPG</p>
 		    <ul data-role="listview" data-inset="true">
 		 	<li><a id="rpg_control1" style="color:white;text-align:center" class="control-item control-shadow" href="#rpg_control_panel">Control</a></li>
-			<li><a id="rpg_products" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Products</a></li>
-			<li><a id="rpg_misc"style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Misc</a></li>
-			<li><a id="rpg_status"style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Status</a></li>
+			<li><a id="rpg_products" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Products</a></li>
+			<li><a id="rpg_misc"style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Misc</a></li>
+			<li><a id="rpg_status"style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Status</a></li>
 		    </ul>
 		    <br>
 		</div>
@@ -354,7 +354,7 @@
 	    <div class="ui-block-b">
 	        <div id="grid3" class="normal-ops-grid">
 	            <p style="color:black;text-align:center">USERS</p>
-	    	    <ul data-role="listview" data-inset="true">
+	    	    <ul data-icon="false" data-role="listview" data-inset="true">
 	        	<li><a id="user_comms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>
 	        	<li><a id="user_messages"style="color:white;font-size:14px;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
 	    	    </ul>

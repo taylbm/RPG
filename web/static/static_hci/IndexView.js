@@ -135,7 +135,7 @@ init();
 		     'GEN':'',
     }
 
-
+    var RS = {}
     var statusCheck = {'RDA':0,'RPG':0}
     var actionflag = {}
     var cookieRaid = {'inserted':1}
@@ -159,10 +159,10 @@ $(document).ready(function(){
 		            delete actionflag.SAILS
 		            break;
 		        case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
-		            if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception')
-			        flag = 0
-			    else
-				flag=1
+		            //if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception')
+			    //    flag = 0
+			    //else
+				//flag=1
 		            if (attr.newVal.confirmation == "on")
 		                $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
 			    else
@@ -348,6 +348,22 @@ $(document).ready(function(){
 		}
 	    }
 	});
+        $("input[name='RDA_state']").click(function(e){
+	    if (e.isTrigger != 3) {
+	        $('#popupDialogRDA').popup('open');
+	        var command = $(this).val();
+	        $('#popupDialogRDA #pop-confirm').attr("value",command);
+                $("#popupDialogRDA #id-confirm").html(DATA.controlRDA.STATE)
+	    }
+	});
+	$('#popupDialogRDA #pop-confirm').click(function(){
+	    var command = $(this).attr("value")
+	    $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
+	    $.post('/send_cmd',{COM:command,FLAG:"None"});
+        });
+	$('#popupDialogRDA #pop-cancel').click(function(){
+	    $("#"+RS['RDA_static']['RDA_STATE']).trigger('click').checkboxradio('refresh')
+ 	}); 
         $("#MRPG :input").click(function(){
             var command = $(this).val();
             $('#popupDialogRPG #pop-confirm').attr("value",command);
@@ -429,8 +445,21 @@ $(document).ready(function(){
 			}
                  });
         });
-
-
+        $('#init_perf_check').on('click',function(){	
+	    var command = $(this).val()
+	    $('#popupDialogRDA').popup('open')
+	    if (RS['RDA_static']['RDA_STATE'] != 'OPERATE' || RS['RDA_static']['CONTROL_STATUS'] != 'RPG_REMOTE') {
+		$('#popupDialogRDA #id-confirm').html(DATA.perfCheck.Reject)
+	    }
+	    else {
+                $('#popupDialogRDA #id-confirm').html(DATA.perfCheck.Accept)
+                $('#popupDialogRDA #pop-confirm').attr("value",command);
+      	    }
+        });
+	$('#refresh_rda').on('click',function(){
+	    $.post('send_cmd',{COM:"DREQ_STATUS",FLAG:"None"});
+	    $('#Feedback').html(timeStamp() + " >> " + DATA.RDAStatus);
+	});
 	var link = $('#squaresWaveG_long').html()
 	var item = DATA.rdaItems;
 	$('#marq-insert').html($('#marq-form').html())	
@@ -792,10 +821,10 @@ $(document).ready(function(){
 	});
 
 	non_rapid.addEventListener('RS_dict',function(e) {
-	    var RS = JSON.parse(e.data)
+	    RS = JSON.parse(e.data)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
-	    if (RS['RDA_static']['OPERABILITY_LIST'][0] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
+	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
 	        $('#RDA_STAT').addClass('hide');
 	    else
 		$('#RDA_STAT').removeClass('hide');
@@ -803,7 +832,7 @@ $(document).ready(function(){
 		var value2 = state[b];
 		$("#"+value2).html(RS['RDA_static'][value2])
 		switch (RS['RDA_static'][value2]){
-		    case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP':
+		    case 'OPERATE': case 'ONLINE': case 'OK': case 'STARTUP': case 'STANDBY':
 			$("#"+value2).attr('class','normal-ops bar-border2');
 			$('#'+value2+'_label').attr('class','bar-border1 show');
 			$('#grid1').attr('class','normal-ops-grid');
@@ -926,6 +955,25 @@ $(document).ready(function(){
 		    $('#CONTROL_STATUS').html('EITHER')
 		    break;
 	    }
+	    if (RS['CONTROL_AUTHORITY']) {
+		if (RS['RS_RDA_CONTROL_AUTH'] == "CA_LOCAL_CONTROL_REQUESTED")
+                    $('#RS_RDA_CONTROL_AUTH').html("LOCAL REQUESTED")
+	        else if (RS['RS_RDA_CONTROL_AUTH'] == "CA_REMOTE_CONTROL_ENABLED")
+                    $('#RS_RDA_CONTROL_AUTH').html("REMOTE REQUESTED")
+		else
+                    $('#RS_RDA_CONTROL_AUTH').html("NO ACTION")
+	    }
+	    else {
+                $('#RS_RDA_CONTROL_AUTH').html("UNKNOWN")
+	    }
+ 
+            $("#"+RS['RDA_static']['RDA_STATE']).trigger('click').checkboxradio('refresh')
+	    if (RS['RS_PERF_CHECK_STATUS']) 
+	        $('#RS_PERF_CHECK_STATUS').html('PENDING')
+	    else
+		$('#RS_PERF_CHECK_STATUS').html('AUTO')
+	    $('#RS_DATA_TRANS_ENABLED').html(DATA.RS_DATA_TRANS_ENABLED[RS['RS_DATA_TRANS_ENABLED']]);
+	    $('#RS_AVE_TRANS_POWER').html(RS['RS_AVE_TRANS_POWER']+' Watts');
 	    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'][0] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
 	    var gen_list = RS['RDA_static']['AUX_GEN_LIST']
 	    if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
@@ -981,7 +1029,7 @@ $(document).ready(function(){
 		$.get("/button?id=hci_rda_link")
 	});
 	$('#rda_control').click(function(){
-		$.get("/button?id=hci_rdc_orda")
+		//$.get("/button?id=hci_rdc_orda")
 	});
 	$('#perf_check_time').click(function(){
 		$.get("/button?id=hci_rdc_orda")

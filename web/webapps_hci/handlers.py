@@ -142,12 +142,12 @@ def RDA_static():
         temp = dict((getattr(getattr(_rpg.rdastatus,cat),x),x) for x in cat_dict[cat])
         if cat == 'rdastatus':
             temp.update({0:'UNKNOWN'})
-        if cat == 'controlstatus':
+        if cat == 'controlstatus' or cat == 'controlauth':
             temp.update({0:'N/A'})
         temp.update({-9999:'-9999'})
         RS_states.update({cat:temp})
+    print RS_states
     return RS_states
-
 
 #######################################################
 # Sandboxed process for event handling, ie. ran inside of 
@@ -312,6 +312,7 @@ def RS_init():
         RS_list = [x for x in dir(_rpg.rdastatus) if 'RS' in x]
         for task in RS_list:
             RS_dict.update({task:_rpg.liborpg.orpgrda_get_status(getattr(_rpg.rdastatus,task))})
+	RS_dict.update({'RS_DATA_TRANS_ENABLED':str(RS_dict['RS_DATA_TRANS_ENABLED'] >> 2 & 7)})
         oper_list = [RS_states['opstatus'][key].replace('OS_','') for key in RS_states['opstatus'].keys() if (key & RS_dict['RS_OPERABILITY_STATUS']) > 0]
         if not oper_list:
             oper_list.append('UNKNOWN')
@@ -321,19 +322,23 @@ def RS_init():
         else:
             aux_gen_list.append('false')
         alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
-        RS_dict_init.update(RS_dict)
-	
+	wbstat = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_WBLNSTAT)
+	blanking = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_DISPLAY_BLANKING)	
+	RS_dict.update({'RS_RDA_CONTROL_AUTH':RS_states['controlauth'][RS_dict['RS_RDA_CONTROL_AUTH']]})
+        RS_dict.update({'CONTROL_AUTHORITY': blanking == 0 or blanking == _rpg.rdastatus.RS_RDA_CONTROL_AUTH and wbstat == _rpg.rdastatus.RS_CONNECTED or wbstat == RS_DISCONNECT_PENDING})
+	RS_dict_init.update(RS_dict)
 	EN_flags['ORPGEVT_RDA_STATUS_CHANGE'] = False
         return {
 	'RDA_static':
 	    {
                'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
                'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
-               'OPERABILITY_LIST':oper_list,
+               'OPERABILITY_LIST':oper_list[0],
                'AUX_GEN_LIST':aux_gen_list,
-               'RS_RDA_ALARM_SUMMARY_LIST':filter(None,alarm_list),
+               'RS_RDA_ALARM_SUMMARY_LIST':filter(None,alarm_list)[0],
                'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),
-               'WIDEBAND':RS_states['wideband'][_rpg.liborpg.orpgrda_get_wb_status(0)].replace('RS_','')
+               'WIDEBAND':RS_states['wideband'][wbstat].replace('RS_',''),
+	       'DISPLAY_BLANKING':RS_states['wideband'][blanking].replace('RS_','')	
 	    }
         }
     else:
@@ -722,23 +727,28 @@ class ORPGSAILS_set(object):
 class Send_RDACOM(object):
     def POST(self):
         data = parse_qs(web.data())
+	print data
         req = data['COM'][0]
 	set_clear_flag = data['FLAG'][0]
-	print req
+	print set_clear_flag
 	CRDA = {
 		'RS_SUPER_RES_ENABLE':[_rpg.orpgrda.CRDA_SR_ENAB,'orpginfo_set_super_resolution_enabled'],
 		'RS_SUPER_RES_DISABLE':[_rpg.orpgrda.CRDA_SR_DISAB,'orpginfo_clear_super_resolution_enabled'],
 		'RS_CMD_ENABLE':[_rpg.orpgrda.CRDA_CMD_ENAB,'orpginfo_set_cmd_enabled'],
 		'RS_CMD_DISABLE':[_rpg.orpgrda.CRDA_CMD_DISAB,'orpginfo_clear_cmd_enabled'],
 		'RS_AVSET_DISABLE':[_rpg.orpgrda.CRDA_AVSET_DISAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_CLR],
-		'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_SET]
+		'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_SET],
 		}
-	if set_clear_flag:
+	if set_clear_flag != "None":
 	    if req.split('_')[1] == 'AVSET':
 		set_clear = _rpg.liborpg.orpginfo_statefl_flag(_rpg.liborpg.Orpginfo_statefl_flagid_t.ORPGINFO_STATEFL_FLG_AVSET_ENABLED,CRDA[req][1])
 	    else:
 	        set_clear = getattr(_rpg.liborpg,CRDA[req][1])()
-        commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.MSF_INITIATED_RDA_CTRL_CMD,CRDA[req][0],0,0,0,0,_rpg.CharVector())
+            commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD,CRDA[req][0],0,0,0,0,_rpg.CharVector())
+	else:
+	    com = getattr(_rpg.orpgrda,req)	
+	    print com
+	    commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD,com,0,0,0,0,_rpg.CharVector())
         return json.dumps(commanded)
 
 ##############################

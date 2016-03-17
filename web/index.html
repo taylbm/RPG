@@ -21,20 +21,25 @@
         
             $(document).ready(function () {
                 $('#summary-data').load('summary.js', function () {
-		    $('.sites').html(ICAO+' - Shade Chart - Past 6 Months') 		    
-                    $('#site').html(ICAO)
-		    makeGages();
-            	    determineOverview('MostRecent','chan1')        
-                    $.each(SummaryData, function (idx, obj) {
-                        SummaryData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null; 
-                        SummaryData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
-                        SummaryData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
-                    });
-		    $.each(DailyData,function(idx,obj) {
-			DailyData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null;
-			DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
-			DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
-		    });
+		    if ($('#summary-data').html() == "") {
+                        alert("No ZDR Stats Available, please run dqdwalk to acquire the data, then refresh the page") 
+                    }
+		    else {
+		        $('.sites').html(ICAO+' - Shade Chart - Past 6 Months') 		    
+                        $('#site').html(ICAO)
+		        makeGages();
+            	        determineOverview('MostRecent','chan1')        
+                        $.each(SummaryData, function (idx, obj) {
+                            SummaryData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null; 
+                            SummaryData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
+                            SummaryData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
+                        });
+		        $.each(DailyData,function(idx,obj) {
+			    DailyData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null;
+			    DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
+			    DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
+		        });
+		    }
                 });
 		$('#choice-4').prop('checked',true).click();
 		$('#choice-5').prop('checked',true).click();
@@ -43,9 +48,9 @@
 			clicksYet = false,
 			previousPoint = null
 		    ;
-                    if (!SummaryData)
+                    if (!SummaryData) 
                         event.preventDefault();
-                    
+
                     setSizes(event, ui);
 		    $('input[name=channel-toggle]').prop('checked',false).trigger('refresh');
 		    var page = ui.toPage.get(0).id.replace('page','')
@@ -186,7 +191,7 @@
                     </fieldset>
 		</form>
 		</div>
-
+		<h3 align="center" id="noData"></h3>
                 <div class="ui-body ui-body-a">
 		    <div id="main-gauge" style="height:480px; width:640px; margin:auto;"></div>
 		    <div class="ui-grid-b">
