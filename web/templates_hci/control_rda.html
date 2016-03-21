@@ -21,13 +21,13 @@
                 <h1 id="pop-title" class="ui-title" role="heading">Warning Popup</h1>
             </div>
             <div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
-                <h3 align="center"id="id-confirm" class="ui-title"></h3>
+                <h3 align="center" id="id-confirm" class="ui-title"></h3>
                 <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
                 <a id="pop-confirm" value="N/A"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
             </div>
         </div>
 
-    <div data-transition="slidefade" data-role="panel" id="rda_control_status" data-display="overlay" class="ui-page ui-page-a" data-position="left" style="width:26em;" data-theme="b">
+    <div data-transition="slidefade" data-role="panel" id="rda_control_status" data-display="overlay" class="ui-page ui-page-a" data-position="left" style="width:27em;" data-theme="b">
 	<div data-role="header" style="overflow:hidden;">
 	<h1>RDA Control/Status</h1>
 	    <div data-role="navbar">
@@ -58,18 +58,20 @@
         <div class="custom-corners ui-corner-all">
             <div class="containing-element-lg ui-body ui-body-a ui-grid-a">
 		<div class="ui-block-a">
-	        <label for="RDA_power">RDA Power Source</label>
-	        <select id="RDA_power" data-role="slider">
-		    <option value="CRDA_AUXGEN">Auxiliary</option>
-		    <option select value="CRDA_UTIL">Utility</option>
-	        </select>
+	            <label for="RDA_power">RDA Power Source: <p style="margin:0" id="RDA_power_label"></p></label>
+	            <select id="RDA_power" data-role="slider">
+		        <option value="CRDA_AUXGEN">Auxiliary</option>
+		        <option value="CRDA_UTIL">Utility</option>
+	            </select>
 		</div>	
 		<div class="ui-block-b">
-                <label for="RDA_control">RDA Control</label>
-                <select id="RDA_control" data-role="slider">
-                    <option value="CRDA_ENLOCAL">Local (RDA)</option>
-                    <option select value="CRDA_REREMOTE">Remote (RPG)</option>
-                </select>
+                    <label for="RDA_control">RDA Control: <p style="margin:0" id="RDA_control_label"></p></label>
+		    <fieldset data-role="controlgroup" date-type="vertical">
+		        <input name="RDA_control" id="LOCAL" value="CRDA_ENLOCAL" type="radio">	
+			<label for="LOCAL">Local (RDA)</label> 
+                        <input name="RDA_control" id="REMOTE" value="CRDA_REREMOTE" type="radio">
+			<label for="REMOTE">Remote (RPG)</label>
+                    </fieldset>
 		</div>
 	    </div>
         </div>

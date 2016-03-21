@@ -146,7 +146,6 @@ def RDA_static():
             temp.update({0:'N/A'})
         temp.update({-9999:'-9999'})
         RS_states.update({cat:temp})
-    print RS_states
     return RS_states
 
 #######################################################
@@ -263,7 +262,6 @@ prf_dict = dict((_rpg.Prf_status_t.__dict__[x],x.replace('PRF_COMMAND_','')) for
 nb_dict = dict((v,k) for k,v in _rpg.libhci.nb_status.__dict__.items() if '__' not in k)
 
 RS_states = RDA_static()
-RDA_alarms_all = [x.replace('AS_','') for x in RS_states['alarmsummary'].values() if not x.strip('-').isdigit()]
 
 RS_dict_init = {}
 
@@ -317,15 +315,19 @@ def RS_init():
         if not oper_list:
             oper_list.append('UNKNOWN')
         aux_gen_list = [RS_states['auxgen'][key].strip('AP_').strip('RS_') for key in RS_states['auxgen'].keys() if (key & RS_dict['RS_AUX_POWER_GEN_STATE']) > 0]
-        if 'GENERATOR_ON' in aux_gen_list:
-            aux_gen_list.append('true')
-        else:
-            aux_gen_list.append('false')
+	RS_dict.update({'RS_AUX_POWER_GEN_STATE':"GENERATOR_ON" in aux_gen_list})
         alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
 	wbstat = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_WBLNSTAT)
-	blanking = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_DISPLAY_BLANKING)	
-	RS_dict.update({'RS_RDA_CONTROL_AUTH':RS_states['controlauth'][RS_dict['RS_RDA_CONTROL_AUTH']]})
-        RS_dict.update({'CONTROL_AUTHORITY': blanking == 0 or blanking == _rpg.rdastatus.RS_RDA_CONTROL_AUTH and wbstat == _rpg.rdastatus.RS_CONNECTED or wbstat == RS_DISCONNECT_PENDING})
+	blanking = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_DISPLAY_BLANKING)
+	blanking_state = (blanking and (RS_dict['RS_CONTROL_STATUS'] == _rpg.rdastatus.controlstatus.CS_LOCAL_ONLY)) or not (wbstat == _rpg.rdastatus.wideband.RS_CONNECTED or wbstat == _rpg.rdastatus.wideband.RS_DISCONNECT_PENDING)
+	power_state_blanking = blanking != _rpg.rdastatus.RS_AUX_POWER_GEN_STATE
+	control_state_blanking = blanking != _rpg.rdastatus.RS_CONTROL_STATUS
+	control_auth = blanking == 0 or blanking == _rpg.rdastatus.RS_RDA_CONTROL_AUTH and wbstat == _rpg.rdastatus.wideband.RS_CONNECTED or wbstat == _rpg.rdastatus.wideband.RS_DISCONNECT_PENDING
+	RS_dict.update({
+			'RS_RDA_CONTROL_AUTH':RS_states['controlauth'][RS_dict['RS_RDA_CONTROL_AUTH']],
+        		'CONTROL_AUTHORITY': control_auth,
+			'BLANKING_VALID':[blanking_state,power_state_blanking,control_state_blanking]	
+		      })
 	RS_dict_init.update(RS_dict)
 	EN_flags['ORPGEVT_RDA_STATUS_CHANGE'] = False
         return {
@@ -334,8 +336,7 @@ def RS_init():
                'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
                'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
                'OPERABILITY_LIST':oper_list[0],
-               'AUX_GEN_LIST':aux_gen_list,
-               'RS_RDA_ALARM_SUMMARY_LIST':filter(None,alarm_list)[0],
+               'RS_RDA_ALARM_SUMMARY_LIST':filter(None,alarm_list),
                'RDA_STATE':RS_states['rdastatus'][RS_dict['RS_RDA_STATUS']].replace('RS_',''),
                'WIDEBAND':RS_states['wideband'][wbstat].replace('RS_',''),
 	       'DISPLAY_BLANKING':RS_states['wideband'][blanking].replace('RS_','')	
@@ -359,7 +360,7 @@ def RDA_alarms_init():
             latest_alarm_timestamp = months[mo-1]+' '+str(day)+','+yr[2]+yr[3]+' ['+'%02d' % hr+':'+'%02d' % min+':'+'%02d' % sec+']'
             alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	    if alarm[0] > 0:
-                tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
+                tstamp_alarm = alarm[2];
                 ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
                 uts = time.mktime(ts.timetuple())
                 precedence = ts>tstamp_alarm
@@ -382,9 +383,8 @@ def RPG_alarm_init():
         alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	if alarm[0] > 0:
 	    parse_alarm = alarm[1].split(':')
-            tstamp_alarm = alarm[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR);
-            at1 = months[int(datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%m'))-1]
-            at2 = datetime.datetime.fromtimestamp(tstamp_alarm).strftime('%-d,%y [%H:%M:%S]')
+            tstamp_alarm = alarm[2]
+            alarm_date = datetime.datetime.utcfromtimestamp(tstamp_alarm).strftime('%b %-d,%y [%H:%M:%S]')
             mask = [alarm[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and alarm[3] & v > 0]
 	    if mask:
                 msg_type = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' not in k and v == mask[0]][0]	
@@ -393,7 +393,7 @@ def RPG_alarm_init():
             active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and alarm[3] & v > 0] == []
             error = alarm[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0
 
-            RPG_alarm_text = at1+' '+at2+' >> '+' '+' '+":".join(parse_alarm[1:]).replace('\n','')
+            RPG_alarm_text = alarm_date +' >> '+":".join(parse_alarm[1:]).replace('\n','')
         else:
 	    RPG_alarm_text = 'ORPGDA_read error'
         
@@ -528,10 +528,9 @@ def RPG_status_init():
         if status[0] > 0:
             parse_status = status[1].split(':')
 	    text_status = ":".join(parse_status[1:]).replace('\n','')
-            tstamp_s = status[2]+(_rpg.liborpg.rpgcs_get_time_zone()*SECONDS_PER_HOUR)
-            s1 = months[int(datetime.datetime.fromtimestamp(tstamp_s).strftime('%m'))-1]
-            s2 = datetime.datetime.fromtimestamp(tstamp_s).strftime('%-d,%y [%H:%M:%S]')
-	    rpg_status = s1 + " " + s2 +" >> " + text_status
+            tstamp_s = status[2]
+            date_s = datetime.datetime.utcfromtimestamp(tstamp_s).strftime('%b %-d,%y [%H:%M:%S]')
+	    rpg_status = date_s +" >> " + text_status
 	    mask = [status[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and status[3] & v > 0]
 	    if mask:
 	        msg_type = [k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == mask[0]][0]
@@ -665,7 +664,6 @@ Global_dict = {
 			'RDA_static':RS_init(),
 			'RDA_alarms':RDA_alarms_init(),
 			'CRDA':CRDA_init(),
-			'RDA_alarms_all':RDA_alarms_all
 		      },
 		'LOADSHED':LOADSHED_init(),
 		'ADAPT':ADAPT_init(),
@@ -793,8 +791,7 @@ ADAPT_l = {
 # Returns a dictionary of all necessary data from the RDA status message
 ##
 def RS():
-    RS_dict = {'RDA_alarms_all':Global_dict['RDA']['RDA_alarms_all']}
-    RS_dict.update(RS_dict_init)
+    RS_dict = RS_dict_init
 
     for name, function in RS_l.iteritems():	
 	item = function()

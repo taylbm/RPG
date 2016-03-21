@@ -41,7 +41,8 @@ URLS = (
     '/mrpg','handlers.MRPG',
     '/mrpg_state','handlers.MRPG_state',
     '/mrpg_clean','handlers.MRPG_clean',
-    '/deau_set','handlers.DEAU_set'
+    '/deau_set','handlers.DEAU_set',
+    '/auth','handlers.Basic_Auth'
 )
 
 if __name__ == '__main__':
