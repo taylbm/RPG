@@ -30,7 +30,6 @@ URLS = (
     '/update','handlers.Update',
     '/update_s','handlers.Update_Server',
     '/radome','handlers.Radome',
-    '/perf','handlers.Performance',
     '/vst','handlers.ORPGVST',
     '/button','handlers.Button',
     '/operations','handlers.Operations',

@@ -53,129 +53,146 @@
 
 <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4BACC6" >
     <div class="ui-grid-b">
-	<div class="ui-block-a" style="background-color:#4BACC6">
-	    <div id="RDA_STAT" class="ui-grid-a" style="width:100%;float:left;position:relative">
+	<div id="grid-a" class="ui-block-a" style="background-color:#4BACC6;">
+	    <div id="RDA_STAT" class="ui-grid-a" style="width:100%;float:left;">
 		<div class="ui-block-a">
 			<div class="bar-border1">State:</div>
 			<div class="bar-border1">Oper:</div>
 		</div>
 		<div class="ui-block-b">
-			<div id ="RDA_STATE" class="bar-border2 rda-style">UNKNOWN</div>
-			<div id = "OPERABILITY_LIST" class="bar-border2 rda-style">UNKNOWN</div>
+			<div id ="RDA_STATE" style="font-size:80%"class="bar-border2 rda-style">UNKNOWN</div>
+			<div id = "OPERABILITY_LIST" style="font-size:80%" class="bar-border2 rda-style">UNKNOWN</div>
 		</div>
 	    </div>
-	    <br><br>
-	    <canvas id="radome" width="300" height="400"></canvas><br>
-		<div class="radome-selectors" id="RPG_SAILS_contain">
-			<select alt="SAILS" class="toggle" name="flip-mini" id="RPG_SAILS" data-role="slider">
-				<option value="off">DISABLED</option>
-				<option id="SAILSlabel" value="on">ENABLED</option>
-			</select>	
+            <div class="radome-selectors" id="RPG_SAILS_contain">
+                <select alt="SAILS" class="toggle" name="flip-mini" id="RPG_SAILS" data-role="slider">
+                        <option value="off">DISABLED</option>
+                        <option id="SAILSlabel" value="on">ENABLED</option>
+                </select>       
+            </div>
+            <div class="radome-selectors" id="RS_AVSET_contain">
+                <select alt="AVSET" class="toggle" name="flip-mini" id="RS_AVSET" data-role="slider">
+                        <option value="off">DISABLED</option>
+                        <option value="on">ENABLED</option>
+                </select>       
+            </div>
+	    <div id="canvas-container">
+	        <canvas id="radome"></canvas>
+	        <canvas id="inner-circle"></canvas>
+	    </div>
+	    <div class="ui-grid-b" style="margin-top:-8px">
+		<div style="width:15%"class="ui-block-a">
+		    <div>
+		        <button id="RPG_COMMUN" class="rda-alarm-indicator">COM</button>
+		        <button id="RDA_CONTROL" class="rda-alarm-indicator">CTR</button>
+		        <button id="PEDESTAL" class="rda-alarm-indicator">PED</button>
+		        <button id="RECV" class="rda-alarm-indicator">RCV</button>
+		        <button id="SIGPROC" class="rda-alarm-indicator">SIG</button>
+		        <button id="TOW_UTIL" class="rda-alarm-indicator">UTL</button>
+		        <button id="TRANSMITTER"class="rda-alarm-indicator">XMT</button>
+		    </div>
 		</div>
-		<div class="radome-selectors" id="RS_AVSET_contain">
-			<select alt="AVSET" class="toggle" name="flip-mini" id="RS_AVSET" data-role="slider">
-				<option value="off">DISABLED</option>
-				<option value="on">ENABLED</option>
-			</select>	
-		</div>
-		<div style="width:14%;position:relative;top:100px;">
-		    <button id="RPG_COMMUN" class="rda-alarm-indicator">COM</button>
-		    <button id="RDA_CONTROL" class="rda-alarm-indicator">CTR</button>
-		    <button id="PEDESTAL" class="rda-alarm-indicator">PED</button>
-		    <button id="RECV" class="rda-alarm-indicator">RCV</button>
-		    <button id="SIGPROC" class="rda-alarm-indicator">SIG</button>
-		    <button id="TOW_UTIL" class="rda-alarm-indicator">UTL</button>
-		    <button id="TRANSMITTER"class="rda-alarm-indicator">XMT</button>
-		</div>
-                <div id="RS_AUX_POWER_GEN_STATE" >
-                    <meter id="gen_level" max=100 min=0 value=90 high=100 low =50 optimum=75></meter>
-                    <p id="gen_level_num">N/A</p>
-                    <img id="gen_img" src='/static/static_hci/gen_shelter.png'></img>
-                </div>
-                <div id="TPS_indicator">
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a">
-                            <div id="TPS_STATUS_label" class="bar-border1">TPS:</div>
-                        </div>
-                        <div class="ui-block-b">
-                            <div id="TPS_STATUS" class="bar-border2">N/A</div>
+		<div class="ui-block-b" style="width:70%">
+		    <div id="TPS_indicator" style="position:absolute">
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a">
+                                <div id="TPS_STATUS_label" class="bar-border1">TPS:</div>
+                            </div>
+                            <div class="ui-block-b">
+                                <div id="TPS_STATUS" class="bar-border2">N/A</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-		<div style="position:relative;left:50px;margin-top:-145px">
 		    <div id="grid1" class="center normal-ops-grid">
 			<p id="grid1title" style="color:black;border:none;text-align:center">RDA</p>
 			<ul id="rdaButtons" data-icon="false" data-role="listview" data-inset="true">
 			    <li><a id="rda_control" class="control-item control-shadow ui-btn ui-btn-icon-left ui-icon-carat-l" style="color:white;text-align:center" href="#rda_control_status">Control</a></li>
-			    <li><a id="rda_perf" style="color:white;font-size:14px;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Performance<br> Data</a></li>
+			    <li><a id="rda_perf" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Performance<br> Data</a></li>
 			    <li><a id="rda_alarms" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Alarms</a></li>
-			<ul>
-		    </div>						
-		<div id="moments_sq">
-		    <div id="link_R" class="normal-ops link-status-sq">R</div>	
-		    <div id="link_V" class="normal-ops link-status-sq">V</div>				   
-		    <div id="link_W" class="normal-ops link-status-sq">W</div>
-		    <div id="link_D" class="normal-ops link-status-sq">D</div>
+			</ul>
+                        <div id="RS_AUX_POWER_GEN_STATE" >
+			    <div class="ui-grid-a">
+			    	<div class="ui-block-a">
+                            	    <meter id="gen_level" max=100 min=0 value=90 high=100 low =50 optimum=75></meter>
+                                    <p id="gen_level_num">N/A </p>
+				</div>	
+				<div class="ui-block-b">
+                            	    <img id="gen_img" style="width:70%"src='/static/static_hci/gen_shelter.png'></img>
+				</div>
+			    </div>
+                        </div>
+		    </div>		
+	        </div>
+                <div class="ui-block-c" style="width:15%" id="moments_sq">
+		    <br><br><br><br><br>
+		    <div style="width:50%">
+                        <div id="link_R" class="normal-ops link-status-sq">R</div>  
+                        <div id="link_V" class="normal-ops link-status-sq">V</div>                             
+                        <div id="link_W" class="normal-ops link-status-sq">W</div>
+                        <div id="link_D" class="normal-ops link-status-sq">D</div>
+		   </div>
+                </div>
 		</div>
-	    </div>
+
+	</div>
+	<div id="control_stat">
+            <p id="CONTROL_STATUS" style="position:relative;top:5px" class="center">N/A</p>
+            <div class="rpg-border"></div>
 	</div>
 	<div id="link">
-	    <p id="CONTROL_STATUS" style="position:relative;top:5px" class="center">N/A</p>
-	    <div class="rpg-border" style="margin-left:-2px;position:relative;z-index:6;top:-3px;"></div>
-	    <br><br><br><br><br><br>
 	    <div style="text-align:center;border:solid 1px" class="bar-border link-statusR link-status status0" id="squaresWaveG_long">
-		<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
+		<div id="squaresWaveG_long_1" class="squaresWaveG_long_1 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_2" class="squaresWaveG_long_2 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_3" class="squaresWaveG_long_3 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_4" class="squaresWaveG_long_4 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_5" class="squaresWaveG_long_5 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_6" class="squaresWaveG_long_6 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_7" class="squaresWaveG_long_7 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_8" class="squaresWaveG_long_8 squaresWaveG_long"></div> 
 	    </div>
 	    <div style="text-align:center;border:solid 1px" class="bar-border link-statusV link-status status1" id="squaresWaveG_long">
-		<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
+		<div id="squaresWaveG_long_1" class="squaresWaveG_long_1 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_2" class="squaresWaveG_long_2 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_3" class="squaresWaveG_long_3 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_4" class="squaresWaveG_long_4 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_5" class="squaresWaveG_long_5 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_6" class="squaresWaveG_long_6 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_7" class="squaresWaveG_long_7 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_8" class="squaresWaveG_long_8 squaresWaveG_long"></div> 
 	    </div>	
 	    <div style="text-align:center;border:solid 1px" class="bar-border link-statusW link-status status2" id="squaresWaveG_long">
-		<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
+		<div id="squaresWaveG_long_1" class="squaresWaveG_long_1 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_2" class="squaresWaveG_long_2 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_3" class="squaresWaveG_long_3 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_4" class="squaresWaveG_long_4 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_5" class="squaresWaveG_long_5 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_6" class="squaresWaveG_long_6 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_7" class="squaresWaveG_long_7 squaresWaveG_long"></div>
+		<div id="squaresWaveG_long_8" class="squaresWaveG_long_8 squaresWaveG_long"></div> 
 	    </div>   
 	    <div style="text-align:center;border:solid 1px" class="bar-border link-statusD link-status status3" id="squaresWaveG_long">
-		<div id="squaresWaveG_long_1" name="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_2" name="squaresWaveG_long_2"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_3" name="squaresWaveG_long_3"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_4" name="squaresWaveG_long_4"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_5" name="squaresWaveG_long_5"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_6" name="squaresWaveG_long_6"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_7" name="squaresWaveG_long_7"class="squaresWaveG_long"></div>
-		<div id="squaresWaveG_long_8" name="squaresWaveG_long_8"class="squaresWaveG_long"></div> 
+		<div class="squaresWaveG_long_1 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_2 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_3 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_4 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_5 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_6 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_7 squaresWaveG_long"></div>
+		<div class="squaresWaveG_long_8 squaresWaveG_long"></div> 
 	    </div>
 	</div>
 	<div class="ui-block-b" style="background-color:#4bacc6">					
 	    <div class="center" style="width:75%;display:table;">
 		<div style="display: table-row">
-		    <div style="width: 0px; display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
+		    <div style="display: table-cell;"><div class="contain-gray">H Delta dBZ0:</div></div>
 		    <div style="display: table-cell;"><div id="h_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
 		</div>
 		<div style="display: table-row">
-		    <div style="width: 0px; display: table-cell;"><div class="contain-gray">V Delta dBZ0:</div></div>
+		    <div style="display: table-cell;"><div class="contain-gray">V Delta dBZ0:</div></div>
 		    <div style="display: table-cell;"><div id="v_delta_dbz0" style="color:black" class="contain-white">-9999</div></div>
 		</div>
                 <div style="display: table-row">
-                    <div style="width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">Perf. Check in</div></div>
+                    <div style="display: table-cell;"><div class="contain-gray">Perf. Check in</div></div>
                     <div style="display: table-cell;"><div style="color:black" id="perf_check_time" class="contain-white">-9999</div></div>
                 </div>
 	    </div>
@@ -190,43 +207,40 @@
 	    <div style="text-align:center">
  	    <p id="VCP_start_date" class="vcp-style"></p><p id="VCP_start_time" class="vcp-style"></p>
             </div>
-	    <div class="center" style="width:75%;display:table;">
+	    <div class="center" style="width:85%;display:table;">
                <div style="display: table-row">
-                    <div style="font-size:11px;width: 0px; display: table-cell;"><div class="contain-gray">Current Z-R:</div></div>
-                    <div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-R" class="contain-white">NOT AVAILABLE</div></div>
+                    <div style="display: table-cell;"><div class="contain-gray">Current Z-R:</div></div>
+                    <div style="display: table-cell;"><div style="color:black" id="Z-R" class="contain-white">NOT AVAILABLE</div></div>
                 </div>
                 <div style="display: table-row">
-                    <div style="font-size:11px;width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">Current R(Z,ZDR):</div></div>
-                    <div style="font-size:11px;display: table-cell;"><div style="color:black" id="Z-ZDR" class="contain-white">NOT AVAILABLE</div></div>
+                    <div style="display: table-cell;"><div class="contain-gray">Current R(Z,ZDR):</div></div>
+                    <div style="display: table-cell;"><div style="color:black" id="Z-ZDR" class="contain-white">NOT AVAILABLE</div></div>
                 </div>
                 <div class="RPG_STAT" style="display: table-row">
-                    <div style="font-size:11px;width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">State</div></div>
-                    <div style="font-size:11px;display: table-cell;"><div id="RPG_state" style="height:20px"class="contain-white">N/A</div></div>
+                    <div style="display: table-cell;"><div class="contain-gray">State</div></div>
+                    <div style="display: table-cell;"><div id="RPG_state" class="contain-white">N/A</div></div>
                 </div>
                 <div class="RPG_STAT" style="display: table-row">
-                    <div style="font-size:11px;width: 0px; display: table-cell;"><div style="font-size:14px"class="contain-gray">Oper</div></div>
-                    <div style="font-size:11px;display: table-cell;"><div style="height:20px"id="RPG_oper" class="contain-white">N/A</div></div>
+                    <div style="display: table-cell;"><div class="contain-gray">Oper</div></div>
+                    <div style="display: table-cell;"><div id="RPG_oper" class="contain-white">N/A</div></div>
                 </div>
 	    </div>
-	    <br>
-	    <div class="ui-grid-c">
-		<div class="ui-block-a"></div>
-		<div class="ui-block-b">
-		<div id="grid2" class="normal-ops-grid">
+	    <div class="ui-grid-b">
+		<div class="ui-block-a" style="width:25%"></div>
+  	        <div class="ui-block-b" id="grid2" class="normal-ops-grid">
 		    <p style="text-align:center;color:black">RPG</p>
 		    <ul data-role="listview" data-inset="true">
-		 	<li><a id="rpg_control1" style="color:white;text-align:center" class="control-item control-shadow" href="#rpg_control_panel">Control</a></li>
+		 	<li><a id="rpg_control" style="color:white;text-align:center" class="control-item control-shadow" href="#rpg_control_panel">Control</a></li>
 			<li><a id="rpg_products" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Products</a></li>
 			<li><a id="rpg_misc"style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Misc</a></li>
 			<li><a id="rpg_status"style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Status</a></li>
 		    </ul>
-		    <br>
+		    <br><br><br><br><br>
 		</div>
+                <div class="ui-block-c" style="width:25%"></div>
 	    </div>
-	    <div class="ui-block-b"></div>
-	</div>
     </div>
-    <div class="ui-block-c" style="margin-top:-230px;background-color:#4BACC6">
+    <div class="ui-block-c" style="background-color:#4BACC6">
 	<div id="PRF_Mode_status" class="ui-grid-a center button-line">
 	    <div class="ui-block-a">
 	 	<button type="button" class="display-button">PRF Mode</button>
@@ -356,7 +370,7 @@
 	            <p style="color:black;text-align:center">USERS</p>
 	    	    <ul data-icon="false" data-role="listview" data-inset="true">
 	        	<li><a id="user_comms" style="color:white;text-align:center"class="control-item control-shadow" href="#" data-rel="popup">Comms</a></li>
-	        	<li><a id="user_messages"style="color:white;font-size:14px;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
+	        	<li><a id="user_messages"style="color:white;text-align:center" class="control-item control-shadow" href="#" data-rel="popup">Console <br> Messages</a></li>
 	    	    </ul>
 	    	    <br>
 		</div>
@@ -364,15 +378,15 @@
 	    <div class="ui-block-c"></div>
 	</div>
     </div>
-    <div class="bar-border nblink-status" id="squaresWaveG_long" style="position:relative;z-index:1;left:-80px;top:-100px;display:inline-block">
-	<div id="squaresWaveG_long_1" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_2" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_3" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_4" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_5" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_6" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_7" class="squaresWaveG_long"></div>
-	<div id="squaresWaveG_long_8" class="squaresWaveG_long"></div>
+    <div class="bar-border nblink-status link-status" style="position:relative;z-index:1;left:-80px;top:-100px;display:inline-block">
+	<div class="squaresWaveG_long_1 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_2 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_3 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_4 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_5 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_6 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_7 squaresWaveG_long"></div>
+	<div class="squaresWaveG_long_8 squaresWaveG_long"></div>
     </div>
     <div class="ui-grid-a center button-line" id="Load_Shed_status">
         <div class="ui-block-a">
@@ -384,21 +398,21 @@
     </div>				
 </div>
 </div>
-<table data-role="table" class="ui-responsive">
+<table class="ui-responsive">
     <thead>
         <tr>
-            <th style="float:right;font-size:14px">Feedback:</td>
-            <td id="Feedback" class="bar-border"></td>
+            <th>Feedback:</td>
+            <td id="Feedback" class="bar-border message-line"></td>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <th style="float:right;font-size:14px">Status:</th>
-            <td id="Status"class="bar-border"></td>
+            <th>Status:</th>
+            <td id="Status"class="bar-border message-line"></td>
         </tr>
         <tr>
-            <th style="float:right;font-size:14px">Alarms:</th>
-            <td id="Alarms" class="bar-border"></td>
+            <th>Alarms:</th>
+            <td id="Alarms" class="bar-border message-line"></td>
         </tr>
     </tbody>
 </table>

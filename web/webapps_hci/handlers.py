@@ -80,6 +80,7 @@ EN_flags = {
 
 update_dict = {}
 msg = {'retry':'4000'} # connection loss timeout for radome SSE
+initial_msg = {'retry':'4000'} # initial full message send
 update_event = threading.Event()
 radome_event = threading.Event()
 
@@ -286,7 +287,8 @@ def PMD_init():
 	return {
    	    'cnvrtd_gnrtr_fuel_lvl':pmd.cnvrtd_gnrtr_fuel_lvl,
    	    'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
-   	    'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0
+   	    'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,
+	    'perf_check_time':pmd.perf_check_time
         }
     else:
 	return False
@@ -541,6 +543,7 @@ def RPG_status_init():
 	else:
             rpg_status = 'ORPGDA_read error'
             rpg_status_ts = ''
+	    tstamp_s = ''
 	    msg_type = ''
 	    active = ''
 	    error = ''
@@ -961,7 +964,6 @@ class Update_Server(object):
             update_event.wait()
 
 
-
 ##
 # Generates radome update messages 
 ##
@@ -969,20 +971,38 @@ class Update_Server(object):
 class radome_generator(threading.Thread):
     def run(self):
 	event_id = 0
+        prev_update = {'start_az':0}
+	radome_final = {}
+	initial_connect = True
         while True:
             radome_update = radome_queue.get()
-            try:
-                moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
-                radome_update.update({'moments':moments_list})
-            except:
-                radome_update.update({'moments':['False']})
-            msg.update({
-                'data':json.dumps(radome_update),
-                'id':event_id
-            })
+	    update_all = radome_update['start_az'] != prev_update['start_az']
+	    if update_all or initial_connect:
+		radome_update.update({'update':update_all})
+                try:
+                    moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
+                    radome_update.update({'moments':moments_list,'moments_mask':radome_update['moments']})
+                except:
+                    radome_final.update({'moments':['False'],'moments_mask':0})
+		radome_final = radome_update
+	    else:
+		radome_final = {'az':radome_update['az'],'update':update_all}
+	    if initial_connect:
+                initial_msg.update({
+                    'data':json.dumps(radome_final),
+                    'id':event_id
+                })
+		initial_connect = False
+	    else: 
+                msg.update({
+                    'data':json.dumps(radome_final),
+                    'id':event_id
+                })
+	    
+	    prev_update = radome_update
+            event_id += 1 # provide unique event id so the client can distinguish between messages     
 	    radome_event.set()
-	    radome_event.clear()
-            event_id += 1 # provide unique event id so the client can distinguish between messages      
+	    radome_event.clear() 
 
 radome_gen = radome_generator()
 radome_gen.start()
@@ -996,18 +1016,17 @@ class Radome(object):
     def GET(self):
 	web.header("Content-Type","text/event-stream")
 	web.header("Cache-Control","no-cache") # caching must be turned off or it will fill up quickly
+	initial_connect = True
 	while True:
 	    radome_event.wait()
-	    yield sse_pack_single(msg)
+	    if initial_connect:
+	        yield sse_pack_single(initial_msg)
+		initial_connect = False
+	    else:
+                yield sse_pack_single(msg)
 
 
-##
-# Retrieves the scheduled time for the performance check
-##
 
-class Performance(object):
-   def GET(self):
- 	return json.dumps({'perf_check_time':_rpg.libhci.hci_get_orda_pmd_ptr().pmd.perf_check_time})
 ##
 # Retrieves the Volume Scan Start Time 
 ##

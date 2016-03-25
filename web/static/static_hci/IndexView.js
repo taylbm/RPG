@@ -68,17 +68,8 @@
         return ans;
     }
     
-    function anim(action){
-	    var i;
-            var j;
-            for (i = 1; i<9; i++){
-		var group = document.getElementsByName("squaresWaveG_long_"+i)
-		for(j = 0; j<group.length; j++){
-                	group[j].style.animationPlayState = action
-                }
-            }
-    }    
 init();
+
     function GetClock(){
         var d=new Date();
         var nday=d.getUTCDay(),nmonth=d.getUTCMonth(),ndate=d.getUTCDate(),nyear=d.getUTCFullYear();
@@ -102,19 +93,21 @@ init();
         return DATA.calendar.smonth[nmonth]+" "+ndate+","+nyear%100+" "+"["+nhour+":"+nmin+":"+nsec+"]";
     }
     function perfCheck(end){
+        var remaining = end*1000-Date.parse(new Date())
 	setInterval(function(){
-	    var remaining = end*1000-Date.parse(new Date())
+	    remaining -= 1000; 	    
 	    if(remaining < DATA.perfCheckYellow){
 	        $('#perf_check_time').css('background-color','#FCFC23')
 	    }
 	    else{
 		$('#perf_check_time').css('background-color','white')
 	    }
-	    var d = new Date(end*1000-Date.parse(new Date()))
+            var d = new Date(remaining)
 	    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
 	    $('#perf_check_time').html(nhour+'h '+nmin+'m '+nsec+'s')
 	    if(remaining < 0){
 		$('#perf_check_time').html('PENDING').css('background-color','#51FF22')
+		stopCheck['perfCheck'] = true;
 	    }
 	},DATA.clockInterval);
     }
@@ -136,14 +129,16 @@ init();
     }
 
     var RS = {}
-    var statusCheck = {'RDA':0,'RPG':0}
+    var ADAPT = {}
+    var RPG = {}
+    var PMD = {}
+    var radome = {}
     var actionflag = {}
     var cookieRaid = {'inserted':1}
     var rpgStatusMsgs = {'new':0} 
-    var stopCheck = {'WIDEBAND_SET':1,'action':0,'running':1,'reload':1}
+    var stopCheck = {'ICAO':true,'perfCheck':true,'WIDEBAND_SET':true,'az':0,'running':true}
 
 $(document).ready(function(){
-	init();
     	function toggleHandler(attr,switchval){	
 	    switch (switchval) {
 		case 1:	
@@ -219,50 +214,101 @@ $(document).ready(function(){
 	}
 	var animcheck = document.getElementById("squaresWaveG_long_1")
 	animcheck.style.animationPlayState = "running"
-	var canvas=document.getElementById("radome");
-	var maincircle=canvas.getContext("2d");
-	maincircle.fillStyle="white";maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();
-	maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();
-	maincircle.lineTo(150,150);
-	maincircle.closePath();
-	maincircle.fill();
-	maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.fillStyle="white";
-	maincircle.strokeRect(60,290,180,54);
-	maincircle.strokeRect(60,344,180,54);
-	maincircle.beginPath();
-	maincircle.moveTo(60,290)
-	maincircle.lineTo(240,344)
-	maincircle.moveTo(60,344)
-	maincircle.lineTo(240,290)
-	maincircle.moveTo(60,344)
-	maincircle.lineTo(240,398)
-	maincircle.moveTo(60,398)
-	maincircle.lineTo(240,344)
-	maincircle.fillStyle = '#5B575B';
-	maincircle.fillRect(115, 329, 70, 30);
-	maincircle.strokeRect(115, 329, 70, 30);
-	maincircle.fillStyle = 'black';
-	maincircle.font = DATA.sailsAvsetFont;
-	maincircle.fillText("SAILS:",50,160)
-	maincircle.fillText("AVSET:",50,210)
-	maincircle.shadowColor = "black"; 
-	maincircle.shadowOffsetX = 2;
-	maincircle.shadowOffsetY = 2; 
-	maincircle.shadowBlur = 5;
-	maincircle.fillStyle = 'white';
-	maincircle.stroke();
-	maincircle.beginPath();
-	maincircle.lineWidth = 5;
-	maincircle.moveTo(150,358)
-	maincircle.lineTo(150,400)
-	maincircle.moveTo(150,285)
-	maincircle.lineTo(150,330)
-	maincircle.shadowColor = "transparent"
-	maincircle.lineWidth = 4;
-	maincircle.moveTo(240,393)
-	maincircle.lineTo(300,393)
-	maincircle.stroke();
-	document.getElementById("radome").style.zIndex = 1;
+	var canvas = document.getElementById("radome");
+	var canvas1 = document.getElementById("inner-circle");
+        var gridwidth = $('#grid-a').width();	
+	var cD = 2.22;
+	var sC = 2500;
+	canvas.height = window.innerHeight/cD
+	canvas.width = gridwidth;
+        canvas1.height = window.innerHeight/cD;
+        canvas1.width = gridwidth;
+	
+	var maincircle = canvas.getContext("2d");
+	var innercircle = canvas1.getContext("2d");
+	var cH = canvas.height;
+	var cW = canvas.width;
+        var hD = 2.66;
+        var wD = 2;
+        var Ro = 0.9 - (gridwidth - 200) / sC;
+        var Ri = 0.8 - (gridwidth - 200) / sC;
+        var Tx = cW / 6;
+	var Ty = cH / 1.4;
+	var Tw = cW / 1.5;
+	var Th = cH / 3.67;
+	var Tm = Ty + Th / 2;
+
+	function redrawCanvas() {
+	    var gridwidth = $('#grid-a').width();
+	   
+	    if ( gridwidth > 500 ) {
+	    }
+	    else {
+	    }
+            canvas.height = window.innerHeight/cD;
+	    canvas.width = gridwidth;
+	    maincircle.clearRect(0,0,600,600)
+	    innercircle.clearRect(0,0,600,600)
+	    	    
+            cH = canvas.height;
+            cW = canvas.width;
+            hD = 2.66;
+            wD = 2;
+            Ro = 0.9 - (gridwidth - 200) / sC;
+            Ri = 0.8 - (gridwidth - 200) / sC;
+            Tx = cW / 6;
+            Ty = cH / 1.4;
+            Tw = cW / 1.5;
+            Th = cH / 3.67;
+            Tm = Ty + Th / 2;
+	    drawTower();
+	    alignElements();
+	};
+
+        window.addEventListener('resize',redrawCanvas,false);
+
+	function drawTower(init) {
+                maincircle.lineWidth=3;maincircle.strokeStyle="black";
+	        maincircle.strokeRect(Tx,Ty,Tw,Th); // Draw outline
+	        maincircle.beginPath();maincircle.moveTo(Tx,Tm);maincircle.lineTo(Tx+Tw,Tm);maincircle.moveTo(Tx,Ty);maincircle.lineTo(Tx+Tw,Tm);
+	        maincircle.moveTo(Tx,Tm);maincircle.lineTo(Tx+Tw,Ty);maincircle.moveTo(Tx,Tm);maincircle.lineTo(Tx+Tw,Ty+Th);maincircle.moveTo(Tx,Ty+Th);maincircle.lineTo(Tx+Tw,Tm);
+                maincircle.shadowColor = "black";maincircle.shadowOffsetX = 2;maincircle.shadowOffsetY = 2;maincircle.shadowBlur = 5; // define dropshadow
+                maincircle.moveTo(cW / wD,Ty-5);maincircle.lineTo(cW / wD,cH);maincircle.stroke();
+	        maincircle.fillStyle = "#5B575B";maincircle.fillRect(cW/wD - cW*0.125, Tm - Th*0.15, cW*0.25, Th*0.3);maincircle.strokeRect(cW/wD - cW*0.125, Tm - Th*0.15, cW*0.25, Th*0.3);
+ 	        maincircle.fillStyle = "black";maincircle.font = DATA.sailsAvsetFont;maincircle.beginPath();maincircle.shadowColor = "transparent";maincircle.lineWidth = 4;
+                innercircle.fillStyle="white";innercircle.beginPath();innercircle.arc(cW/wD,cH/hD,cW/wD*Ro,0,2*Math.PI);
+                innercircle.closePath();innercircle.fill();innercircle.stroke();
+                //Draw and fill the outer white circle with black outline   
+                maincircle.fillStyle="white";innercircle.lineWidth=2;maincircle.beginPath();maincircle.arc(cW/wD,cH/hD,cW/wD*Ri,0,2*Math.PI);
+                maincircle.closePath();maincircle.fill();
+		if (!init) {
+                    maincircle.fillStyle = "white";maincircle.font = DATA.sailsAvsetFont;maincircle.fillText(ADAPT['ICAO'],cW/wD - cW*0.075,Tm + Th*0.05);
+		}
+	}
+	drawTower(true);
+	function alignElements() {
+	    $("#RPG_SAILS_contain").css({"left":cW/wD - cW*0.05+"px","top":cH/hD + cH*0.08+"px"})
+	    $("#RS_AVSET_contain").css({"left":cW/wD - cW*0.05+"px","top":cH/hD + cH*0.2+"px"})
+            var link_offset = $('#link_R').offset();
+	    var control_offset = $('#moments_sq').offset();
+            var gridwidth = $('#grid-a').width();
+	    var radome = $('#radome').offset();
+	    $('#link').css({"left":link_offset.left,"top":link_offset.top});
+	    $('#control_stat').css({"left":control_offset.left,"top":control_offset.top*0.85,"width":gridwidth/2});
+	    $('#inner-circle').css(radome);
+	    $('.link-status').css({"width":gridwidth/2,"height":gridwidth/16.5});
+	    $('.squaresWaveG_long').css({"width":gridwidth/16.5,"height":gridwidth/16.5});
+	    for (i = 2; i < 9; i++) {
+	        $('.squaresWaveG_long_'+i.toString()).css( "left" , (i - 1) * (1 + gridwidth/16.5 ) );
+	    }
+            moms = ['R','V','W','D']
+	    for (m in moms){
+	        var mom = moms[m];
+	        $('#link_' + mom).css({"width":gridwidth/16.5,"height":gridwidth/16.5});
+	    }
+	}
+	alignElements();
+
 	$(".toggle").on('slidestop',function(){
 	    var controlname = $(this).attr("id")
 	    var title = $(this).attr("title")
@@ -356,12 +402,28 @@ $(document).ready(function(){
                 $("#popupDialogRDA #id-confirm").html(DATA.controlRDA.STATE)
 	    }
 	});
+	$('#RDA_power').on('slidestop',function(){
+	    $('#popupDialogRDA').popup('open');
+	    var command = $(this).val();
+	    $('#popupDialogRDA #pop-confirm').attr("value",command);
+	    $('#popupDialogRDA #id-confirm').html(DATA.RDApower);
+	}); 
+	$('input[name="RDA_control"]').click(function(){
+            var command = $(this).val();
+            $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
+            $.post('/send_cmd',{COM:command,FLAG:"None"});
+	});
 	$('#popupDialogRDA #pop-confirm').click(function(){
 	    var command = $(this).attr("value")
 	    $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
 	    $.post('/send_cmd',{COM:command,FLAG:"None"});
         });
 	$('#popupDialogRDA #pop-cancel').click(function(){
+	    if (RS['RS_AUX_POWER_GEN_STATE'])
+	        $('#RDA_power').val("CRDA_AUXGEN");
+	    else 
+		$('#RDA_power').val("CRDA_UTIL");
+	    $('#RDA_power').trigger("change")
 	    $("#"+RS['RDA_static']['RDA_STATE']).trigger('click').checkboxradio('refresh')
  	}); 
         $("#MRPG :input").click(function(){
@@ -413,7 +475,7 @@ $(document).ready(function(){
 	    $('#popupDialogPass').popup('open')
         });
         $('#pop-submit').on('click', function(event){
-            user = $(":radio:checked").attr('id')
+            user = $("#popupDialogPass :radio:checked").attr('id')
             $.ajax
                   ({
                         type:'GET',
@@ -462,180 +524,201 @@ $(document).ready(function(){
 	});
 	var link = $('#squaresWaveG_long').html()
 	var item = DATA.rdaItems;
-	$('#marq-insert').html($('#marq-form').html())	
-	$.getJSON("/update",function(data){
-            cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
-            maincircle.fillStyle = 'white';maincircle.font = DATA.sailsAvsetFont;
-            maincircle.fillText(data['ADAPT_dict']['ICAO'],125,350)
+	//$('#marq-insert').html($('#marq-form').html())	
+	//$.getJSON("/update",function(data){
+        //    cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
+ 	//    maincircle.fillStyle = "white";maincircle.font = DATA.sailsAvsetFont;maincircle.fillText(data['ADAPT_dict']['ICAO'],cW/wD - cW*0.075,Tm + Th*0.05);
+        //});
 
-        });
-
-	$.getJSON("/perf",function(data){
-	    perfCheck(data['perf_check_time'])
-	});
 	var source = new EventSource('/radome');
-        source.onerror = function() {
-            console.log('radome uncaught error')
-        };
-
-	$(window).unload(function(){
-	    console.log('closed')
-	    source.close();
-	});
 	source.addEventListener('message',function(e) {
-	    var radome = JSON.parse(e.data)
-	    if(stopCheck['action'] != radome.az){
-		maincircle.clearRect(0,0,canvas.width,DATA.canvasHeight)
-		maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.fill();maincircle.closePath();
-		maincircle.beginPath();maincircle.arc(150,150,135,0,2*Math.PI);maincircle.lineWidth=3;maincircle.strokeStyle="black";maincircle.stroke();maincircle.closePath();
-		maincircle.font = DATA.elFont;
-		maincircle.fillStyle = 'black';
-		maincircle.fillStyle="black";maincircle.beginPath();maincircle.moveTo(150,150);maincircle.arc(150,150,135,-Math.PI / 2 + toRadians(radome.start_az/10),-Math.PI / 2 + toRadians(radome.az/10));
-		maincircle.lineTo(150,150);
+	    var radome_temp = JSON.parse(e.data)
+	    if ( radome_temp.update ) {
+		radome = radome_temp
+	        maincircle.globalCompositeOperation='destination-over'; 
+		maincircle.fillStyle="black";
+		maincircle.beginPath();maincircle.moveTo(cW/wD,cH/hD);maincircle.arc(cW/wD,cH/hD,cW/wD*Ro,-Math.PI / 2 + toRadians(radome.start_az/10),-Math.PI / 2 + toRadians(radome.az/10));
+		maincircle.lineTo(cW/wD,cH/hD);  
 		maincircle.closePath();
 		maincircle.fill();
-		maincircle.fillStyle="white";maincircle.beginPath();maincircle.arc(150,150,120,0,2*Math.PI);maincircle.fill();maincircle.closePath();
-		maincircle.fillStyle="black";
-		if(radome.last_elev){
-		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText('LAST',115,132)
+	
+		maincircle.globalCompositeOperation='source-over';
+                // Clear the slate or it gets pixelated     
+		maincircle.clearRect(0,0,canvas.width,Ty-2)
+                maincircle.font = DATA.elFont;
+                //Draw and fill the outer white circle with black outline   
+                maincircle.fillStyle="white";innercircle.lineWidth=2;maincircle.beginPath();maincircle.arc(cW/wD,cH/hD,cW/wD*Ri,0,2*Math.PI);
+                maincircle.closePath();maincircle.fill();  
+	
+	        // add additional info text to radome
+		maincircle.fillStyle="black";   
+	 	if( radome.last_elev ) {
+		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText('LAST',cW/wD - cW*0.125,cH/hD - cH*0.025);
 		}
-		if(radome.sails_seq>0){
-		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText(DATA.sails_seq[radome.sails_seq],85,132)
-		}
+	 	if( radome.sails_seq > 0 ) {
+		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText(DATA.sails_seq[radome.sails_seq],cW/wD - cW*0.2,cH/hD - cH*0.025);
+		}	
 		try {
 		    var elevation = radome.el / 10
-		    if(radome.super_res > 0){
-			maincircle.font = DATA.superResFont;maincircle.fillText('SR',120,260)
+		    if( radome.super_res > 0 ) {
+		        maincircle.font = DATA.superResFont;maincircle.fillText('SR',cW/wD - cW*0.1,cH/hD + cH*0.28)
 		    }
 		}
 		catch(err){
 		    var elevation = 0.0
 		}
 		maincircle.font = DATA.elFont;
-		if (elevation < 10){var elevx = 95;var elevy = 105;}
-		else{var elevx = 70; var elevy = 105;}
-		if(elevation % 1 == 0){
-		    maincircle.fillText(elevation.toFixed(1),elevx,elevy);
-		}
-		else{
-		    maincircle.fillText(elevation,elevx,elevy);
-		}
-		maincircle.font = DATA.sailsAvsetFont;
-		maincircle.fillText("SAILS:",50,160)
-		maincircle.fillText("AVSET:",50,210)
+		var elMult = elevation < 10 ? 0.70 : 1;
+		if(elevation % 1 == 0)
+		    maincircle.fillText(elevation.toFixed(1),cW/wD - cW*0.25*elMult,cH/hD - cH*0.1);
+		else
+		    maincircle.fillText(elevation,cW/wD - cW*0.25*elMult,cH/hD - cH*0.1);
 
-		if(stopCheck['running']){
-		    anim("running")
-		    stopCheck['running'] = 0
-		}
-	    }
-	    else{
-		if(!stopCheck['running']){
-			anim("paused")
-			stopCheck['running'] = 1	
-		}
-	    }
-	    stopCheck['action'] = radome.az
-
-	    if(stopCheck['WIDEBAND'] == "CONNECTED"){
-		    var letter = radome.moments
-		    for (l in DATA.moments){
-			var mom = DATA.moments[l]
-			if($('.link-status'+mom).html() == '' && letter.indexOf(mom) >= 0 ){
-			    $('.link-status'+mom).html(link).removeClass('null-ops').addClass('normal-ops');
-			    $('#link_'+mom).html(mom).removeClass('null-ops').addClass('normal-ops');
-			    var yank = $('#link').html()	
-			    $('#link').html(yank)
-			}
-			if(letter.indexOf(mom) < 0 && stopCheck['running'] == 0){
-			    $('.link-status'+mom).html('').removeClass('normal-ops').addClass('null-ops');
-			    $('#link_'+mom).html(mom).removeClass('normal-ops').addClass('null-ops');
-			}
-
-		    }
-	    }
-	    if (getCookie('FEEDBACK') != "NULL"){
-		if(cookieRaid['inserted']){
-		    $('#Feedback').html(getCookie('FEEDBACK'))
-		    cookieRaid['inserted'] = 0
-		}
-	    }
-	    else{
-		cookieRaid['inserted'] = 1
-	    }
-
-	    
-	},false);
-	var non_rapid = new EventSource('/update_s');
-	non_rapid.onerror = function() {
-            console.log('non_rapid uncaught error')
-	};
-        $(window).unload(function(){
-            console.log('update_s closed')
-            non_rapid.close();
-        });
-	non_rapid.addEventListener('PMD_dict',function(e) {
-	    var PMD = JSON.parse(e.data)
-	    if(PMD['h_delta_dbz0'] >= 1.5){$('#h_delta_dbz0').addClass('minor-alarm')}
-	    else{$('#h_delta_dbz0').addClass('normal-ops')}
-	    if(PMD['v_delta_dbz0'] >= 1.5){$('#v_delta_dbz0').addClass('minor-alarm')}
-	    else{$('#v_delta_dbz0').addClass('normal-ops')}
-	    $('#h_delta_dbz0').html(PMD['h_delta_dbz0']+'dB')			
-	    $('#v_delta_dbz0').html(PMD['v_delta_dbz0']+'dB')
-	    $("#gen_level").attr('value',PMD['cnvrtd_gnrtr_fuel_lvl'])
-	    $("#gen_level_num").html(PMD['cnvrtd_gnrtr_fuel_lvl']+'%')
-	    if(PMD['mode_trans']){
-		$("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
-		$("#Mode_Conflict_status").removeClass('hide')
-	    }
-	    else{
-		if(PMD['mode_conflict']){
-		    $("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
-		    $("#Mode_Conflict_status").removeClass('hide')
-		}
-		else{
-		    $("#Mode_Conflict_contain").html('NO').removeClass('minor-alarm').addClass('normal-ops');
-		    $("#Mode_Conflict_status").addClass('hide')
-		}
-	    }
-	    switch(PMD['prf']){
-		case 'CELL_BASED': case 'STORM_BASED':
-		    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
-		    $('#PRF_Mode').val('on').slider('refresh')
-		    $('#PRF_Mode_status').addClass('hide')
-		    break;
-		case 'AUTO_PRF':
-		    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
-		    $('#PRF_Mode').val('on').slider('refresh')
-		    $('#PRF_Mode_status').addClass('hide')
-		    break;
-		case 'MANUAL_PRF':
-		    $('#PRF_Mode').val('off').slider('refresh')
-		    $('#PRF_Mode_status').removeClass('hide')
-		    break;
-	    }
-            var loadshed_cats = Object.keys(PMD['loadshed'])
-            $('#Load_Shed_contain').html('NORMAL')
-            $('#Load_Shed_status').addClass('hide')
-            for (lshd in loadshed_cats){
-                if(PMD['loadshed'][loadshed_cats[lshd]] != 'NONE'){
-                    $('#Load_Shed_contain').html(PMD['loadshed'][loadshed_cats[lshd]])
-                    $('#Load_Shed_status').removeClass('hide')
-                    $('#Alarms').attr('class','bar-border loadshed')
-                    if(PMD['loadshed'][lshd] == 'ALARM'){
-                        $('#Load_Shed_contain').attr('style','font-size:14px;background-color:#00FFFF')
-                    }
+                maincircle.font = DATA.sailsAvsetFont;
+                maincircle.fillText("SAILS:",cW/wD - cW*0.33,cH/hD + cH*0.04)
+                maincircle.fillText("AVSET:",cW/wD - cW*0.33,cH/hD + cH*0.15)
+ 
+	        if ( radome.moments_mask != stopCheck['moments'] ) {
+	            if(stopCheck['WIDEBAND'] == "CONNECTED"){
+	    	        var letter = radome.moments
+	    	        for (l in DATA.moments){
+	    		    var mom = DATA.moments[l]
+	    		    if($('.link-status'+mom).html() == '' && letter.indexOf(mom) >= 0 ){
+			        $('.link-status'+mom).html(link).removeClass('null-ops').addClass('normal-ops');
+			        $('#link_'+mom).html(mom).removeClass('null-ops').addClass('normal-ops');
+			        var yank = $('#link').html()	
+			        $('#link').html(yank)
+			    }
+			    if(letter.indexOf(mom) < 0 && !stopCheck['running']){
+			        $('.link-status'+mom).html('').removeClass('normal-ops').addClass('null-ops');
+			        $('#link_'+mom).html(mom).removeClass('normal-ops').addClass('null-ops');
+			    }
+		        }
+	            }
 	        }
-	
-            }
-
+	        if ( stopCheck['ICAO'] ) {
+		    maincircle.fillStyle = "white";maincircle.font = DATA.sailsAvsetFont;maincircle.fillText(ADAPT['ICAO'],cW/wD - cW*0.075,Tm + Th*0.05);
+		    stopCheck['ICAO'] = false;
+	        }
+                stopCheck['moments'] = radome.moments_mask;
+                stopCheck['start_az'] = radome.start_az;
+	     
+	    //if (getCookie('FEEDBACK') != "NULL"){
+	    //	if(cookieRaid['inserted']){
+	    //	    $('#Feedback').html(getCookie('FEEDBACK'))
+	    //	    cookieRaid['inserted'] = 0
+	    //	}
+	    //}
+	    //else{
+	    //	cookieRaid['inserted'] = 1
+	    //}
+	    }
+	    
+	    else {
+                if(stopCheck['az'] != radome.az){
+                //Draw and fill the progress circle
+                    maincircle.globalCompositeOperation='destination-over';
+                    maincircle.fillStyle="black";
+                    maincircle.beginPath();maincircle.moveTo(cW/wD,cH/hD);maincircle.arc(cW/wD,cH/hD,cW/wD*Ro,-Math.PI / 2 + toRadians(radome.start_az/10),-Math.PI / 2 + toRadians(radome_temp.az/10));
+                    maincircle.lineTo(cW/wD,cH/hD);
+                    maincircle.closePath();
+                    maincircle.fill(); 
+                    if(stopCheck['running']){
+                        $('.squaresWaveG_long').css("animationPlayState","running");
+                        stopCheck['running'] = false;
+                    }
+               
+	        }
+                else{
+                    if(!stopCheck['running']){
+                        $('.squaresWaveG_long').css("animationPlayState","paused");
+                        stopCheck['running'] = true;
+                    }
+                }
+	    } 
+            stopCheck['az'] = radome_temp.az;
+	});
+	var non_rapid = new EventSource('/update_s');
+	non_rapid.addEventListener('PMD_dict',function(e) {
+	    var PMD_current = JSON.parse(e.data)
+	    if ( PMD_current['perf_check_time'] != PMD['perf_check_time'] ) 
+		perfCheck(PMD_current['perf_check_time']);
+	  
+	    if ( PMD_current['h_delta_dbz0'] != PMD['h_delta_dbz0']) {
+		if(PMD_current['h_delta_dbz0'] >= 1.5)
+		    $('#h_delta_dbz0').addClass('minor-alarm');
+	        else
+		    $('#h_delta_dbz0').addClass('normal-ops');
+                $('#h_delta_dbz0').html(PMD_current['h_delta_dbz0']+'dB');
+	    }
+	    if ( PMD_current['v_delta_dbz0'] != PMD['v_delta_dbz0'] ) {
+	        if(PMD_current['v_delta_dbz0'] >= 1.5)
+		    $('#v_delta_dbz0').addClass('minor-alarm');
+		else
+	    	    $('#v_delta_dbz0').addClass('normal-ops');
+                $('#v_delta_dbz0').html(PMD_current['v_delta_dbz0']+'dB');
+	    }
+	    if ( PMD_current['cnvrtd_gnrtr_fuel_lvl'] != PMD['cnvrtd_gnrtr_fuel_lvl'] ) {
+	        $("#gen_level").attr('value',PMD_current['cnvrtd_gnrtr_fuel_lvl']);
+	        $("#gen_level_num").html(PMD_current['cnvrtd_gnrtr_fuel_lvl']+'%');
+	    }
+	    if ( PMD_current['mode_trans'] != PMD['mode_trans'] || PMD_current['mode_conflict'] != PMD['mode_conflict'] ) {
+	        if(PMD_current['mode_trans']) {
+		    $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
+		    $("#Mode_Conflict_status").removeClass('hide')
+	        }
+	        else{
+		    if(PMD_current['mode_conflict']){
+		        $("#Mode_Conflict_contain").html('YES').removeClass('normal-ops').addClass('minor-alarm');
+		        $("#Mode_Conflict_status").removeClass('hide')
+		    }
+		    else{
+		        $("#Mode_Conflict_contain").html('NO').removeClass('minor-alarm').addClass('normal-ops');
+		        $("#Mode_Conflict_status").addClass('hide')
+		    }
+	        }
+	    }
+	    if ( PMD_current['prf'] != PMD['prf'] ) {
+	        switch(PMD_current['prf']){
+		  case 'CELL_BASED': case 'STORM_BASED':
+		      $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+		      $('#PRF_Mode').val('on').slider('refresh')
+		      $('#PRF_Mode_status').addClass('hide')
+		      break;
+		  case 'AUTO_PRF':
+		      $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+		      $('#PRF_Mode').val('on').slider('refresh')
+		      $('#PRF_Mode_status').addClass('hide')
+		      break;
+		  case 'MANUAL_PRF':
+		      $('#PRF_Mode').val('off').slider('refresh')
+		      $('#PRF_Mode_status').removeClass('hide')
+		      break;
+	          }	
+	    }
+    	    if ( PMD_current['loadshed'] != PMD['loadshed'] ) {
+                var loadshed_cats = Object.keys(PMD_current['loadshed'])
+                $('#Load_Shed_contain').html('NORMAL')
+                $('#Load_Shed_status').addClass('hide')
+                for (lshd in loadshed_cats){
+                    if(PMD_current['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+                        $('#Load_Shed_contain').html(PMD_current['loadshed'][loadshed_cats[lshd]])
+                        $('#Load_Shed_status').removeClass('hide')
+                        $('#Alarms').attr('class','bar-border loadshed')
+                        if(PMD_current['loadshed'][lshd] == 'ALARM'){
+                             $('#Load_Shed_contain').attr('style','background-color:#00FFFF')
+                        }
+	            }	
+                }
+	    }
+            PMD = JSON.parse(e.data);
 
 
 	});
 
 
 	non_rapid.addEventListener('ADAPT_dict',function(e) {
-	    var ADAPT = JSON.parse(e.data)
+	    ADAPT = JSON.parse(e.data)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    switch(Number(ADAPT['ZR_mult'])){
 		case DATA.zrCats.CONVECTIVE:
@@ -932,7 +1015,7 @@ $(document).ready(function(){
 		    }
 		}
 	    }
-	    var all_alarms = RS['RDA_alarms_all']
+	    var all_alarms = DATA.RDAalarms
 	    for (a in all_alarms){
 		$('#'+all_alarms[a]).addClass('hide')
 	    };
@@ -966,7 +1049,8 @@ $(document).ready(function(){
 	    else {
                 $('#RS_RDA_CONTROL_AUTH').html("UNKNOWN")
 	    }
- 
+	    if (RS['RDA_static']['RDA_STATE'] == "UNKNOWN") 
+	 	$("input[name='RDA_state']:checked").attr("checked",false).checkboxradio('refresh') 
             $("#"+RS['RDA_static']['RDA_STATE']).trigger('click').checkboxradio('refresh')
 	    if (RS['RS_PERF_CHECK_STATUS']) 
 	        $('#RS_PERF_CHECK_STATUS').html('PENDING')
@@ -974,18 +1058,93 @@ $(document).ready(function(){
 		$('#RS_PERF_CHECK_STATUS').html('AUTO')
 	    $('#RS_DATA_TRANS_ENABLED').html(DATA.RS_DATA_TRANS_ENABLED[RS['RS_DATA_TRANS_ENABLED']]);
 	    $('#RS_AVE_TRANS_POWER').html(RS['RS_AVE_TRANS_POWER']+' Watts');
-	    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'][0] == 'NO_ALARM'){$('#grid1').addClass('normal-ops-forest')}
-	    var gen_list = RS['RDA_static']['AUX_GEN_LIST']
-	    if (gen_list[gen_list.length-1]=='false'){$('#gen_state').addClass('hide')}
+	    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'][0] == 'NO_ALARM')
+	        $('#grid1').addClass('normal-ops-forest')    
+            $('input[name="RDA_control"]').checkboxradio('enable')                
+	    if (RS['BLANKING_VALID'][0]) {
+		if (RS['BLANKING_VALID'][1]) {
+ 		    $('#RDA_power').val("UNKNOWN");
+                    $('#RDA_power_label').html('UNKNOWN')
+		}
+		else {
+	    	    if (RS['RS_AUX_POWER_GEN_STATE']) {
+                        $('#RDA_power').val("CRDA_AUXGEN")
+                        $('#RDA_power_label').html('GENERATOR POWER')
+                        $('#RS_AUX_POWER_GEN_STATE').removeClass('hide')
+		    }
+		    else {
+		        $('#RDA_power_label').html('UTILITY POWER')
+                        $('#RDA_power').val("CRDA_UTIL");
+                        $('#RS_AUX_POWER_GEN_STATE').addClass('hide')
+		    }
+		}
+		if (RS['BLANKING_VALID'][2]) {
+                    $('#RDA_control_label').html("UNKNOWN");
+		}
+		else {
+		  switch(RS['RDA_static']['CONTROL_STATUS']) 
+		  {
+		    case 'LOCAL_ONLY':	
+                        $('#RDA_control_label').html("LOCAL (RDA)");
+			break;
+		    case 'RPG_REMOTE':
+                        $('#RDA_control_label').html("REMOTE (RPG)");
+			break;
+		    case 'EITHER':
+                        $('#RDA_control_label').html("EITHER");
+			break;
+		    default:
+                        $('#RDA_control_label').html("UNKNOWN");
+			break;
+		  }
+	        }	
+	        $('#RDA_power').slider('disable')
+		$('input[name="RDA_control"]').checkboxradio('disable')
+	    }
+	    else {
+                if (RS['RS_AUX_POWER_GEN_STATE']) {
+                    $('#RDA_power').val("CRDA_AUXGEN");
+                    $('#RDA_power_label').html('GENERATOR POWER')
+		    $('#RS_AUX_POWER_GEN_STATE').removeClass('hide')
+		}
+                else {
+                    $('#RDA_power').val("CRDA_UTIL");
+		    $('#RDA_power_label').html('UTILITY POWER')
+		    $('#RS_AUX_POWER_GEN_STATE').addClass('hide')
+		}
+                switch(RS['RDA_static']['CONTROL_STATUS'])
+                {
+                    case 'LOCAL_ONLY':
+                        $('#LOCAL').checkboxradio('disable');	
+                        $('#RDA_control_label').html("LOCAL (RDA)");
+			break;
+                    case 'RPG_REMOTE':
+                        $('#REMOTE').checkboxradio('disable');
+                        $('#RDA_control_label').html("REMOTE (RPG)");
+                        break;
+                    case 'EITHER':
+ 			$('input[name="RDA_control"]').checkboxradio('disable')
+                        $('#RDA_control_label').html("EITHER");
+                        break;
+                    default:
+                        $('#RDA_control_label').html("UNKNOWN");
+                        break;
+                }
+
+	    }	
+            $('#RDA_power').slider('refresh')
+            $('input[name="RDA_control"]').checkboxradio('refresh')
+
+
 	    stopCheck['WIDEBAND'] = RS['RDA_static']['WIDEBAND']
 	    switch (RS['RDA_static']['WIDEBAND']){
 		    case 'CONNECTED':
-			if (stopCheck['WIDEBAND_SET']){
+			if (stopCheck['WIDEBAND_FLAG']){
 			    for (w = 0;w < 4; w++){
 				$('.status'+w).html('').removeClass('major-alarm').removeClass('minor-alarm').addClass('normal-ops')
 			    }
 			    $('.link-status-sq').removeClass('major-alarm').removeClass('minor-alarm').addClass('normal-ops')
-			    stopCheck['WIDEBAND_SET'] = 0
+			    stopCheck['WIDEBAND_FLAG'] = false
 			}
 			break;
 		    case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
@@ -996,7 +1155,7 @@ $(document).ready(function(){
 			    else{$('.status'+w).html(word[w]).removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')}
 			}
 			$('.link-status-sq').html('X').removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')
-			stopCheck['WIDEBAND_SET'] = 1
+			stopCheck['WIDEBAND_FLAG'] = true
 			break;
 		    case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
 			var word = RS['RDA_static']['WIDEBAND'].split('_')
@@ -1006,7 +1165,7 @@ $(document).ready(function(){
 			    else{$('.status'+w).html(word[w]).removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')}
 			}
 			$('.link-status-sq').html('X').removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')	
-			stopCheck['WIDEBAND_SET'] = 1
+			stopCheck['WIDEBAND_FLAG'] = true
 			break;
 	    }
                 
@@ -1028,17 +1187,11 @@ $(document).ready(function(){
 	$('#link').click(function(){
 		$.get("/button?id=hci_rda_link")
 	});
-	$('#rda_control').click(function(){
-		//$.get("/button?id=hci_rdc_orda")
-	});
 	$('#perf_check_time').click(function(){
 		$.get("/button?id=hci_rdc_orda")
 	});
 	$('#rda_alarms').click(function(){
 		$.get("/button?id=hci_rda_orda")
-	});	
-	$('#rpg_control').click(function(){
-		window.open("/control_rpg","_blank","width = 460, height = 750");
 	});	
 	$('#rpg_status').click(function(){
 		$.get("/button?id=hci_status")
