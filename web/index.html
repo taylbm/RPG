@@ -39,7 +39,9 @@
 			    DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
 			    DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
 		        });
-		    }
+  		    }
+                    if(redundant == "False") 
+                        $('#channel-form').html(' ');
                 });
 		$('#choice-4').prop('checked',true).click();
 		$('#choice-5').prop('checked',true).click();
@@ -54,10 +56,8 @@
                     setSizes(event, ui);
 		    $('input[name=channel-toggle]').prop('checked',false).trigger('refresh');
 		    var page = ui.toPage.get(0).id.replace('page','')
-		    if(redundant == "False"){	
+		    if(redundant == "False")	
 			$("#"+page+"redundant").html(' ');
-			$('#channel-form').html(' ');
-		    }
                     $("#"+page+"redundant #toggle").find("input[type='checkbox']").click(function () {
 			var dataSet = [];
 		        $("#"+page+"redundant #toggle").find("input[type='checkbox']").each(function () {

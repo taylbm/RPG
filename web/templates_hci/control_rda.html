@@ -27,16 +27,11 @@
             </div>
         </div>
 
-    <div data-transition="slidefade" data-role="panel" id="rda_control_status" data-display="overlay" class="ui-page ui-page-a" data-position="left" style="width:27em;" data-theme="b">
-	<div data-role="header" style="overflow:hidden;">
-	<h1>RDA Control/Status</h1>
-	    <div data-role="navbar">
-		<ul>
-		    <li><a style="color:white" id="refresh_rda" class="nav-item control-shadow ui-btn ui-icon-refresh ui-btn-icon-right" href="#">Refresh Status</a></li>
-		    <li><a style="color:white" class="nav-item control-shadow ui-btn ui-icon-audio ui-btn-icon-left" href="#">RDA Alarms</a></li>
-		</ul>
-	    </div>
-	</div>
+    <div data-transition="slidefade" data-role="panel" id="rda_control_status" data-display="overlay" class="ui-page ui-page-a" data-position="left" style="width:27em;" data-theme="a">
+	<div data-role="header">
+        <a style="color:white" id="refresh_rda" class="ui-btn ui-icon-refresh ui-btn-icon-left ui-corner-all control-item control-shadow" data-mini="true" href="#">Refresh</a>
+	<h2>RDA Control</h2>
+   	</div>
 	<br>
         <div class="custom-corners ui-corner-all">
 	    <div class="ui-bar ui-bar-a" style="text-align:center">
@@ -95,7 +90,7 @@
 	    <div style="display: table-cell;"><div id="RS_AVE_TRANS_POWER" style="color:black" class="rda-table contain-white">-9999</div></div>
 	</div>
 	<div style="display: table-row">
-	    <div style="width: 0px; display: table-cell;"><div style="font-size:14px"class="rda-table contain-gray">Moments Enabled</div></div>
+	    <div style="width: 0px; display: table-cell;"><div class="rda-table contain-gray">Moments Enabled</div></div>
 	    <div style="display: table-cell;"><div style="color:black" id="RS_DATA_TRANS_ENABLED" class="rda-table contain-white">N/A</div></div>
 	</div>
     </div>

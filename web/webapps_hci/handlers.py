@@ -10,9 +10,7 @@ import os
 import web
 
 CFG = os.getenv("CFG_DIR")
-LD_LIB = os.getenv("LD_LIBRARY_PATH")
 sys.path.append(CFG+"/web/deps")
-sys.path.append(LD_LIB)
 HOME = os.getenv("HOME")
 
 import _rpg
@@ -65,6 +63,7 @@ EN_flags = {
                             "ORPGDAT_LOAD_SHED_CAT": True,
                             "DEAU":True,
                             "EWT_DATA_ID": True,
+			    "ORPGDAT_SYSLOG": True,
                             "ORPGDAT_SYSLOG_LATEST": True,
 			    "ORPGDAT_GSM_DATA": {
 					   	"SAILS_STATUS_ID":True,
@@ -82,6 +81,7 @@ update_dict = {}
 msg = {'retry':'4000'} # connection loss timeout for radome SSE
 initial_msg = {'retry':'4000'} # initial full message send
 update_event = threading.Event()
+log_event = threading.Event()
 radome_event = threading.Event()
 
 
@@ -235,18 +235,18 @@ def update_funcs(update_queue):
     #################################################
 
   
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,1,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PROD_INFO_STATUS_MSG_ID,generic_callback)
-
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG,_rpg.lb.LB_ANY,generic_callback)
+    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.lb.LB_ANY,generic_callback)
     ewt_data_id = ((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)
     _rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.RDA_STATUS_ID,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,generic_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_RPG_INFO,_rpg.orpgdat.Orpginfo_msgids_t.ORPGINFO_STATEFL_SHARED_MSGID,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,generic_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.RDA_STATUS_ID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.WX_STATUS_ID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PROD_INFO_STATUS_MSG_ID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_HCI_DATA,_rpg.orpgdat.Orpgdat_hci_data_msg_id_t.HCI_PRECIP_STATUS_MSG_ID,generic_callback)
    
      
     dummy_event.wait()  # hold the process so it doesn't return 
@@ -335,7 +335,7 @@ def RS_init():
         return {
 	'RDA_static':
 	    {
-               'CONTROL_STATUS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']].replace('CS_',''),
+               'CS':RS_states['controlstatus'][RS_dict['RS_CONTROL_STATUS']],
                'TPS_STATUS':RS_states['tps'][RS_dict['RS_TPS_STATUS']].strip('TP_'),
                'OPERABILITY_LIST':oper_list[0],
                'RS_RDA_ALARM_SUMMARY_LIST':filter(None,alarm_list),
@@ -380,7 +380,7 @@ def RDA_alarms_init():
 def RPG_alarm_init():
     if(EN_flags['ORPGEVT_RPG_ALARM']):
         RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
-        RPG_alarms = [str(v).replace('ORPGINFO_STATEFL_RPGALRM','') for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
+        RPG_alarms = [str(v).replace('ORPGINFO_STATEFL_RPGALRM_','') for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
     
         alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	if alarm[0] > 0:
@@ -396,9 +396,16 @@ def RPG_alarm_init():
             error = alarm[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0
 
             RPG_alarm_text = alarm_date +' >> '+":".join(parse_alarm[1:]).replace('\n','')
+	
         else:
-	    RPG_alarm_text = 'ORPGDA_read error'
-        
+	    if alarm[0] == -56:
+	        RPG_alarm_text = ''
+	    else:
+	        RPG_alarm_text = 'ORPGDA_read error'
+	    msg_type = ''
+	    active = ''
+	    error = ''  
+       
 	RDA_alarm_valid = True
         precedence = True
         try:
@@ -523,42 +530,103 @@ def CRDA_init():
     else:
         return False
 
-
 def RPG_status_init():
     if (EN_flags['ORPGDAT_SYSLOG_LATEST']):
         status = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
         if status[0] > 0:
             parse_status = status[1].split(':')
-	    text_status = ":".join(parse_status[1:]).replace('\n','')
+            text_status = ":".join(parse_status[1:]).replace('\n','')
             tstamp_s = status[2]
             date_s = datetime.datetime.utcfromtimestamp(tstamp_s).strftime('%b %-d,%y [%H:%M:%S]')
-	    rpg_status = date_s +" >> " + text_status
-	    mask = [status[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and status[3] & v > 0]
-	    if mask:
-	        msg_type = [k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == mask[0]][0]
+            rpg_status = date_s + " >> " + text_status
+            mask = [status[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and status[3] & v]
+            if mask:
+                msg_type = [k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == mask[0] and 'MASK' not in k][0]
             else:
-		msg_type = False
-	    active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and status[3] & v > 0] == []
-	    error = status[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0 
-	else:
+                msg_type = False
+            cleared = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and status[3] & v] != []
+            error = status[3] & _rpg.lb.le.HCI_LE_ERROR_BIT
+        else:
             rpg_status = 'ORPGDA_read error'
             rpg_status_ts = ''
-	    tstamp_s = ''
-	    msg_type = ''
-	    active = ''
-	    error = ''
-	EN_flags['ORPGDAT_SYSLOG_LATEST'] = False
-	
-	return {
-            'RPG_status':rpg_status,
-            'RPG_status_ts':tstamp_s,
-	    'msg_type':msg_type,
-	    'active':active,
-	    'error':error
+            tstamp_s = ''
+            msg_type = ''
+            cleared = ''
+            error = status[0]
+        EN_flags['ORPGDAT_SYSLOG_LATEST'] = False
+
+        return {
+            'status_msgs':rpg_status,
+            'status_ts':tstamp_s,
+            'msg_type':msg_type,
+            'cleared':cleared,
+            'error':error
         }
     else:
-	return False
+       return False
 
+
+
+def RPG_status_next():
+    status = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,_rpg.lb.LB_NEXT)
+    if status[0] > 0:
+        parse_status = status[1].split(':')
+        text_status = ":".join(parse_status[1:]).replace('\n','')
+        tstamp_s = status[2]
+        date_s = datetime.datetime.utcfromtimestamp(tstamp_s).strftime('%b %-d,%y [%H:%M:%S]')
+	rpg_status = date_s + " >> " + text_status
+	mask = [status[3] & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and status[3] & v]
+	if mask:
+	    msg_type = [k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == mask[0] and 'MASK' not in k][0]
+        else:
+            if status[3] & _rpg.lb.le.HCI_LE_ERROR_BIT:
+                msg_type = "RPG_STATUS_WARN"
+	    else:
+	        msg_type = False
+	cleared = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and status[3] & v] != []
+	error = status[3] & _rpg.lb.le.HCI_LE_ERROR_BIT 
+    else:
+        rpg_status = 'ORPGDA_read error'
+        rpg_status_ts = ''
+        tstamp_s = ''
+        msg_type = ''
+        cleared = ''
+        error = status[0]
+	
+    return {
+            'status_msgs':rpg_status,
+            'status_ts':tstamp_s,
+	    'msg_type':msg_type,
+	    'cleared':cleared,
+	    'error':error
+    }
+
+def RPG_syslog_init():
+    log = _rpg.liborpg.orpgda_read_syslog_full(_rpg.orpgdat.ORPGDAT_SYSLOG)
+    if log[0] > 0:
+        text = [":".join(x.split(':')[1:]).replace('\n','') for x in log[3]]
+	status_msgs = [datetime.datetime.utcfromtimestamp(x).strftime('%b %-d,%y [%H:%M:%S]') + " >> " + text[i] for i,x in enumerate(log[1])]
+	mask = [[x & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'MASK' in k and x & v] for x in log[2]]
+        cleared = [[x & v for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and x & v] != [] for x in log[2]]
+	msg_type = []	
+	for i,m in enumerate(mask):
+            if m:
+                msg_type.append([k.replace('HCI_LE_','') for k,v in _rpg.lb.le.__dict__.iteritems() if v == m[0] and 'MASK' not in k][0])
+            else:	
+		if log[2][i] & _rpg.lb.le.HCI_LE_ERROR_BIT:	
+		    msg_type.append("RPG_STATUS_WARN")
+		else:
+                    msg_type.append(False)
+    else:
+        status_msgs = 'ORPGDAT_SYSLOG read failure:%d' % log[0]
+	msg_type = ''
+	active = ''	
+    return { 'status_msgs':status_msgs,
+	     'msg_type':msg_type,
+	     'cleared':cleared
+	     
+    }
+		    
 
 def NB_status_init():
     if (EN_flags['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID']): 
@@ -661,7 +729,7 @@ Global_dict = {
 			'RPG_state':RPG_state_init(),
 			'RPG_status':RPG_status_init(),
 			'RPG_alarm':RPG_alarm_init(),
-			'RPG_op':RPG_op_init()
+			'RPG_op':RPG_op_init(),	
 		      },
 		'RDA':{
 			'RDA_static':RS_init(),
@@ -772,7 +840,7 @@ RPG_l = {
              'STATEFL':STATEFL_init,
              'NB':NB_status_init
         }
-
+		
 PMD_l = {
             'LOADSHED':LOADSHED_init,
             'PMD':PMD_init,
@@ -933,6 +1001,9 @@ class update_generator(threading.Thread):
             else:
                EN_flags[flag[0]] = True
             update_dict.update(dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v)) # compare dicts for changes
+            if flag[0] == "ORPGDAT_SYSLOG" or flag[0] == "ORPGEVT_RPG_ALARM":
+                log_event.set()
+                log_event.clear()
 	    if update_dict:	
 		update_event.set()
 		update_event.clear()
@@ -962,7 +1033,29 @@ class Update_Server(object):
 	        attr.update({'id'+str(idx):event_id})
 	    yield sse_pack(data,attr)
             update_event.wait()
+##
+# Servlet for RPG status log
+##
 
+class RPG_status_server(object):
+    def GET(self):
+        web.header("Content-Type","text/event-stream")
+        web.header("Cache-Control","no-cache") 
+	data = {'retry':4000}
+	event_id = 0
+	wait = False
+	while True:
+	    if event_id == 0:
+	        out = {"syslog":RPG_syslog_init(),"alarms":Global_dict['RPG']['RPG_alarm']['RPG_alarms']}
+	    else:
+		log = RPG_status_next()
+		wait = log['error'] == -38
+		out.update({"syslog":log,"alarms":Global_dict['RPG']['RPG_alarm']['RPG_alarms']})
+	    data.update({'data':json.dumps(out),'id':event_id})
+	    yield sse_pack_single(data)
+	    event_id += 1
+	    if wait:
+                log_event.wait()
 
 ##
 # Generates radome update messages 
@@ -1058,12 +1151,20 @@ class Operations(object):
 	return LOOKUP.ops(**{'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'CFG_dict':CFG()})
 
 ##
-# Operations Sub-Menu
+# RPG Control Sub-Menu
 ##
  
 class Control_RPG(object):
     def GET(self):
         return LOOKUP.control_rpg()
+
+##
+# RPG Control Sub-Menu
+##
+
+class RPG_Status(object):
+    def GET(self):
+        return LOOKUP.rpg_status()
 
 ##
 # Spawns subtasks

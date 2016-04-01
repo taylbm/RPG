@@ -25,18 +25,21 @@
         <%block name="extra_header_markup"/>
 
     </head>
-    <div data-role="none" id="sails-form">
-        <label for="select-choice-0" class="select sails-title">Number of SAILS cuts:</label>
-        <select name="select-choice-0" id="select-choice-0">
-        % for x in xrange(4):
+    % if self.attr.page_id == "main-page":
+        <div data-role="none" id="sails-form">
+            <label for="select-choice-0" class="select sails-title">Number of SAILS cuts:</label>
+            <select name="select-choice-0" id="select-choice-0">
+            % for x in xrange(4):
             % if context.get('CFG_dict').get('max_sails') >= x:
                 <option value=${x}>${x}</option>
             % else:
                 <option value=${x} disabled=true>${x}</option>
             % endif
-        % endfor
-        </select>
-    </div>
+            % endfor
+            </select>
+        </div>
+
+    % endif
 
 
     <body id="top_level">

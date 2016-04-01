@@ -122,7 +122,22 @@
     "CRDA_RESTART":"Change RDA to Restart state",
     "CRDA_OPERATE":"Change RDA to Operate state",
     "CRDA_OFFOPER":"Change RDA to Offline Operate state",
+    "CRDA_UTIL":"Request switch to Utility Power",
+    "CRDA_AUXGEN":"Request switch to Auxiliary Power",
+    "CRDA_ENLOCAL":"Enable RDA control of RDA",
+    "CRDA_REREMOTE":"Request RPG to control RDA selected",
     "RDAStatus":"Requesting RDA Status data",
+    "RDApower":"You are about to change the RDA power source. Do you want to continue?",
+    "RDAalarms": [
+                    "NO_ALARMS", 
+                    "RDA_CONTROL", 
+                    "TOW_UTIL", 
+                    "PEDESTAL", 
+                    "RPG_COMMUN", 
+                    "SIGPROC",  
+                    "RECV", 
+                    "TRANSMITTER"
+                 ],
     "RS_DATA_TRANS_ENABLED":
                     {
                      "0":"NONE",  
@@ -134,6 +149,35 @@
                      "6":"V W",
                      "7":"R V W"
                     },
+    "RPGalarmSum":
+                    {
+                     "RPGPRDSTGLS":"#00FFFF",
+                     "RDAINLS":"#00FFFF",
+                     "RPGINLS":"#00FFFF",
+                     "DISTRI":"#FCFC23",
+                     "RDAWB":"#FCFC23",
+                     "DBFL":"#FCFC23",
+                     "RPGTSKFL":"#FCFC23",
+                     "RPGRPGFL":"#FCFC23",
+                     "REDCHNER":"#FCFC23",    
+                     "RPGCTLFL":"#FFA500",
+                     "NODE_CON":"#FFA500",
+                     "WBFAILRE":"#FFA500",
+                     "MEDIAFL":"#FFA500"
+                    },     
+    "colorMsgs":
+                {
+                     "MAR":"minor-alarm",
+                     "MAM":"major-alarm",
+                     "INOP":"inop",
+                     "LS":"loadshed",
+                     "NA":"",
+                     "SEC":"white",
+                     "WARN":"minor-alarm",
+                     "INFO":"gray",
+                     "COMMS":"seagreen",
+                     "GEN":""
+                },   
 	"canvasHeight":285,
 	"superResFont":"bold 50px Helvetica",
 	"sailsSeqFont":"bold 30px Helvetica",
@@ -148,6 +192,7 @@
 	"towerRightX":240,
 	"towerBottomY":290,
 	"towerTopY":344
+
 
 	
 										

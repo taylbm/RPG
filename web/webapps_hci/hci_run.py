@@ -5,9 +5,9 @@ import threading
 from time import sleep 
 
 CFG = os.getenv("CFG_DIR")
-LD_LIB = os.getenv("LD_LIBRARY_PATH")
 sys.path.append(CFG+"/web/deps")
-sys.path.append(LD_LIB)
+RPG_HOME = os.getenv("RPGHOME")
+sys.path.append(RPG_HOME)
 
 import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir
@@ -41,7 +41,9 @@ URLS = (
     '/mrpg_state','handlers.MRPG_state',
     '/mrpg_clean','handlers.MRPG_clean',
     '/deau_set','handlers.DEAU_set',
-    '/auth','handlers.Basic_Auth'
+    '/auth','handlers.Basic_Auth',
+    '/rpg_s','handlers.RPG_status_server',
+    '/rpg_status','handlers.RPG_Status'
 )
 
 if __name__ == '__main__':

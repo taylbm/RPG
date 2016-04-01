@@ -218,7 +218,6 @@ $(document).ready(function(){
 	var canvas1 = document.getElementById("inner-circle");
         var gridwidth = $('#grid-a').width();	
 	var cD = 2.22;
-	var sC = 2500;
 	canvas.height = window.innerHeight/cD
 	canvas.width = gridwidth;
         canvas1.height = window.innerHeight/cD;
@@ -230,8 +229,8 @@ $(document).ready(function(){
 	var cW = canvas.width;
         var hD = 2.66;
         var wD = 2;
-        var Ro = 0.9 - (gridwidth - 200) / sC;
-        var Ri = 0.8 - (gridwidth - 200) / sC;
+        var Ro = 0.9;
+        var Ri = 0.8;
         var Tx = cW / 6;
 	var Ty = cH / 1.4;
 	var Tw = cW / 1.5;
@@ -240,11 +239,6 @@ $(document).ready(function(){
 
 	function redrawCanvas() {
 	    var gridwidth = $('#grid-a').width();
-	   
-	    if ( gridwidth > 500 ) {
-	    }
-	    else {
-	    }
             canvas.height = window.innerHeight/cD;
 	    canvas.width = gridwidth;
 	    maincircle.clearRect(0,0,600,600)
@@ -254,8 +248,8 @@ $(document).ready(function(){
             cW = canvas.width;
             hD = 2.66;
             wD = 2;
-            Ro = 0.9 - (gridwidth - 200) / sC;
-            Ri = 0.8 - (gridwidth - 200) / sC;
+            Ro = 0.9;
+            Ri = 0.8;
             Tx = cW / 6;
             Ty = cH / 1.4;
             Tw = cW / 1.5;
@@ -510,7 +504,7 @@ $(document).ready(function(){
         $('#init_perf_check').on('click',function(){	
 	    var command = $(this).val()
 	    $('#popupDialogRDA').popup('open')
-	    if (RS['RDA_static']['RDA_STATE'] != 'OPERATE' || RS['RDA_static']['CONTROL_STATUS'] != 'RPG_REMOTE') {
+	    if (RS['RDA_static']['RDA_STATE'] != 'OPERATE' || RS['RDA_static']['CS'] != 'CS_RPG_REMOTE') {
 		$('#popupDialogRDA #id-confirm').html(DATA.perfCheck.Reject)
 	    }
 	    else {
@@ -773,14 +767,14 @@ $(document).ready(function(){
 		$('#Alarms').html(RPG['RPG_alarm_text'])
 	    }
 	    var cts = Math.round((new Date()).getTime() / 1000);	
-	    if(cts - RPG['RPG_status_ts'] == DATA.noSystemChangeTimeout){
+	    if(cts - RPG['status_ts'] == DATA.noSystemChangeTimeout){
 		rpgStatusMsgs['new'] = timeStamp() + DATA.noSystemChangeMsg 
 	    }
-	    if(cts - RPG['RPG_status_ts'] > DATA.noSystemChangeTimeout){
+	    if(cts - RPG['status_ts'] > DATA.noSystemChangeTimeout){
 		    $('#Status').html(rpgStatusMsgs['new'])
 	    }
 	    else{ 
-		$('#Status').html(RPG['RPG_status'])
+		$('#Status').html(RPG['status_msgs'])
 	    }
 	    if (RPG['msg_type']) {
 	        status_class_string = 'bar-border '+colorMsgs[RPG['msg_type'].split('_')[2]]	
@@ -792,7 +786,7 @@ $(document).ready(function(){
 		else
 		    $('#Status').attr('class','bar-border')
 	    }
-	    if (!RPG['active']) 
+	    if (RPG['cleared']) 
 	        $('#Status').attr('class','bar-border normal-ops')
 	    if (RPG['alarm_msg_type']) {
 	        alarm_class_string = 'bar-border '+colorMsgs[RPG['alarm_msg_type'].split('_')[2]]
@@ -939,7 +933,7 @@ $(document).ready(function(){
 		    case 'UNKNOWN':
 			$("#"+value2).attr('class','bar-border2 inop-indicator');
 			break; 
-		    case 'INOPERABLE,-9999':
+		    case 'INOPERABLE':
 			$("#"+value2).html('INOPERABLE')
 			$('#'+value2).attr('class','bar-border2 inop-indicator');
 			$('#grid1').attr('class','inop-grid');
@@ -1027,14 +1021,14 @@ $(document).ready(function(){
 		    all_alarms.splice(i,1);
 		}
 	    }
-	    switch(RS['RDA_static']['CONTROL_STATUS']){
-		case 'RPG_REMOTE':
+	    switch(RS['RDA_static']['CS']){
+		case 'CS_RPG_REMOTE':
 		    $('#CONTROL_STATUS').html('RPG')
 		    break;
-		case 'LOCAL_ONLY':
+		case 'CS_LOCAL_ONLY':
 		    $('#CONTROL_STATUS').html('RDA')
 		    break;
-		case 'EITHER':
+		case 'CS_EITHER':
 		    $('#CONTROL_STATUS').html('EITHER')
 		    break;
 	    }
@@ -1082,15 +1076,15 @@ $(document).ready(function(){
                     $('#RDA_control_label').html("UNKNOWN");
 		}
 		else {
-		  switch(RS['RDA_static']['CONTROL_STATUS']) 
+		  switch(RS['RDA_static']['CS']) 
 		  {
-		    case 'LOCAL_ONLY':	
+		    case 'CS_LOCAL_ONLY':	
                         $('#RDA_control_label').html("LOCAL (RDA)");
 			break;
-		    case 'RPG_REMOTE':
+		    case 'CS_RPG_REMOTE':
                         $('#RDA_control_label').html("REMOTE (RPG)");
 			break;
-		    case 'EITHER':
+		    case 'CS_EITHER':
                         $('#RDA_control_label').html("EITHER");
 			break;
 		    default:
@@ -1112,17 +1106,17 @@ $(document).ready(function(){
 		    $('#RDA_power_label').html('UTILITY POWER')
 		    $('#RS_AUX_POWER_GEN_STATE').addClass('hide')
 		}
-                switch(RS['RDA_static']['CONTROL_STATUS'])
+                switch(RS['RDA_static']['CS'])
                 {
-                    case 'LOCAL_ONLY':
+                    case 'CS_LOCAL_ONLY':
                         $('#LOCAL').checkboxradio('disable');	
                         $('#RDA_control_label').html("LOCAL (RDA)");
 			break;
-                    case 'RPG_REMOTE':
+                    case 'CS_RPG_REMOTE':
                         $('#REMOTE').checkboxradio('disable');
                         $('#RDA_control_label').html("REMOTE (RPG)");
                         break;
-                    case 'EITHER':
+                    case 'CS_EITHER':
  			$('input[name="RDA_control"]').checkboxradio('disable')
                         $('#RDA_control_label').html("EITHER");
                         break;
@@ -1194,7 +1188,7 @@ $(document).ready(function(){
 		$.get("/button?id=hci_rda_orda")
 	});	
 	$('#rpg_status').click(function(){
-		$.get("/button?id=hci_status")
+            window.open("/rpg_status","_blank","width = 900, height = 700");
 	});	
 	$('#user_comms').click(function(){
 		$.get("/button?id=hci_nb")

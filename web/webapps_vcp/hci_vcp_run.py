@@ -2,9 +2,9 @@ import os
 import sys
 
 CFG = os.getenv("CFG_DIR")
-LD_LIB = os.getenv("LD_LIBRARY_PATH")
 sys.path.append(CFG+"/web/deps")
-sys.path.append(LD_LIB)
+RPG_HOME = os.getenv("RPGHOME")
+sys.path.append(RPG_HOME)
 
 import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir
