@@ -79,15 +79,15 @@
 		<div class="ui-block-a" style="background-color:#4bacc6">
 		    <div id="vcp-button" class="ui-grid-a">
 		        <div class="ui-block-a" style="text-decoration : none; color : #000000;">
-			    <button type="button" style="font-size:40px;background-color:#DCDBD6" data-theme="b">VCP</button>
+			    <button type="button" id="VCP_button">VCP</button>
 			</div>
 			<div class="ui-block-b" style="text-decoration : none; color : #000000;">
-			    <button id="RS_VCP_NUMBER" type="button" style="font-size:48px;background-color:white;width:100%" data-theme="b">N/A</button>
+			    <button id="RS_VCP_NUMBER" type="button" style="width:100%">N/A</button>
 			</div>
 		    </div>
 	 	    <div class="ui-grid-a center button-line" id="PRF_Mode_block">
                         <div class="ui-block-a">
-                            <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">PRF Mode</button>
+                            <button type="button" class="display-button">PRF Mode</button>
 			</div>
                         <div class="ui-block-b">
                             <div id="PRF_Mode_contain" style="display:block" class="containing-element-lg">
@@ -100,7 +100,7 @@
                     </div>
 		    <div class="ui-grid-a center button-line" id="SAILS_Exception_contain">
                         <div class="ui-block-a">
-                            <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6;" data-theme="b">SAILS</button>
+                            <button type="button" class="display-button">SAILS</button>
                         </div>
                         <div class="ui-block-b">
                             <div style="display:inline-block" class="containing-element-lg">
@@ -113,7 +113,7 @@
 		    </div>
 		    <div class="ui-grid-a center button-line" id="AVSET_Exception_contain">
 			<div class="ui-block-a">
-			    <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">AVSET</button>
+			    <button type="button" class="display-button">AVSET</button>
 			</div>
 			<div class="ui-block-b">
 			    <div style="display:inline-block" class="containing-element-lg">
@@ -126,17 +126,17 @@
 		    </div>
 		    <div class="ui-grid-a center" style="width:80%;">
 			<div class="ui-block-a">
-			     <div align="center" class="bar-border1">Perf. Check in</div>
+			     <div align="center" class="contain-gray">Perf. Check in</div>
 			</div>
 			<div class="ui-block-b">
-			    <div align="center" id="perf_check_time" class="bar-border2">-9999</div>
+			    <div align="center" id="perf_check_time" class="contain-white">-9999</div>
 			</div>
 		    </div>
 		</div>	
                 <div class="ui-block-b" style="background-color:#4bacc6">
                     <div class="ui-grid-a center button-line" id="Precip_status">
                         <div class="ui-block-a">
-                            <button id="Precip" class="display-button"type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Status</button>
+                            <button id="Precip" class="display-button"type="button">Precip Status</button>
                         </div>
                         <div class="ui-block-b">
                             <button class="data-button normal-ops" id="Precip_contain" type="button" style="font-size:14px;color:black" data-theme="b">N/A</button>
@@ -144,7 +144,7 @@
                     </div>
 		    <div class="ui-grid-a center button-line">
 			<div class="ui-block-a">
-			    <button type="button" class="display-button" id="Mode_Conflict" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Mode Conflict</button>
+			    <button type="button" class="display-button" id="Mode_Conflict">Mode Conflict</button>
 			</div>
 			<div class="ui-block-b" id="Mode_Conflict_status">
 			    <button id="Mode_Conflict_contain" class="data-button normal-ops" type="button" style="font-size:14px;color:black">N/A</button>
@@ -152,17 +152,17 @@
 		    </div>
 		    <div class="ui-grid-a center button-line" id="Load_Shed_status">
 			<div class="ui-block-a">
-			    <button id="Load_Shed" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Load Shed</button>
+			    <button id="Load_Shed" class="display-button" type="button">Load Shed</button>
 			</div>
 		        <div class="ui-block-b">
-			    <button id="Load_Shed_contain" class="data-button normal-ops"type="button" style="font-size:14px;color:black" data-theme="b">N/A</button>
+			    <button id="Load_Shed_contain" class="data-button normal-ops"type="button">N/A</button>
 		        </div>
 		    </div>
 		    <div id="default-contain">
 			<h2 style="margin:0px;text-align:center;">Select Defaults</h2>
 			<div class="ui-grid-a center button-line" id="wx_mode_default">
 			    <div class="ui-block-a">
-			        <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Mode</button>
+			        <button type="button" class="display-button">Mode</button>
 			    </div>
 			    <div class="ui-block-b">
 			        <div style="float:left" class="defaults-contain">
@@ -191,7 +191,7 @@
 			</div>
 			<div class="ui-grid-a center button-line" id="mode_B_default">
 			    <div class="ui-block-a">
-			        <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">VCP Mode B</button>
+			        <button type="button" class="display-button">VCP Mode B</button>
 			    </div>
 			    <div class="ui-block-b">
 			        <div id="mode-B-insert" style="float:left" class="defaults-contain">
@@ -210,7 +210,7 @@
                 <div class="ui-block-c" style="background-color:#4bacc6">
 		    <div class="ui-grid-a center button-line" id="RS_SUPER_RES_status">
 			<div class="ui-block-a">
-			    <button type="button"class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Super Res</button>
+			    <button type="button"class="display-button">Super Res</button>
 			</div>
 			<div class="ui-block-b">
 			    <div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
@@ -223,7 +223,7 @@
 		    </div>
 		    <div class="ui-grid-a center button-line" id="RS_CMD_status">
 			<div class="ui-block-a">
-			    <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">CMD</button>
+			    <button type="button" class="display-button">CMD</button>
 			</div>
 			<div class="ui-block-b">
 			    <div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
@@ -236,7 +236,7 @@
 		    </div>
 		    <div class="ui-grid-a center button-line" id="Model_Update_status">
 			<div class="ui-block-a">
-			    <button id="Model_Update_button" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Model Update</button>
+			    <button id="Model_Update_button" class="display-button" type="button">Model Update</button>
 			</div>
 			<div class="ui-block-b">
 			    <div style="float:left" class="containing-element-lg">
@@ -249,7 +249,7 @@
 		    </div>
 		    <div class="ui-grid-a center button-line" id="VAD_Update_status">
 		 	<div class="ui-block-a">
-			    <button id="VAD_Update_button" class="display-button" type="button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">VAD Update</button>
+			    <button id="VAD_Update_button" class="display-button" type="button">VAD Update</button>
 			</div>
 			<div class="ui-block-b">
 			    <div style="float:left" class="containing-element-lg">
@@ -262,7 +262,7 @@
 		    </div>
                     <div class="ui-grid-a center button-line" id="mode_B_auto_switch_status">
                         <div class="ui-block-a">
-                            <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Clear Air Switch</button>
+                            <button type="button" class="display-button">Clear Air Switch</button>
                         </div>
                         <div class="ui-block-b">
                             <div style="float:left" class="containing-element-lg">
@@ -275,7 +275,7 @@
                     </div>
                     <div class="ui-grid-a center button-line" id="mode_A_auto_switch_status">
                         <div class="ui-block-a">
-                            <button type="button" class="display-button" style="font-size:14px;background-color:#DCDBD6" data-theme="b">Precip Switch</button>
+                            <button type="button" class="display-button">Precip Switch</button>
                         </div>
                         <div class="ui-block-b">
                             <div style="float:left" class="containing-element-lg">

@@ -104,10 +104,12 @@ init();
 	    }
             var d = new Date(remaining)
 	    var nhour=d.getUTCHours(),nmin=d.getUTCMinutes(),nsec=d.getUTCSeconds();
-	    $('#perf_check_time').html(nhour+'h '+nmin+'m '+nsec+'s')
 	    if(remaining < 0){
 		$('#perf_check_time').html('PENDING').css('background-color','#51FF22')
 		stopCheck['perfCheck'] = true;
+	    }
+	    else {
+                $('#perf_check_time').html(nhour+'h '+nmin+'m '+nsec+'s')
 	    }
 	},DATA.clockInterval);
     }
@@ -146,42 +148,32 @@ $(document).ready(function(){
 			attr.controlname = 'RS_AVSET'
 		    switch(attr.controlname){
 		        case 'RPG_SAILS': case 'SAILS_Exception':
-			    if (attr.num_cuts == 0)
-				$('#Feedback').html(timeStamp() + DATA.SAILSfeedback[0])
-			    else
-			        $('#Feedback').html(timeStamp() + DATA.SAILSfeedback[1] + attr.num_cuts + DATA.SAILSfeedback[2]) 
+			    var feedback =  attr.num_cuts == 0 ? DATA.SAILSfeedback[0] : DATA.SAILSfeedback[1] + attr.num_cuts + DATA.SAILSfeedback[2];
+			    $('#Feedback').html(timeStamp() + feedback)
 		            $.post('/sails',{NUM_CUTS:attr.num_cuts});
 		            delete actionflag.SAILS
 		            break;
 		        case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
-		            //if (attr.controlname == 'RS_AVSET' || attr.controlname =='AVSET_Exception')
-			    //    flag = 0
-			    //else
-				//flag=1
-		            if (attr.newVal.confirmation == "on")
-		                $.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
-			    else
-			        $.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
+		            var command = attr.newVal.confirmation == "on" ? '_ENABLE' : '_DISABLE'
+		            $.post('/send_cmd',{COM:attr.controlname + command, FLAG:"None"});
 			    break;
 			case 'Model_Update': case 'VAD_Update':
-			    if(attr.newVal.confirmation == "on")
-			        $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
-			    else
-				$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
+			    var flag = attr.newVal.confirmation == "on"
+			    $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:flag});
 			    break;
 		    }   
 		    if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
 			if (attr.newVal.confirmation=="on"){
 				$('#RS_AVSET').val('on').slider('refresh')
-					$('#AVSET_Exception').val('on').slider('refresh')
-					$('#AVSET_Exception_contain').addClass('hide')
+				$('#AVSET_Exception').val('on').slider('refresh')
+				$('#AVSET_Exception_status').addClass('hide')
 			}
 			else{
-				$('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING')
-					$('#RS_AVSET_contain .ui-slider .ui-slider-label-b').text('PENDING')
-					$('#RS_AVSET').val('off').slider('refresh')
-					$('#AVSET_Exception').val('off').slider('refresh')
-					$('#AVSET_Exception_contain').removeClass('hide')
+				$('#AVSET_Exception_status .ui-slider .ui-slider-label-b').text('PENDING')
+				$('#RS_AVSET_contain .ui-slider .ui-slider-label-b').text('PENDING')
+				$('#RS_AVSET').val('off').slider('refresh')
+				$('#AVSET_Exception').val('off').slider('refresh')
+				$('#AVSET_Exception_status').removeClass('hide')
 			}
 		    }  
 		    if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
@@ -212,8 +204,6 @@ $(document).ready(function(){
 		    break;	
 	    }
 	}
-	var animcheck = document.getElementById("squaresWaveG_long_1")
-	animcheck.style.animationPlayState = "running"
 	var canvas = document.getElementById("radome");
 	var canvas1 = document.getElementById("inner-circle");
         var gridwidth = $('#grid-a').width();	
@@ -516,7 +506,7 @@ $(document).ready(function(){
 	    $.post('send_cmd',{COM:"DREQ_STATUS",FLAG:"None"});
 	    $('#Feedback').html(timeStamp() + " >> " + DATA.RDAStatus);
 	});
-	var link = $('#squaresWaveG_long').html()
+        var link = $('#squaresWaveG_long').html()
 	var item = DATA.rdaItems;
 	//$('#marq-insert').html($('#marq-form').html())	
 	//$.getJSON("/update",function(data){
@@ -760,12 +750,7 @@ $(document).ready(function(){
 		deleteAllCookies();
 		cookieRaid['initial'] = RPG['ORPGVST']
 	    }
-	    if(!RPG['RDA_alarm_valid']){
-		$('#Alarms').html(RPG['RPG_alarm_text'])
-	    }
-	    if(!RPG['precedence']){
-		$('#Alarms').html(RPG['RPG_alarm_text'])
-	    }
+	    $('#Alarms').html(RPG['alarm_text'])
 	    var cts = Math.round((new Date()).getTime() / 1000);	
 	    if(cts - RPG['status_ts'] == DATA.noSystemChangeTimeout){
 		rpgStatusMsgs['new'] = timeStamp() + DATA.noSystemChangeMsg 
@@ -799,13 +784,8 @@ $(document).ready(function(){
 		    $('#Alarms').attr('class','bar-border')
 	    }
 	    if (!RPG['alarm_active']) 
-		$('#Alarms').attr('class','bar-border normal-ops')
-
-
- 
-		
-	           
-		        
+		$('#Alarms').attr('class','bar-border normal-ops') 
+		       
 	    $('#VCP_start_time').html(" "+RPG['ORPGVST'])
 	    if (Object.keys(actionflag).indexOf('SAILS') < 0){
 	        if(RPG['RPG_SAILS']){

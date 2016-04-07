@@ -65,21 +65,21 @@ EN_flags = {
                             "EWT_DATA_ID": True,
 			    "ORPGDAT_SYSLOG": True,
                             "ORPGDAT_SYSLOG_LATEST": True,
-			    "ORPGDAT_GSM_DATA": {
-					   	"SAILS_STATUS_ID":True,
-						"RDA_STATUS_ID":True,
-						"VOL_STAT_GSM_ID":True,
-						"WX_STATUS_ID":True
-						},
-			    "ORPGDAT_HCI_DATA": {
-						"HCI_PRECIP_STATUS_MSG_ID":True,
-						"HCI_PROD_INFO_STATUS_MSG_ID":True
-			     			}
+			    "SAILS_STATUS_ID":True,
+			    "RDA_STATUS_ID":True,
+			    "VOL_STAT_GSM_ID":True,
+			    "WX_STATUS_ID":True,
+			    "HCI_PRECIP_STATUS_MSG_ID":True,
+			    "HCI_PROD_INFO_STATUS_MSG_ID":True,
+			    "SYSLOG_ALARM":True,	
+			    "SYSLOG_STATUS":True
 	   }
+log_flags = ['SYSLOG_ALARM','SYSLOG_STATUS','ORPGEVT_RPG_ALARM']
 
 update_dict = {}
-msg = {'retry':'4000'} # connection loss timeout for radome SSE
-initial_msg = {'retry':'4000'} # initial full message send
+default_sse_timeout = {'retry':'4000'} # default connection loss timeout for server-sent events
+msg = default_sse_timeout
+initial_msg = default_sse_timeout # initial full message send
 update_event = threading.Event()
 log_event = threading.Event()
 radome_event = threading.Event()
@@ -171,7 +171,7 @@ def radome_funcs(radome_queue):
     # Register pbd radial update callbacks for HCI radome items 
     ###########################################################
 
-    def RADOME_callback(event, msg_data):	
+    def RADOME_callback(event, msg_data):
         msg = _rpg.orpgevt.to_orpgevt_radial_acct_t(msg_data)
         data = {
                 'super_res':msg.super_res,
@@ -198,20 +198,21 @@ def update_funcs(update_queue):
 
     AN_dict = dict((v,k) for k,v in _rpg.orpgevt.__dict__.iteritems() if 'ORPGEVT' in k)
     UN_dict = dict((_rpg.liborpg.orpgda_lbfd(v),k) for k,v in _rpg.orpgdat.__dict__.iteritems() if 'ORPGDAT' in k)
-    UN_dict.update({((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE):"EWT_DATA_ID"})
+    UN_dict.update({_rpg.liborpg.orpgda_lbfd(((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)):"EWT_DATA_ID"})
     EN_dict = AN_dict.copy()
     EN_dict.update(UN_dict)
     UN_msgids = {"ORPGDAT_GSM_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.values.iteritems())}
     UN_msgids.update({"ORPGDAT_HCI_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_hci_data_msg_id_t.values.iteritems())})
-    
+    UN_msgids.update({"ORPGDAT_SYSLOG_LATEST":{1:"SYSLOG_STATUS",2:"SYSLOG_ALARM"}})
+    print EN_dict
 
     def generic_callback(fd,msg):
-        if msg == 1564 or msg == 1565:
-   	    flag = ['DEAU']
-	elif EN_dict[fd] == 'ORPGDAT_GSM_DATA' or EN_dict[fd] == 'ORPGDAT_HCI_DATA':
-	    flag = [EN_dict[fd],UN_msgids[EN_dict[fd]][msg]]
+	if fd == "DEAU":
+   	    flag = ["DEAU"]
+	if EN_dict.get(fd) in UN_msgids.keys():
+	    flag = UN_msgids[EN_dict[fd]][msg]
 	else:
-	    flag = [EN_dict[fd]]
+	    flag = EN_dict[fd]
 	update_queue.put(flag)
 
 
@@ -235,12 +236,12 @@ def update_funcs(update_queue):
     #################################################
 
   
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG,_rpg.lb.LB_ANY,generic_callback)
-    _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.lb.LB_ANY,generic_callback)
     ewt_data_id = ((_rpg.lb.EWT_UPT/_rpg.lb.ITC_IDRANGE)*_rpg.lb.ITC_IDRANGE)
     _rpg.liben.un_register(ewt_data_id,_rpg.lb.LBID_EWT_UPT,generic_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_RPG_INFO,_rpg.orpgdat.Orpginfo_msgids_t.ORPGINFO_STATEFL_SHARED_MSGID,generic_callback)
     _rpg.liben.un_register(_rpg.orpgdat.ORPGDAT_PRF_COMMAND_INFO,_rpg.orpgdat.ORPGDAT_PRF_STATUS_MSGID,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,1,generic_callback)
+    _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,2,generic_callback)
     _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID,generic_callback)
     _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.RDA_STATUS_ID,generic_callback)
     _rpg.liben.un_register_multi(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.VOL_STAT_GSM_ID,generic_callback)
@@ -381,7 +382,15 @@ def RPG_alarm_init():
     if(EN_flags['ORPGEVT_RPG_ALARM']):
         RPG_alarms_iter = _rpg.orpginfo.orpgalarms.values.iteritems()
         RPG_alarms = [str(v).replace('ORPGINFO_STATEFL_RPGALRM_','') for k,v in RPG_alarms_iter if k & _rpg.liborpg.orpginfo_statefl_get_rpgalrm()[1] > 0]
-    
+        EN_flags['ORPGEVT_RPG_ALARM'] = False
+        return {'RPG_alarms':RPG_alarms}
+    else:
+	return False
+ 
+
+
+def syslog_alarm_init():
+    if(EN_flags['SYSLOG_ALARM']): 
         alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
 	if alarm[0] > 0:
 	    parse_alarm = alarm[1].split(':')
@@ -394,35 +403,15 @@ def RPG_alarm_init():
 		msg_type = False
             active = [k for k,v in _rpg.lb.le.__dict__.iteritems() if 'CLEAR' in k and alarm[3] & v > 0] == []
             error = alarm[3] & _rpg.lb.le.HCI_LE_ERROR_BIT > 0
-
-            RPG_alarm_text = alarm_date +' >> '+":".join(parse_alarm[1:]).replace('\n','')
-	
+            alarm_text = alarm_date +' >> '+":".join(parse_alarm[1:]).replace('\n','')
         else:
-	    if alarm[0] == -56:
-	        RPG_alarm_text = ''
-	    else:
-	        RPG_alarm_text = 'ORPGDA_read error'
+	    alarm_text = 'ORPGDA_read error'
 	    msg_type = ''
 	    active = ''
 	    error = ''  
-       
-	RDA_alarm_valid = True
-        precedence = True
-        try:
-            latest_alarm_text = _rpg.liborpg.orpgrat_get_alarm_text(_rpg.liborpg.orpgrda_get_alarm(_rpg.liborpg.orpgrda_get_num_alarms()-1,_rpg.orpgrda.ORPGRDA_ALARM_ALARM))
-            ts = datetime.datetime(int(yr),mo,day,hr,min,sec)
-            precedence = ts>tstamp_alarm
-        except:
-	    precedence = False
-            RDA_alarm_valid = False
-	
-	EN_flags['ORPGEVT_RPG_ALARM'] = False
-	
+	EN_flags['SYSLOG_ALARM'] = False
         return {
-	    'RPG_alarms':RPG_alarms,
-            'RPG_alarm_text':RPG_alarm_text,
-            'RDA_alarm_valid':RDA_alarm_valid,
-            'precedence':precedence,
+            'alarm_text':alarm_text,
 	    'alarm_msg_type':msg_type.replace('HCI_LE_',''),
 	    'alarm_active':active,
 	    'alarm_error':error
@@ -505,7 +494,7 @@ def LOADSHED_init():
 
 
 def CRDA_init():
-    if (EN_flags['ORPGDAT_GSM_DATA']['RDA_STATUS_ID']):
+    if (EN_flags['RDA_STATUS_ID']):
         CRDA_dict_init = {}
         try:
             lookup = dict((k,v) for k,v in _rpg.rdastatus.rdastatus_lookup.__dict__.items() if '__' not in k)
@@ -525,13 +514,13 @@ def CRDA_init():
         except:
             pass
 
-        EN_flags['ORPGDAT_GSM_DATA']['RDA_STATUS_ID'] = False
+        EN_flags['RDA_STATUS_ID'] = False
         return CRDA_dict_init
     else:
         return False
 
-def RPG_status_init():
-    if (EN_flags['ORPGDAT_SYSLOG_LATEST']):
+def syslog_status_init():
+    if (EN_flags['SYSLOG_STATUS']):
         status = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,1)
         if status[0] > 0:
             parse_status = status[1].split(':')
@@ -553,7 +542,7 @@ def RPG_status_init():
             msg_type = ''
             cleared = ''
             error = status[0]
-        EN_flags['ORPGDAT_SYSLOG_LATEST'] = False
+        EN_flags['SYSLOG_STATUS'] = False
 
         return {
             'status_msgs':rpg_status,
@@ -567,7 +556,7 @@ def RPG_status_init():
 
 
 
-def RPG_status_next():
+def syslog_status_next():
     status = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,_rpg.lb.LB_NEXT)
     if status[0] > 0:
         parse_status = status[1].split(':')
@@ -629,10 +618,10 @@ def RPG_syslog_init():
 		    
 
 def NB_status_init():
-    if (EN_flags['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID']): 
+    if (EN_flags['HCI_PROD_INFO_STATUS_MSG_ID']): 
         nb = _rpg.libhci.hci_get_nb_connection_status()
         
-	EN_flags['ORPGDAT_HCI_DATA']['HCI_PROD_INFO_STATUS_MSG_ID'] = False
+	EN_flags['HCI_PROD_INFO_STATUS_MSG_ID'] = False
 	
 	return {'narrowband':nb_dict[nb]}
     else:
@@ -647,7 +636,7 @@ def model_flag_init():
 	return False
 
 def SAILS_init():
-    if (EN_flags['ORPGDAT_GSM_DATA']['SAILS_STATUS_ID']):
+    if (EN_flags['SAILS_STATUS_ID']):
 	sails_status = _rpg.liborpg.orpgda_read_sails(_rpg.orpgdat.ORPGDAT_GSM_DATA,_rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.SAILS_STATUS_ID)
 	if sails_status[0] > 0:
 	    sails_cuts = sails_status[1]
@@ -655,7 +644,7 @@ def SAILS_init():
 	    print "ORPGDAT_GSM_DATA read failed:%d" % sails_status[0]
 	    sails_cuts = 0
         sails_allowed = _rpg.liborpg.orpgsails_allowed()
-	EN_flags['ORPGDAT_GSM_DATA']['SAILS_STATUS_ID'] = False
+	EN_flags['SAILS_STATUS_ID'] = False
         return {
 	    'sails_cuts':sails_cuts,
 	    'sails_allowed':sails_allowed
@@ -664,9 +653,9 @@ def SAILS_init():
 	return False
  
 def ORPGVST_init():
-    if (EN_flags['ORPGDAT_GSM_DATA']['VOL_STAT_GSM_ID']):
+    if (EN_flags['VOL_STAT_GSM_ID']):
         ORPGVST = time.strftime(' %H:%M:%S UT',time.gmtime(_rpg.liborpg.orpgvst_get_volume_time()/1000))
-	EN_flags['ORPGDAT_GSM_DATA']['VOL_STAT_GSM_ID'] = False
+	EN_flags['VOL_STAT_GSM_ID'] = False
         return {'ORPGVST':ORPGVST}
     else:
 	return False
@@ -682,11 +671,11 @@ def STATEFL_init():
 	return False
 
 def WX_init():
-    if (EN_flags['ORPGDAT_GSM_DATA']['WX_STATUS_ID']):
+    if (EN_flags['WX_STATUS_ID']):
         mode_conflict = (_rpg.libhci.hci_get_wx_status().current_wxstatus != _rpg.libhci.hci_get_wx_status().recommended_wxstatus)
         mode_trans = _rpg.libhci.hci_get_wx_status().wxstatus_deselect
     
-	EN_flags['ORPGDAT_GSM_DATA']['WX_STATUS_ID'] = False
+	EN_flags['WX_STATUS_ID'] = False
 	return { 
 	    'mode_conflict':mode_conflict,
 	    'mode_trans':mode_trans
@@ -695,10 +684,10 @@ def WX_init():
 	return False
 
 def PRECIP_init():
-    if (EN_flags['ORPGDAT_HCI_DATA']['HCI_PRECIP_STATUS_MSG_ID']):
+    if (EN_flags['HCI_PRECIP_STATUS_MSG_ID']):
         precip = _rpg.libhci.hci_get_precip_status().current_precip_status    
     
-	EN_flags['ORPGDAT_HCI_DATA']['HCI_PRECIP_STATUS_MSG_ID'] = False
+	EN_flags['HCI_PRECIP_STATUS_MSG_ID'] = False
 	return {'current_precip_status':precip}
     else:
 	return False
@@ -722,12 +711,13 @@ def PRF_init():
 Global_dict = {
 	 	'vad_flag':VAD_init(),
                 'model_update':model_flag_init(),
+                'syslog_status':syslog_status_init(),
+		'syslog_alarm':syslog_alarm_init(),
 		'AUTO_MODE':AUTO_MODE_init(),
 		'PMD':PMD_init(),
 		'NB':NB_status_init(),
 		'RPG':{
 			'RPG_state':RPG_state_init(),
-			'RPG_status':RPG_status_init(),
 			'RPG_alarm':RPG_alarm_init(),
 			'RPG_op':RPG_op_init(),	
 		      },
@@ -808,7 +798,7 @@ class Send_RDACOM(object):
 		'RS_AVSET_DISABLE':[_rpg.orpgrda.CRDA_AVSET_DISAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_CLR],
 		'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_SET],
 		}
-	if set_clear_flag != "None":
+	if set_clear_flag:
 	    if req.split('_')[1] == 'AVSET':
 		set_clear = _rpg.liborpg.orpginfo_statefl_flag(_rpg.liborpg.Orpginfo_statefl_flagid_t.ORPGINFO_STATEFL_FLG_AVSET_ENABLED,CRDA[req][1])
 	    else:
@@ -831,13 +821,14 @@ RS_l = {
        }
 
 RPG_l = {
-             'RPG_status':RPG_status_init,
              'RPG_alarm':RPG_alarm_init,
              'RPG_state':RPG_state_init,
              'RPG_op':RPG_op_init,
              'SAILS':SAILS_init,
              'ORPGVST':ORPGVST_init,
              'STATEFL':STATEFL_init,
+             'syslog_status':syslog_status_init,
+             'syslog_alarm':syslog_alarm_init,
              'NB':NB_status_init
         }
 		
@@ -996,12 +987,9 @@ class update_generator(threading.Thread):
             check_dict = {'PMD':PMD(),'RS':RS(),'RPG':RPG(),'ADAPT':ADAPT()}
 	    global EN_flags
             flag = update_queue.get()
-            if len(flag) > 1:
-                EN_flags[flag[0]][flag[1]] = True
-            else:
-               EN_flags[flag[0]] = True
+            EN_flags[flag] = True
             update_dict.update(dict((k+'_dict',function_dict[k]()) for k,v in check_dict.items() if function_dict[k]() != v)) # compare dicts for changes
-            if flag[0] == "ORPGDAT_SYSLOG" or flag[0] == "ORPGEVT_RPG_ALARM":
+            if flag in log_flags:
                 log_event.set()
                 log_event.clear()
 	    if update_dict:	
@@ -1018,14 +1006,11 @@ class Update_Server(object):
     def GET(self):
         web.header("Content-Type","text/event-stream")
 	web.header("Cache-Control","no-cache")
-	attr = {'retry':'4000'}  # reconnect timeout for purposes of server error
+	attr = default_sse_timeout
 	event_id = 0
-	initial_connect = True
 	while True:
-	    if initial_connect:
+	    if event_id == 0:
 		update_dict.update({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT()})
-	    else:
-	        initial_connect = False
 	    data = {}	
 	    for idx,val in enumerate(update_dict):
   	        data.update({idx:val,'data'+str(idx):json.dumps(update_dict[val])})
@@ -1041,14 +1026,14 @@ class RPG_status_server(object):
     def GET(self):
         web.header("Content-Type","text/event-stream")
         web.header("Cache-Control","no-cache") 
-	data = {'retry':4000}
+	data = default_sse_timeout
 	event_id = 0
 	wait = False
 	while True:
 	    if event_id == 0:
 	        out = {"syslog":RPG_syslog_init(),"alarms":Global_dict['RPG']['RPG_alarm']['RPG_alarms']}
 	    else:
-		log = RPG_status_next()
+		log = syslog_status_next()
 		wait = log['error'] == -38
 		out.update({"syslog":log,"alarms":Global_dict['RPG']['RPG_alarm']['RPG_alarms']})
 	    data.update({'data':json.dumps(out),'id':event_id})
@@ -1066,11 +1051,10 @@ class radome_generator(threading.Thread):
 	event_id = 0
         prev_update = {'start_az':0}
 	radome_final = {}
-	initial_connect = True
         while True:
             radome_update = radome_queue.get()
 	    update_all = radome_update['start_az'] != prev_update['start_az']
-	    if update_all or initial_connect:
+	    if update_all or event_id == 0:
 		radome_update.update({'update':update_all})
                 try:
                     moments_list = [moments[x] for x in moments.keys() if x & radome_update['moments'] > 0]
@@ -1080,12 +1064,11 @@ class radome_generator(threading.Thread):
 		radome_final = radome_update
 	    else:
 		radome_final = {'az':radome_update['az'],'update':update_all}
-	    if initial_connect:
+	    if event_id == 0:
                 initial_msg.update({
                     'data':json.dumps(radome_final),
                     'id':event_id
                 })
-		initial_connect = False
 	    else: 
                 msg.update({
                     'data':json.dumps(radome_final),

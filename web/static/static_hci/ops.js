@@ -92,6 +92,7 @@ DEFAULTS = {}
 
 
     var actionflag = {}
+    var PMD = {}
     $(document).ready(function(){
 	function toggleHandler(attr,switchval){	
 	    switch(switchval){
@@ -295,9 +296,6 @@ DEFAULTS = {}
 	    }
 
 	});
-	$.getJSON("/perf",function(data){
-            perfCheck(data['perf_check_time'])
-        });
 	    var non_rapid = new EventSource('/update_s');
 	    non_rapid.addEventListener('RPG_dict',function(e) {
 		var RPG = JSON.parse(e.data)
@@ -332,22 +330,25 @@ DEFAULTS = {}
 
 	    });
 	    non_rapid.addEventListener('PMD_dict',function(e) {
-		var PMD = JSON.parse(e.data)
-		if(Object.keys(actionflag).indexOf('PRF_Mode') < 0){
-		    switch(PMD['prf']){
-			case 'CELL_BASED': case 'STORM_BASED':
-			    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
-			    $('#PRF_Mode').val('on').slider('refresh')
-			    break;
-			case 'AUTO_PRF':
-			    $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
-			    $('#PRF_Mode').val('on').slider('refresh')
-			    break;
-			case 'MANUAL_PRF':
-			    $('#PRF_Mode').val('off').slider('refresh')
-			    break;
-		    }
-		}
+		var PMD_current = JSON.parse(e.data)
+                if ( PMD_current['perf_check_time'] != PMD['perf_check_time'] )
+                    perfCheck(PMD_current['perf_check_time']);
+                if ( PMD_current['prf'] != PMD['prf'] ) {
+                    switch(PMD_current['prf']){
+                      case 'CELL_BASED': case 'STORM_BASED':
+                          $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('MULTI')
+                          $('#PRF_Mode').val('on').slider('refresh')
+                          break;
+                      case 'AUTO_PRF':
+                          $('#PRF_Mode_contain .ui-slider .ui-slider-label-a').text('AUTO')
+                          $('#PRF_Mode').val('on').slider('refresh')
+                          break;
+                      case 'MANUAL_PRF':
+                          $('#PRF_Mode').val('off').slider('refresh')
+                          break;
+                    }
+                }
+
 		if(PMD['mode_trans']){
 		    $("#Mode_Conflict_contain").html('TRANS').removeClass('normal-ops').addClass('minor-alarm');
 		}
@@ -374,6 +375,22 @@ DEFAULTS = {}
                         }
                     }
                 }
+                if ( PMD_current['loadshed'] != PMD['loadshed'] ) {
+                    var loadshed_cats = Object.keys(PMD_current['loadshed'])
+                    $('#Load_Shed_contain').html('NORMAL')
+                    for (lshd in loadshed_cats){
+                        if(PMD_current['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+                            $('#Load_Shed_contain').html(PMD_current['loadshed'][loadshed_cats[lshd]])
+                            $('#Load_Shed_status').removeClass('hide')
+                            $('#Alarms').attr('class','bar-border loadshed')
+                            if(PMD_current['loadshed'][lshd] == 'ALARM'){
+                                $('#Load_Shed_contain').attr('style','background-color:#00FFFF')
+                            }
+                        }    
+                    }
+                }
+                PMD = JSON.parse(e.data);
+
 
 	    });
 
