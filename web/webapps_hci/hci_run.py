@@ -43,7 +43,8 @@ URLS = (
     '/deau_set','handlers.DEAU_set',
     '/auth','handlers.Basic_Auth',
     '/rpg_s','handlers.RPG_status_server',
-    '/rpg_status','handlers.RPG_Status'
+    '/rpg_status','handlers.RPG_Status',
+    '/dqd','handlers.DQD'
 )
 
 if __name__ == '__main__':

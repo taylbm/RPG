@@ -204,15 +204,16 @@ def update_funcs(update_queue):
     UN_msgids = {"ORPGDAT_GSM_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_gsm_data_msg_id_t.values.iteritems())}
     UN_msgids.update({"ORPGDAT_HCI_DATA":dict((k,str(v)) for k,v in _rpg.orpgdat.Orpgdat_hci_data_msg_id_t.values.iteritems())})
     UN_msgids.update({"ORPGDAT_SYSLOG_LATEST":{1:"SYSLOG_STATUS",2:"SYSLOG_ALARM"}})
-    print EN_dict
 
     def generic_callback(fd,msg):
-	if fd == "DEAU":
-   	    flag = ["DEAU"]
-	if EN_dict.get(fd) in UN_msgids.keys():
-	    flag = UN_msgids[EN_dict[fd]][msg]
+	valid = EN_dict.get(fd)
+	if valid:
+	    if valid in UN_msgids.keys():
+	        flag = UN_msgids[EN_dict[fd]][msg]
+	    else:
+		flag = EN_dict[fd]
 	else:
-	    flag = EN_dict[fd]
+	    flag = "DEAU"
 	update_queue.put(flag)
 
 
@@ -220,7 +221,7 @@ def update_funcs(update_queue):
     # Register DEAU Update Notification Callback
     #############################################
 
-    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)
+    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)	
     
     ###################################################
     # Register Application Notification (AN) Callbacks  
@@ -275,6 +276,7 @@ RS_dict_init = {}
 def VAD_init():	
     if (EN_flags['ORPGEVT_ENVWND_UPDATE']):
         vad_flag = _rpg.libhci.hci_get_vad_update_flag()
+	print vad_flag
 	EN_flags['ORPGEVT_ENVWND_UPDATE'] = False
         return {'VAD_Update':vad_flag}
     else:
@@ -1201,4 +1203,7 @@ class Basic_Auth(object):
             web.header('WWW-Authenticate','Basic realm="pass-protect"')
             web.ctx.status = '401 Unauthorized'
 	return json.dumps(auth) 
-
+class DQD(object):
+    def GET(self):
+        #redirect to static file
+	raise web.seeother('/static/index.html')

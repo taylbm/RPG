@@ -110,7 +110,6 @@ label.ui-btn {
 .center {
     margin-left: auto;
     margin-right: auto;
-    width: 70%;
 }
 /* Buttons */
 .ui-btn-corner-all,
@@ -610,7 +609,7 @@ table.no-spacing {
 	z-index:1;
 }
 #grid2{
-	width:50%;	
+	width:100%;	
 	margin-top:5px;
 	position:relative;
 	z-index:2;
@@ -709,5 +708,8 @@ table.no-spacing {
   height: 300px;
   overflow-y: scroll;
 }
-
-	
+#CONTROL_STATUS {
+    position:relative;
+    top:5px;	
+    margin-left:10%;
+}

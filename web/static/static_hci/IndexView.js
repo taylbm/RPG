@@ -703,6 +703,7 @@ $(document).ready(function(){
 
 	non_rapid.addEventListener('ADAPT_dict',function(e) {
 	    ADAPT = JSON.parse(e.data)
+	    console.log(ADAPT)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    switch(Number(ADAPT['ZR_mult'])){
 		case DATA.zrCats.CONVECTIVE:
@@ -722,6 +723,7 @@ $(document).ready(function(){
 		    break;
 	    }
             exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
+	    
             for (e in exception_list){
                 var exception = exception_list[e]
                     if(Object.keys(actionflag).indexOf(exception) <0){
@@ -1182,8 +1184,8 @@ $(document).ready(function(){
 	$('#rpg_misc').click(function(){
 		$.get("/button?id=hci_misc")
 	});
-	$('#rpg_dqd').click(function(){
-		$.get("/button?id=dqd")
+	$('#dqd').click(function(){
+	//	$.get("/button?id=dqd")
 	});
 	$('#88D-ops').click(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");

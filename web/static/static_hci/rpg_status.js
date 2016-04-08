@@ -30,7 +30,6 @@
 	
 	    if ( log['alarms'][0] != "NONE" ) {
 		for (a in log['alarms']) {
-		    console.log(DATA.RPGalarmSum[log['alarms'][a]])
 		    $('#'+log['alarms'][a]).css("background-color",DATA.RPGalarmSum[log['alarms'][a]])
 	   	}
 	    }
@@ -43,7 +42,7 @@
 		        class_string = DATA.colorMsgs[log['syslog']['msg_type'][i].split('_')[2]]
 		    if (log['syslog']['cleared'][i] )
 		        class_string = 'normal-ops'
-		    $('#logTable').find('tbody').append($('<tr>').text(log['syslog']['status_msgs'][i]).attr('class',class_string))
+		    $('#logTable').find('tbody').append($('<tr>').text(log['syslog']['status_msgs'][i]).attr('class',class_string).attr('alt',log['syslog']['msg_type'][i]))
 	        }
 	    }
 	    else {
