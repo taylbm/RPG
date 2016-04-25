@@ -7,6 +7,7 @@ var timeInterval = {
 			'1Month':month/1000,
 			'6Months':then/1000
 };
+var weights = [0.25,0.33,0.42] // IMPORTANT: DO NOT CHANGE ----> Weights for Rain, Snow, & Bragg methods, respectively
 var storeValues = {};
 function mean(arr)
 {
@@ -32,13 +33,20 @@ function median(arr)
         return (arr[half-1] + arr[half]) / 2.0;
 }
 
-function dBMean(arr) 
+function dBMeanWeighted(arr)
 {
-    var linearPow = arr.map(function(x) Math.pow(10,(x/10)));
-    var linearMean = mean(linearPow);
-    var convertedBack = 10 * Math.log10(linearMean);
+    var weightedLinearPow = 0;
+    var weight = 0;
+    for (var i in arr) {
+        weightedLinearPow += weights[i]*Math.pow(10,(arr[i]/10))
+        weight += weights[i]
+    }
+    var weightedLinearMean = weightedLinearPow/weight;
+    var convertedBack = 10 * Math.log10(weightedLinearMean);
     return convertedBack;
 }
+
+
 
 function showTooltip(x, y, contents) {
     $('<div id="tooltip">' + contents + '</div>').css( {
@@ -80,7 +88,7 @@ function setSizes(event, ui, plotAdd)
 	; 
         if (method == 'bragg'){
             $.each(SummaryData, function (idx, obj) {
-		    var channel = 'chan'+obj.modeRedundant
+		    var channel = 'chan' + RedundantData[idx]
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
 		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? obj.medianBragg : null]);
@@ -92,7 +100,7 @@ function setSizes(event, ui, plotAdd)
         } 	
 	else if (method == 'rain'){
 	    $.each(SummaryData, function (idx, obj) {
-                    var channel = 'chan'+obj.modeRedundant
+                    var channel = 'chan' + RedundantData[idx]
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
                     overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
@@ -104,7 +112,7 @@ function setSizes(event, ui, plotAdd)
 	}
 	else if (method == 'snow'){
 	    $.each(SummaryData, function (idx, obj) {
-                    var channel = 'chan'+obj.modeRedundant
+                    var channel = 'chan' + RedundantData[idx]
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
                     overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
@@ -284,9 +292,9 @@ function determineOverview(time,chan)
         rRain = {'chan1':[],'chan2':[]};
 	
 	if(time != 'MostRecent'){
-            $.each(SummaryData, function(idx,obj){
+            $.each(DailyData, function(idx,obj){
                 if(timeInterval[time] <= obj.time){
-		    var channel = 'chan'+obj.modeRedundant
+		    var channel = 'chan' + RedundantData[idx]
                     rBragg[channel].push(obj.medianBragg);
                     rSnow[channel].push(obj.medianSnow);
                     rRain[channel].push(obj.medianRain);
@@ -297,9 +305,9 @@ function determineOverview(time,chan)
             tBragg = median(rBragg[chan].filter(function(val) { return val !== null;}))  
         }
         else {
-	    var copyData = JSON.parse(JSON.stringify(SummaryData)).reverse()
+	    var copyData = JSON.parse(JSON.stringify(DailyData)).reverse()
 	    $.each(copyData,function(idx,obj) {
-		if (obj.modeRedundant == chan.replace('chan','')) {
+		if (RedundantData[idx] == chan.replace('chan','')) {
                     tRain = obj.medianRain;
             	    tSnow = obj.medianSnow;
             	    tBragg = obj.medianBragg;
@@ -311,7 +319,7 @@ function determineOverview(time,chan)
     }
     else {
         if(time != 'MostRecent'){
-            $.each(SummaryData, function(idx,obj){
+            $.each(DailyData, function(idx,obj){
                 if(timeInterval[time] <= obj.time){
                     mBragg.push(obj.medianBragg);
                     mSnow.push(obj.medianSnow);
@@ -323,9 +331,9 @@ function determineOverview(time,chan)
             tBragg = median(mBragg.filter(function(val) { return val !== null;}))
         }
         else
-            tRain = SummaryData[SummaryData.length - 1].medianRain,
-            tSnow = SummaryData[SummaryData.length - 1].medianSnow,
-            tBragg = SummaryData[SummaryData.length - 1].medianBragg
+            tRain = DailyData[DailyData.length - 1].medianRain,
+            tSnow = DailyData[DailyData.length - 1].medianSnow,
+            tBragg = DailyData[DailyData.length - 1].medianBragg
         ;
     }
 		    	
@@ -335,10 +343,7 @@ function determineOverview(time,chan)
         if (obj > -99.0 && obj != null) 
             valsForOverview.push(obj);
     });
-    if (valsForOverview.length == 1)
-	MainGage.refresh(valsForOverview[0]);
-    else 
-        MainGage.refresh(dBMean(valsForOverview));
+    MainGage.refresh(dBMeanWeighted(valsForOverview));
     if (tRain == null || tRain == -99)
         RainGage.refresh('NaN');
     else
