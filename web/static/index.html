@@ -25,24 +25,31 @@
 		    if ($('#summary-data').html() == "") {
                         alert("No ZDR Stats Available, please run dqdwalk to acquire the data, then refresh the page") 
                     }
-		    else {
-		        $('.sites').html(ICAO+' - Shade Chart - Past 6 Months') 		    
-                        $('#site').html(ICAO)
-		        makeGages();
-            	        determineOverview('MostRecent','chan1')        
-                        $.each(SummaryData, function (idx, obj) {
-                            SummaryData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null; 
-                            SummaryData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
-                            SummaryData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
-                        });
-		        $.each(DailyData,function(idx,obj) {
-			    DailyData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null;
-			    DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
-			    DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
-		        });
-  		    }
-                    if(redundant == "False") 
-                        $('#channel-form').html(' ');
+		    else {	
+			if (SummaryData.length == 0) {
+			    alert("Error: No ZDR Stats Found")
+			}
+			else { 
+		            $('.sites').html(ICAO+' - Shade Chart - Past 6 Months') 		    
+                            $('#site').html(ICAO)
+			    console.log(TimeStamp)
+			    $('#timestamp').html('Last Updated: ' + TimeStamp)
+		            makeGages();
+            	            determineOverview('MostRecent','chan1')        
+                            $.each(SummaryData, function (idx, obj) {
+                                SummaryData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null; 
+                                SummaryData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
+                                SummaryData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
+                            });
+		            $.each(DailyData,function(idx,obj) {
+			        DailyData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null;
+			        DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
+			        DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
+		           });
+  		        }
+                        if(redundant == "False") 
+                            $('#channel-form').html(' ');
+		    }
                 });
 		$('#choice-4').prop('checked',true).click();
 		$('#choice-5').prop('checked',true).click();
@@ -161,8 +168,10 @@
                 <a href="#nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
             </div>
             <div role="main" class="ui-content">
-                <div class="ui-bar ui-bar-a ui-grid-a">
-                    <h3 class="ui-block-a">ZDR Data Quality</h3><h1 align="right" id="site" class="ui-block-b"></h1>
+                <div class="ui-bar ui-bar-a ui-grid-b">
+                    <h3 class="ui-block-a">ZDR Data Quality</h3>
+		    <h4 id="timestamp" class="ui-block-b"></h4>
+		    <h1 align="right" id="site" class="ui-block-c"></h1>
                 </div>
 		<div class="ui-grid-a">
 		    <form class="ui-block-a">
