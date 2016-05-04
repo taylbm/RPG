@@ -106,38 +106,24 @@
 
                 });
 
-               	$('input[name="time-select"]').on('click',function(){
+               	$('input[name="time-select"]').on('click',function() { 
 		    var channel = $('#channel-form :checked').val()
 		    var value = $(this).attr('value');
 		    determineOverview(value,channel);
 		});
-		$('input[name="channel-select"]').on('click',function(){
+		$('input[name="channel-select"]').on('click',function() {
 		    var value = $('#time-form :checked').val()
                     var channel  = $(this).attr('value');
                     determineOverview(value,channel);
                 });
-
-		
-                $('ul li a').on('click', function () {
-		    var name = $(this).attr('name')
-                    if (name == 'rain')
-                        window.location.href = '#rain-page',
-			window.location.reload()
-		    ;
-                    else if (name == 'snow')
-                        window.location.href = '#snow-page',
-			window.location.reload()
-		    ;
-                    else if (name == 'bragg')
-                        window.location.href = '#bragg-page',
-			window.location.reload()
-		    ;
-		    else if (name == 'home')
-			window.location.href = '#home-page',
-			window.location.reload()
-		    ;
+	        $('ul li a').on('click', function () {
+                    var name = $(this).attr('name');
+		    pageLoad(name);
                 });
-	
+		$('input[type="button"]').on('click',function() {
+		    var name = $(this).attr('name');
+                    pageLoad(name);
+		});
             });
         </script>
     </head>
@@ -149,7 +135,7 @@
 		                ZDR Bias
 		            </li>
 		            <li data-icon="home">
-		                <a name="home"href="#home-page">Home</a>
+		                <a name="home" href="#home-page">Home</a>
 		            </li>
 		            <li>
 		                <a name="rain" href="#rain-page">Rain method</a>
@@ -206,7 +192,7 @@
 		    <div id="main-gauge" style="height:480px; width:640px; margin:auto;"></div>
 		    <div class="ui-grid-b">
 	                    <div id="rain-gauge" class="ui-block-a ui-input-btn ui-btn ui-shadow">
-	                        <input name="rain" type="button" data-enhanced="true" value="">
+	                        <input name="rain" href="#rain-page" type="button" data-enhanced="true" value="">
 	                    </div>
 	                    <div id="snow-gauge" class="ui-block-b ui-input-btn ui-btn ui-shadow">
 	                        <input name="snow" type="button" data-enhanced="true" value="">

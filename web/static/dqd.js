@@ -19,6 +19,25 @@ function mean(arr)
     }
     return sum / len;
 }
+function pageLoad(name)
+{
+    if (name == 'rain')
+	window.location.href = '#rain-page',
+	window.location.reload()
+    ;
+    else if (name == 'snow')
+	window.location.href = '#snow-page',
+	window.location.reload()
+    ;
+    else if (name == 'bragg')
+	window.location.href = '#bragg-page',
+	window.location.reload()
+    ;
+    else if (name == 'home')
+	window.location.href = '#home-page',
+	window.location.reload()
+    ;
+}
 
 function median(arr) 
 {

@@ -6,8 +6,8 @@ from time import sleep
 
 CFG = os.getenv("CFG_DIR")
 sys.path.append(CFG+"/web/deps")
-RPG_HOME = os.getenv("RPGHOME")
-sys.path.append(RPG_HOME)
+RPG_LIB = os.getenv("RPGLIB")
+sys.path.append(RPG_LIB)
 
 import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir
