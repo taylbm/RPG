@@ -8,17 +8,8 @@ var timeInterval = {
 			'6Months':then/1000
 };
 var weights = [0.25,0.33,0.42] // IMPORTANT: DO NOT CHANGE ----> Weights for Rain, Snow, & Bragg methods, respectively
-var storeValues = {};
-function mean(arr)
-{
-    var i,
-        sum = 0,
-	len = arr.length;
-    for (i=0; i < len; i++) {
-	sum += arr[i];
-    }
-    return sum / len;
-}
+var toolValues = {};
+
 function pageLoad(name)
 {
     if (name == 'rain')
@@ -84,12 +75,14 @@ function setSizes(event, ui, plotAdd)
 {
     if (!SummaryData)
         return;
-    var whichPage = ui.toPage.get(0).id;
-    var method = whichPage.replace('-page', '');
-    var possibleChartName = method + '-container';
-    var pageMainName = method + '-main';
-    var chartContainer = $('#' + possibleChartName);
-    storeValues = {}
+    var whichPage = ui.toPage.get(0).id,
+        method = whichPage.replace('-page', ''),
+        possibleChartName = method + '-container',
+        pageMainName = method + '-main',
+        chartContainer = $('#' + possibleChartName)
+    ;
+  
+    toolValues = {};
         
     if (chartContainer.length < 1)
         return;
@@ -111,7 +104,7 @@ function setSizes(event, ui, plotAdd)
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
 		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? obj.medianBragg : null]);
-                    storeValues[obj.time * 1e3] = obj.medianBragg;
+                    toolValues[obj.time * 1e3] = [obj.medianBragg, channel];
             });
 	    $.each(DailyData, function(idx, obj) {
 	        dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
@@ -123,7 +116,7 @@ function setSizes(event, ui, plotAdd)
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
                     overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
-                    storeValues[obj.time * 1e3] = obj.medianRain;            
+                    toolValues[obj.time * 1e3] = [obj.medianRain, channel];            
 	    });
 	    $.each(DailyData, function(idx, obj) {
 		dailyPoints.push([obj.time * 1e3, obj.medianRain]);
@@ -135,7 +128,7 @@ function setSizes(event, ui, plotAdd)
                     eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
                     eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
                     overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
-                    storeValues[obj.time * 1e3] = obj.medianSnow;
+                    toolValues[obj.time * 1e3] = [obj.medianSnow, channel];
 	    });
 	    $.each(DailyData, function(idx, obj) {
 	        dailyPoints.push([obj.time * 1e3, obj.medianSnow]);
@@ -148,7 +141,7 @@ function setSizes(event, ui, plotAdd)
                     belowDataToPlot.push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
                     aboveDataToPlot.push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
                     overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? 0.50 : null]);
-                    storeValues[obj.time * 1e3] = obj.medianBragg;            
+                    toolValues[obj.time * 1e3] = [obj.medianBragg, false];            
             });
             $.each(DailyData, function(idx, obj) {
                 dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
@@ -159,7 +152,7 @@ function setSizes(event, ui, plotAdd)
                     belowDataToPlot.push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
                     aboveDataToPlot.push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
 		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
-		    storeValues[obj.time * 1e3] = obj.medianRain; 
+		    toolValues[obj.time * 1e3] = [obj.medianRain, false]; 
             });
             $.each(DailyData, function(idx, obj) {
                 dailyPoints.push([obj.time * 1e3, obj.medianRain]);
@@ -170,7 +163,7 @@ function setSizes(event, ui, plotAdd)
                     belowDataToPlot.push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
                     aboveDataToPlot.push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
                     overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
-                    storeValues[obj.time * 1e3] = obj.medianSnow;
+                    toolValues[obj.time * 1e3] = [obj.medianSnow, false];
 
             });
             $.each(DailyData, function(idx, obj) {

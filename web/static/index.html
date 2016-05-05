@@ -32,7 +32,6 @@
 			else { 
 		            $('.sites').html(ICAO+' - Shade Chart - Past 6 Months') 		    
                             $('#site').html(ICAO)
-			    console.log(TimeStamp)
 			    $('#timestamp').html('Last Updated: ' + TimeStamp)
 		            makeGages();
             	            determineOverview('MostRecent','chan1')        
@@ -84,15 +83,16 @@
 				var x = item.datapoint[0],
 				    y = item.datapoint[1]
 				;
-				var actual = storeValues[x]
+				var actual = toolValues[x][0]
 				if (Math.abs(y) < 0.50)
 				    var actual = y;
 				var d = new Date(x)
 				var month = d.getUTCMonth()+1;
 				var day = d.getUTCDate();
 				var year = d.getUTCFullYear();
+				var chan = toolValues[x][1] ? toolValues[x][1] + " " : "";
 				showTooltip(item.pageX, item.pageY, 
-					actual +"dB on "+ month+"/"+day+"/"+year
+				    chan + actual +"dB on "+ month+"/"+day+"/"+year
 				);
 			    }
 			}
