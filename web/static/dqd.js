@@ -3,9 +3,9 @@ var then = new Date(now.getTime() - 182.5 * 24 * 3600 * 1e3);
 var month = new Date(now.getTime() - (365/12) * 24 * 3600 * 1e3);
 var sevenDays = new Date(now.getTime() - 7 * 24 * 3600 * 1e3);
 var timeInterval = {
-			'7Days':sevenDays/1000,
-			'1Month':month/1000,
-			'6Months':then/1000
+			'sevenDays':sevenDays/1000,
+			'oneMonth':month/1000,
+			'sixMonths':then/1000
 };
 var weights = [0.25,0.33,0.42] // IMPORTANT: DO NOT CHANGE ----> Weights for Rain, Snow, & Bragg methods, respectively
 var toolValues = {};
@@ -79,7 +79,8 @@ function setSizes(event, ui, plotAdd)
         method = whichPage.replace('-page', ''),
         possibleChartName = method + '-container',
         pageMainName = method + '-main',
-        chartContainer = $('#' + possibleChartName)
+        chartContainer = $('#' + possibleChartName),
+	name = 'median' + method.charAt(0).toUpperCase() + method.slice(1);
     ;
   
     toolValues = {};
@@ -93,83 +94,40 @@ function setSizes(event, ui, plotAdd)
         aboveDataToPlot = [],
 	dailyPoints	= [],
 	overTolerance	= []
-    ;
+    ;		
     if(redundant == "True"){
-	var chan1 = {'belowDataToPlot':[],'aboveDataToPlot':[]}	
-	    chan2 = {'belowDataToPlot':[],'aboveDataToPlot':[]}
+	var redundantChart = {
+				"Chan1" : {
+					    'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]
+				}, 
+				"Chan2": {
+					    'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]
+				}
+	}
 	; 
-        if (method == 'bragg'){
-            $.each(SummaryData, function (idx, obj) {
-		    var channel = 'chan' + RedundantData[idx]
-                    eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
-                    eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
-		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? obj.medianBragg : null]);
-                    toolValues[obj.time * 1e3] = [obj.medianBragg, channel];
-            });
-	    $.each(DailyData, function(idx, obj) {
-	        dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
-	    });
-        } 	
-	else if (method == 'rain'){
-	    $.each(SummaryData, function (idx, obj) {
-                    var channel = 'chan' + RedundantData[idx]
-                    eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
-                    eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
-                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
-                    toolValues[obj.time * 1e3] = [obj.medianRain, channel];            
-	    });
-	    $.each(DailyData, function(idx, obj) {
-		dailyPoints.push([obj.time * 1e3, obj.medianRain]);
-	    });
-	}
-	else if (method == 'snow'){
-	    $.each(SummaryData, function (idx, obj) {
-                    var channel = 'chan' + RedundantData[idx]
-                    eval(channel)['belowDataToPlot'].push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
-                    eval(channel)['aboveDataToPlot'].push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
-                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
-                    toolValues[obj.time * 1e3] = [obj.medianSnow, channel];
-	    });
-	    $.each(DailyData, function(idx, obj) {
-	        dailyPoints.push([obj.time * 1e3, obj.medianSnow]);
-	    });
-	}
+        $.each(SummaryData, function (idx, obj) {	    
+	    var channel = 'Chan' + obj.redundantMode
+            redundantChart[channel]['belowDataToPlot'].push([obj.time * 1e3, obj[name] < 0 ? obj[name] : null]);
+            redundantChart[channel]['aboveDataToPlot'].push([obj.time * 1e3, obj[name] >= 0 ? obj[name] : null]);
+            overTolerance.push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? obj[name] : null]);
+            toolValues[obj.time * 1e3] = [obj[name], channel];
+        });
+	$.each(DailyData, function(idx, obj) {
+	    var channel = 'Chan' + obj.redundantMode
+	    console.log(channel,obj[name])
+	    redundantChart[channel]['dailyPoints'].push([obj.time * 1e3, obj[name]]);
+	});
     }
     else {
-        if (method == 'bragg'){
-            $.each(SummaryData, function (idx, obj) {
-                    belowDataToPlot.push([obj.time * 1e3, obj.medianBragg < 0 ? obj.medianBragg : null]);
-                    aboveDataToPlot.push([obj.time * 1e3, obj.medianBragg >= 0 ? obj.medianBragg : null]);
-                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianBragg || obj.medianBragg > 0.50 ? 0.50 : null]);
-                    toolValues[obj.time * 1e3] = [obj.medianBragg, false];            
-            });
-            $.each(DailyData, function(idx, obj) {
-                dailyPoints.push([obj.time * 1e3, obj.medianBragg]);
-            });
-        }
-        else if (method == 'rain'){
-            $.each(SummaryData, function (idx, obj) {
-                    belowDataToPlot.push([obj.time * 1e3, obj.medianRain < 0 ? obj.medianRain : null]);
-                    aboveDataToPlot.push([obj.time * 1e3, obj.medianRain >= 0 ? obj.medianRain : null]);
-		    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianRain || obj.medianRain > 0.50 ? 0.50 : null]);
-		    toolValues[obj.time * 1e3] = [obj.medianRain, false]; 
-            });
-            $.each(DailyData, function(idx, obj) {
-                dailyPoints.push([obj.time * 1e3, obj.medianRain]);
-            });
-        }
-        else if (method == 'snow'){
-            $.each(SummaryData, function (idx, obj) {
-                    belowDataToPlot.push([obj.time * 1e3, obj.medianSnow < 0 ? obj.medianSnow : null]);
-                    aboveDataToPlot.push([obj.time * 1e3, obj.medianSnow >= 0 ? obj.medianSnow : null]);
-                    overTolerance.push([obj.time * 1e3, -0.50 > obj.medianSnow || obj.medianSnow > 0.50 ? 0.50 : null]);
-                    toolValues[obj.time * 1e3] = [obj.medianSnow, false];
-
-            });
-            $.each(DailyData, function(idx, obj) {
-                dailyPoints.push([obj.time * 1e3, obj.medianSnow]);
-            });
-        }
+        $.each(SummaryData, function (idx, obj) {
+            belowDataToPlot.push([obj.time * 1e3, obj[name] < 0 ? obj[name] : null]);
+            aboveDataToPlot.push([obj.time * 1e3, obj[name] >= 0 ? obj[name] : null]);
+            overTolerance.push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? 0.50 : null]);
+            toolValues[obj.time * 1e3] = [obj[name], false];            
+        });
+        $.each(DailyData, function(idx, obj) {
+            dailyPoints.push([obj.time * 1e3, obj[name]]);
+        });
     }
     var plotOpts =         
 	[
@@ -190,10 +148,10 @@ function setSizes(event, ui, plotAdd)
             }
         ]
     if (redundant == "True"){
-	for (p in plotAdd){
+	for (var p = 0; p < plotAdd.length; p++){
             plotOpts.push(
 		{
-		    data: eval(plotAdd[p])['belowDataToPlot'],
+		    data: redundantChart[plotAdd[p]]['belowDataToPlot'],
 		    lines:    {
 			show: true,
 			fill: true,
@@ -203,7 +161,7 @@ function setSizes(event, ui, plotAdd)
 	    );
             plotOpts.push(
 		{
-		    data: eval(plotAdd[p])['aboveDataToPlot'],
+		    data: redundantChart[plotAdd[p]]['aboveDataToPlot'],
 		    lines:    {
 			show: true,	
 			fill: true,
@@ -211,6 +169,17 @@ function setSizes(event, ui, plotAdd)
 		    }
 		}
 	    );
+            plotOpts.push(
+                {
+            	    data: redundantChart[plotAdd[p]]['dailyPoints'],
+            	    color:'black',
+            	    points: {
+                        show: true,
+                        symbol: plotAdd[p] == "Chan1" ? "circle" : "triangle",
+                    }
+                }
+            );
+
     	}
     }
     else{
@@ -240,18 +209,18 @@ function setSizes(event, ui, plotAdd)
                 }
             }
 	);
-    }
-
-    plotOpts.push(
-        {
-            data:dailyPoints,
-            color:'black',
-            points: {
-                show: true,
-                symbol: "cross",
+        plotOpts.push(
+            {
+                data:dailyPoints,
+                color:'black',
+                points: {
+                    show: true,
+                    symbol: "circle",
+                }
             }
-        }
-    );
+        );
+
+    }
     plotOpts.push(
 	{
 	    data: overTolerance,
@@ -299,14 +268,14 @@ function determineOverview(time,chan)
 	mRain = []
     ;
     if(redundant == "True"){
-	rBragg = {'chan1':[],'chan2':[]};
-        rSnow = {'chan1':[],'chan2':[]};
-        rRain = {'chan1':[],'chan2':[]};
+	rBragg = {'Chan1':[],'Chan2':[]};
+        rSnow = {'Chan1':[],'Chan2':[]};
+        rRain = {'Chan1':[],'Chan2':[]};
 	
-	if(time != 'MostRecent'){
+	if(time != 'latestVolume'){
             $.each(DailyData, function(idx,obj){
                 if(timeInterval[time] <= obj.time){
-		    var channel = 'chan' + RedundantData[idx]
+		    var channel = 'Chan' + obj.redundantMode
                     rBragg[channel].push(obj.medianBragg);
                     rSnow[channel].push(obj.medianSnow);
                     rRain[channel].push(obj.medianRain);
@@ -319,7 +288,7 @@ function determineOverview(time,chan)
         else {
 	    var copyData = JSON.parse(JSON.stringify(DailyData)).reverse()
 	    $.each(copyData,function(idx,obj) {
-		if (RedundantData[idx] == chan.replace('chan','')) {
+		if (obj.redundantMode == chan.replace('Chan','')) {
                     tRain = obj.medianRain;
             	    tSnow = obj.medianSnow;
             	    tBragg = obj.medianBragg;
@@ -330,7 +299,7 @@ function determineOverview(time,chan)
 		    
     }
     else {
-        if(time != 'MostRecent'){
+        if(time != 'latestVolume'){
             $.each(DailyData, function(idx,obj){
                 if(timeInterval[time] <= obj.time){
                     mBragg.push(obj.medianBragg);
