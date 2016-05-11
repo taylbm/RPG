@@ -96,13 +96,8 @@ function setSizes(event, ui, plotAdd)
 	overTolerance	= []
     ;		
     if(redundant == "True"){
-	var redundantChart = {
-				"Chan1" : {
-					    'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]
-				}, 
-				"Chan2": {
-					    'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]
-				}
+	var redundantChart = {"Chan1" : {'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]}, 
+			      "Chan2": {'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]}
 	}
 	; 
         $.each(SummaryData, function (idx, obj) {	    
