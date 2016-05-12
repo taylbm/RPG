@@ -98,7 +98,6 @@ class VCP_command_control(object):
         dir_list_parse = [x.split('_')[1] for x in os.listdir(vcp_dir) if x.split('_')[0] == 'vcp']
         complete = {}
 	vcp_num = _rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER)
-        print vcp_num
 	for vcp in dir_list_parse:	
             fname = vcp_dir+'/vcp_'+vcp
             try:
@@ -107,20 +106,17 @@ class VCP_command_control(object):
             except Exception,e:
             	print ("vcp def read error")
             # creates custom display data
-	    elev_list = [x for x in text_lines if 'elev_ang_deg' in x]
-            unique_elevs = len(set(elev_list))
+	    elev_list = [float(x.split('     ')[2].strip('\n')) for x in text_lines if 'elev_ang_deg' in x]
+            print elev_list
+	    unique_elevs = len(set(elev_list))
             num_split_cuts = len([x for x in text_lines if 'waveform_type' and 'CS' in x])-1
             num_batch_cuts = len([x for x in text_lines if 'waveform_type' and 'BATCH' in x])
             # identifies open and closed braces
 	    text_open = [x for x,i in enumerate(text_lines) if '{' in i]
 	    text_closed = [x for x,i in enumerate(text_lines) if '}' in i]
             # counts whitespaces to determine line indentation pattern
-            indent_open = []
-            for j in text_open:
-        	indent_open.append((len(text_lines[j]) - len(text_lines[j].lstrip())))
-            indent_closed = []
-            for b in text_closed:
-        	indent_closed.append((len(text_lines[b]) - len(text_lines[b].lstrip())))
+	    indent_open = [len(text_lines[o]) - len(text_lines[o].lstrip()) for o in text_open]
+	    indent_closed = [len(text_lines[c]) - len(text_lines[c].lstrip()) for c in text_closed]
             del indent_open[1]
             indent_open.append(8)
             indent_difference = [a - b for a, b in zip(indent_open,indent_closed)]
@@ -270,7 +266,7 @@ class VCP_command_control(object):
 	        multi_helper = ("32","31")
 	    if len(elev_list) == 17:
 	        multi_helper = ("212","12") 
-	    avset = len(elev_list) > 8
+	    avset = max(elev_list) > 6.4
 	    multi = {'bool':unique_elevs == 5 or len(elev_list) == 17,'multi_helper':multi_helper}
 	    scan_rate_sum = sum(360/float(stripList(x.replace('scan_rate_dps',''))) for x in text_lines if 'scan_rate_dps' in x)
 	    update_interval = str(datetime.timedelta(seconds=int(scan_rate_sum)))[2:]
@@ -318,12 +314,8 @@ class Parse_VCPS(object):
         text_open = [x for x,i in enumerate(text_lines) if '{' in i]
         text_closed = [x for x,i in enumerate(text_lines) if '}' in i]
 	# counts whitespaces to determine line indentation pattern
-	indent_open = []
-	for j in text_open:
-	    indent_open.append((len(text_lines[j]) - len(text_lines[j].lstrip())))
-	indent_closed = []
-	for b in text_closed:
-	    indent_closed.append((len(text_lines[b]) - len(text_lines[b].lstrip())))
+        indent_open = [len(text_lines[o]) - len(text_lines[o].lstrip()) for o in text_open]
+        indent_closed = [len(text_lines[c]) - len(text_lines[c].lstrip()) for c in text_closed]
 	del indent_open[1]
 	indent_open.append(8)
 	indent_difference = [a - b for a, b in zip(indent_open,indent_closed)]
