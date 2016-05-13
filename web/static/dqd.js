@@ -109,7 +109,6 @@ function setSizes(event, ui, plotAdd)
         });
 	$.each(DailyData, function(idx, obj) {
 	    var channel = 'Chan' + obj.redundantMode
-	    console.log(channel,obj[name])
 	    redundantChart[channel]['dailyPoints'].push([obj.time * 1e3, obj[name]]);
 	});
     }

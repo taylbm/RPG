@@ -52,19 +52,6 @@
                 });
 		$('#latestVolume').prop('checked',true).click();
 		$('#overviewChan1').prop('checked',true).click();
-		    
-/*
-                $("#"+page+"redundant #toggle").find("input[type='checkbox']").click(function () {
-                    var dataSet = [];
-                    $("#"+page+"redundant #toggle").find("input[type='checkbox']").each(function () {
-                        if ($(this).is(":checked")) {
-                            var position = $(this).attr("id");
-                            dataSet.push(position);
-                        }
-                    });
-                    setSizes(event,ui,dataSet)
-                });
-*/
                 $( ":mobile-pagecontainer" ).on( "pagecontainershow", function( event, ui ) {
 		    var pointClicked = false,
 			clicksYet = false,
@@ -73,6 +60,7 @@
                     if (!SummaryData) 
                         event.preventDefault();
 		    var page = ui.toPage.get(0).id.replace('-page','')
+		    var channel = $('#channel-form :checked').val()
 		    if ( redundant == "True" ) {
 		        var channel = $('#channel-form :checked').val()
 			$('input[name=channel-toggle]').prop('checked',false).trigger('refresh');
@@ -88,6 +76,7 @@
                         });
 		    }
 		    else {
+		  	setSizes(event, ui, [channel]);
 			$("#"+page+"-redundant").html(' ');
 		    }
 		    $("#"+page+"-container").bind("plothover",function(event, pos, item) {
