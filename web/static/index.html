@@ -86,15 +86,17 @@
 			        $("#tooltip").remove();
 				var x = item.datapoint[0],
 				    y = item.datapoint[1]
+				    l = item.datapoint.length
 				;
-				var actual = toolValues[x][0]
+                                var actualValues = l == 3 || item.seriesIndex == 5 ? summaryToolValues[x] : dailyToolValues[x]
+                                var actual = actualValues[0]
 				if (Math.abs(y) < 0.50)
 				    var actual = y;
 				var d = new Date(x)
 				var month = d.getUTCMonth()+1;
 				var day = d.getUTCDate();
 				var year = d.getUTCFullYear();
-				var chan = toolValues[x][1] ? toolValues[x][1] + " " : "";
+				var chan = actualValues[1] ? actualValues[1] + " " : "";
 				showTooltip(item.pageX, item.pageY, 
 				    chan + actual.toFixed(2) +"dB on "+ month+"/"+day+"/"+year
 				);
@@ -136,6 +138,9 @@
 		    var name = $(this).attr('name');
                     pageLoad(name);
 		});
+		$('.home').on('click', function() { 
+		    pageLoad('home');
+		});
             });
         </script>
     </head>
@@ -145,9 +150,6 @@
 		        <ul data-role="listview">
 		            <li data-role="list-divider">
 		                ZDR Bias
-		            </li>
-		            <li data-icon="home">
-		                <a name="home" href="#home-page">Home</a>
 		            </li>
 		            <li>
 		                <a name="rain" href="#rain-page">Rain method</a>
@@ -201,7 +203,6 @@
 		<h3 align="center" id="noData"></h3>
                 <div class="ui-body ui-body-a">
 		    <div id="main-gauge" style="height:480px; width:640px; margin:auto;">
-			<input type="button" data-enhanced="true" value="">	
 		    </div>
 		    <div class="ui-grid-b">
 	                    <div id="rain-gauge" class="ui-block-a ui-input-btn ui-btn ui-shadow">
@@ -227,9 +228,6 @@
                     <li data-role="list-divider">
                         ZDR Bias
                     </li>
-                    <li data-icon="home">
-                        <a name="home" href="#home-page">Home</a>
-                    </li>
                     <li>
                         <a name="rain" href="#rain-page">Rain method</a>
                     </li>
@@ -245,6 +243,7 @@
             <div data-role="header">
                 <h2>ZDR Bias - Rain</h2>
                 <a href="#rain-nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+                <a class="home ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-home ui-shadow">Home</a>
             </div>
             <div id="rain-main" role="main" class="ui-content">
                 <h2 class="sites" align="center"></h2><h4 align="center">7 Day Running Median Shading/Daily Median Points</h4>
@@ -270,9 +269,6 @@
                     <li data-role="list-divider">
                         ZDR Bias
                     </li>
-                    <li data-icon="home">
-                        <a name="home" href="#home-page">Home</a>
-                    </li>
                     <li>
                         <a name="rain" href="#rain-page">Rain method</a>
                     </li>
@@ -288,6 +284,7 @@
             <div data-role="header">
                 <h2>ZDR Bias - Snow</h2>
                 <a href="#snow-nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+                <a class="home ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-home ui-shadow">Home</a>
             </div>
             <div id="snow-main" role="main" class="ui-content">
 		<h2 class="sites" align="center"></h2><h4 align="center">7 Day Running Median Shading/Daily Median Points</h4>
@@ -313,9 +310,6 @@
                     <li data-role="list-divider">
                         ZDR Bias
                     </li>
-                    <li data-icon="home">
-                        <a name="home" href="#home-page">Home</a>
-                    </li>
                     <li>
                         <a name="rain" href="#rain-page">Rain method</a>
                     </li>
@@ -331,6 +325,7 @@
             <div data-role="header">
                 <h2>ZDR Bias - Bragg</h2> 
                 <a href="#bragg-nav-panel" class="ui-btn-right ui-btn ui-btn-inline ui-btn-icon-right ui-icon-bars ui-shadow">Menu</a>
+                <a class="home ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-home ui-shadow">Home</a>
             </div>
             <div id="bragg-main" role="main" class="ui-content">
                 <h2 class="sites" align="center"></h2><h4 align="center">7 Day Running Median Shading/Daily Median Points</h4>

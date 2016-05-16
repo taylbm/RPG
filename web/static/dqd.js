@@ -8,7 +8,9 @@ var timeInterval = {
 			'sixMonths':then/1000
 };
 var weights = [0.25,0.33,0.42] // IMPORTANT: DO NOT CHANGE ----> Weights for Rain, Snow, & Bragg methods, respectively
-var toolValues = {};
+var summaryToolValues = {},
+    dailyToolValues = {}
+;
 
 function pageLoad(name)
 {
@@ -104,12 +106,13 @@ function setSizes(event, ui, plotAdd)
 	    var channel = 'Chan' + obj.redundantMode
             redundantChart[channel]['belowDataToPlot'].push([obj.time * 1e3, obj[name] < 0 ? obj[name] : null]);
             redundantChart[channel]['aboveDataToPlot'].push([obj.time * 1e3, obj[name] >= 0 ? obj[name] : null]);
-            overTolerance.push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? obj[name] : null]);
-            toolValues[obj.time * 1e3] = [obj[name], channel];
+            overTolerance.push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? 0.50 : null]);
+            summaryToolValues[obj.time * 1e3] = [obj[name], channel];
         });
 	$.each(DailyData, function(idx, obj) {
 	    var channel = 'Chan' + obj.redundantMode
 	    redundantChart[channel]['dailyPoints'].push([obj.time * 1e3, obj[name]]);
+            dailyToolValues[obj.time * 1e3] = [obj[name],channel];
 	});
     }
     else {
@@ -117,10 +120,11 @@ function setSizes(event, ui, plotAdd)
             belowDataToPlot.push([obj.time * 1e3, obj[name] < 0 ? obj[name] : null]);
             aboveDataToPlot.push([obj.time * 1e3, obj[name] >= 0 ? obj[name] : null]);
             overTolerance.push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? 0.50 : null]);
-            toolValues[obj.time * 1e3] = [obj[name], false];            
+            summaryToolValues[obj.time * 1e3] = [obj[name], false];            
         });
         $.each(DailyData, function(idx, obj) {
             dailyPoints.push([obj.time * 1e3, obj[name]]);
+	    dailyToolValues[obj.time * 1e3] = [obj[name],false];
         });
     }
     var plotOpts =         
