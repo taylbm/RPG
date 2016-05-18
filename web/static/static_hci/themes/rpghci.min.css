@@ -776,7 +776,10 @@ table.no-spacing {
     background-color:red !important;
 }
 #main-page { 
-    width:1050px;
+    width:1024px;
+    height: auto;
+    margin: 0 auto;
+    position: relative !important;
 }
 #sails-form {
     display:none;
