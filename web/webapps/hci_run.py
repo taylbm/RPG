@@ -4,14 +4,11 @@ import signal
 import threading 
 from time import sleep 
 
-CFG = os.getenv("CFG_DIR")
-sys.path.append(CFG+"/web/deps")
-RPG_LIB = os.getenv("RPGLIB")
-sys.path.append(RPG_LIB)
-
-import _rpg
 HERE = os.path.split(os.path.abspath(__file__))[0]     # looks awful, but gets the parent dir
 PARENT = os.path.split(HERE)[0]
+sys.path.append(PARENT+"/deps")
+sys.path.append(PARENT+"/webapps")
+
 MODULE_CACHE_DIR = '/tmp/HCI/mako_modules'      # change "my_app_name" to your application name
 
 import web
@@ -24,6 +21,9 @@ Configure(
 )
 
 from hci_handlers import *
+from hci_vcp_handlers import *
+from hci_scc_handlers import *
+
 SESSION_DIR = '/tmp/HCI'            # change "my_app_name" to your application name
 URLS = (
     '/','hci_handlers.IndexView',            # you can list other handlers here
@@ -44,10 +44,19 @@ URLS = (
     '/auth','hci_handlers.Basic_Auth',
     '/rpg_s','hci_handlers.RPG_status_server',
     '/rpg_status','hci_handlers.RPG_Status',
-    '/dqd','hci_handlers.DQD'
+    '/dqd','hci_handlers.DQD',
+    '/el_list','hci_vcp_handlers.Elev_List',
+    '/send_cmd','hci_vcp_handlers.Send_RDACOM',
+    '/current_vcp','hci_vcp_handlers.Current_VCP',   
+    '/list_vcps','hci_vcp_handlers.List_VCPS',
+    '/parse_vcps','hci_vcp_handlers.Parse_VCPS',
+    '/vcp','hci_vcp_handlers.VCP_command_control',
+    '/scc','hci_scc_handlers.Shift_change_checklist'
+
 )
 
+app = web.application(URLS, globals())
+application = app.wsgifunc()
 if __name__ == '__main__':
-    app = web.application(URLS, globals())
     app.run()
 

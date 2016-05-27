@@ -1,0 +1,148 @@
+###
+### control_rpg - this is a sub-menu for the hci
+###
+
+
+
+
+<%block name="extra_header_markup">
+
+
+
+	
+
+
+</%block>
+
+
+
+###
+### body
+###
+<%block name="content">
+    <div data-transition="slidefade" data-role="panel" id="rpg_control_panel" data-display="overlay" data-position="right" style="width:25em" data-theme="a">
+        <div data-role="popup" id="popupDialogRPG" data-dismissible="false">
+            <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+                <h1 id="pop-title" class="ui-title" role="heading">Confirm Action</h1>
+            </div>
+            <div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
+                <h3 align="center"id="id-confirm" class="ui-title"></h3>
+                <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
+                <a id="pop-confirm" value="N/A"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
+	    </div>
+        </div>
+        <div data-role="popup" id="popupDialogPass" data-dismissible="false">
+            <div class="ui-corner-top ui-header ui-bar-a" data-theme="a" data-role="header" role="banner">
+                <h1 id="pop-title" class="ui-title" role="heading">HCI Password</h1>
+            </div>
+            <div class="ui-corner-bottom" data-theme="d" data-role="content" role="main">
+		<fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+    		    <legend>Select User (LOCA):</legend>
+    	  	    <input name="User" id="Agency" type="radio">
+    		    <label for="Agency">Agency</label>
+    		    <input name="User" id="ROC" type="radio">
+    		    <label for="ROC">ROC</label>
+    		    <input name="User" id="URC" type="radio">
+    		    <label for="URC">URC</label>
+		</fieldset>
+                <label for="password">Password:</label>
+                <input name="password" id="password" value="" autocomplete="off" type="password">
+                <a id="pop-submit" class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Submit</a>
+                <a id="pop-cancel"class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" href="#" data-rel="back">Cancel</a>
+            </div>
+        </div>
+        <div data-role="header" style="overflow:hidden;">
+        <h1>RPG Control</h1>
+            <div data-role="navbar">
+                <ul>
+                    <li><a style="color:white" class="nav-item control-shadow ui-btn ui-icon-refresh ui-btn-icon-right" href="#">Refresh Status</a></li>
+                    <li><button id="pass-protect" value="locked" style="color:white;text-align:center" class="ui-btn ui-icon-lock ui-btn-icon-left nav-item control-shadow">Locked</button></li>
+                </ul>
+            </div>
+        </div>
+	<br>
+	    <div class="custom-corners ui-corner-all">    
+	    <div class="ui-bar ui-bar-a" style="text-align:center">	
+	        <h3 style="color:black;margin:0" align="center">RPG System Control</h3>
+	    </div>
+	    <div class="ui-body ui-body-a">
+		<form id="MRPG">	
+		    <div class="ui-grid-a">
+		        <div class="ui-block-a">
+      		            <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-alert">
+        	                Standby
+        	                <input data-enhanced="true" value="MRPG_STANDBY" class="ui-btn control-item" type="button">
+    		            </div>
+                            <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-power">
+                                Startup
+                                <input data-enhanced="true" value="MRPG_STARTUP" type="button">
+                            </div>
+		        </div>
+		    <div class="ui-grid-b">
+                        <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-power">
+                            Shutdown
+                            <input data-enhanced="true" value="MRPG_SHUTDOWN" type="button">
+                        </div>
+                        <div class="ui-input-btn ui-btn ui-corner-all control-item control-shadow ui-btn-icon-right ui-icon-recycle">
+                            Clean Startup
+                            <input data-enhanced="true" value="MRPG_CLEANUP" type="button">
+                        </div>
+		    </div>
+		</form>
+	    </div>
+	    </div>
+            <div class="ui-body ui-body-a ui-corner-all"> 
+                <h4 style="color:black;margin:0" align="center">Archive II Control</h4>
+                <form id="ArchiveII" style="margin:0">        
+                    <a value="MRPG_STANDBY" class="control-item control-shadow" style="width:50%;margin-left:auto;margin-right:auto"data-role="button" data-mini="true">Archive II<a/>
+                </form>
+            </div>
+            <div style="font-size:13px"class="ui-body ui-body-a ui-corner-all">
+                <h3 style="color:black;margin:0" align="center">Initialization Control</h3>
+		The following items denote various functions.<br> 
+		The selectivity state of each item depends<br> 
+		on the RPG state. After items are selected <br>
+		the Activate button invokes the function(s).
+	    </div>
+	    <div class="ui-grid-a ui-body ui-body-a ui-corner-all">
+		<div id="reset-hydromet" class="ui-block-a ui-corner-all">
+	            <h4 style="color:black;margin:0" align="center">Reset Hydromet</h4>
+    		    <fieldset  data-role="controlgroup" data-mini="true">
+	   	        <input disabled="true" type="checkbox" name="hydromet" id="snow-accum" class="custom" />
+	   		<label for="snow-accum">Snow Accumulation</label>
+                        <input disabled="true" type="checkbox" name="hydromet" id="legacy-pps" class="custom" />
+                        <label for="legacy-pps">Legacy PPS (excludes USP Database)</label>
+                        <input disabled="true" type="checkbox" name="hydromet" id="dualpol-qpe" class="custom" />
+                        <label for="dualpol-qpe">Dual-Pol QPE (excludes DUA Database)</label>
+                        <input disabled="true" type="checkbox" name="hydromet" id="differences" class="custom" />
+                        <label for="differences">Differences (Dual-Pol QPE - Legacy PPS)</label> 
+		    </fieldset>
+		</div>
+		<div id="state-data" class="ui-block-b ui-corner-all">
+                    <h4 style="color:black;margin:0" align="center">State Data</h4>
+                    <fieldset  data-role="controlgroup" data-mini="true">
+                        <input disabled="true" type="checkbox" name="state" id="rpg-syslog" class="custom" />
+                        <label for="rpg-syslog">RPG System Status Log</label>
+                        <input disabled="true" type="checkbox" name="state" id="prod-database" class="custom" />
+                        <label for="prod-database">Product Database</label>
+                        <input disabled="true" type="checkbox" name="state" id="rda-alarms-log" class="custom" />
+                        <label for="rda-alarms-log">RDA Alarms Log</label>
+                        <input disabled="true" type="checkbox" name="state" id="rpg-state-data" class="custom" />
+                        <label for="rpg-state-data">RPG State Data</label>
+                        <input disabled="true" type="checkbox" name="state" id="rpg-task-log" class="custom" />
+                        <label for="rpg-task-log">RPG Task Log Files</label>
+                    </fieldset>
+		</div>
+	    </div>
+            <form id="Initialization" style="margin:0">
+                <a class="control-item control-shadow" style="width:50%;margin-left:auto;margin-right:auto"data-role="button" data-mini="true">Activate<a/>
+            </form>
+        </div>
+    </div>
+</%block>	
+
+
+
+	
+
+

@@ -8,14 +8,29 @@ from templating import LOOKUP
 import sys
 import os
 import web
+from subprocess import Popen, call, PIPE
 
-CFG = os.getenv("CFG_DIR")
-sys.path.append(CFG+"/web/deps")
-HOME = os.getenv("HOME")
+def shell_source(script,var):
+    """Sometime you want to emulate the action of "source" in bash,
+    settings some environment variables. Here is a way to do it."""
+    pipe = Popen(". %s; env" % script, stdout=PIPE, shell=True)
+    output = pipe.communicate()[0]
+    env = dict((line.split("=", 1) for line in output.splitlines() if var in line or "False" == var))
+    os.environ.update(env)
+
+HOME = os.environ.get("RPGHOME")
+if not HOME:
+    shell_source("/etc/profile.d/rpg.sh","False")
+    HOME = os.environ.get("RPGHOME")
+    shell_source(os.path.join(HOME,".bash_profile"),"RMTPORT")
+CFG = os.environ.get("CFG_DIR")
+RPGLIB = os.environ.get("RPGLIB")
+sys.path.append(RPGLIB)
+sys.path.append(CFG + "/web/deps")
+
 
 import _rpg
 import time
-from subprocess import Popen, call
 from commands import getoutput
 from cgi import parse_qs
 import datetime

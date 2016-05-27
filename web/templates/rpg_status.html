@@ -1,0 +1,75 @@
+###
+### rpg_status.mako - this is a sub-menu for the hci
+###
+
+<%!
+    inherit_layout = True 
+    layout_name = "rpg_status.mako" 
+    page_id = 'status-page'
+    page_title = 'RPG Status'
+    page_classes = ''
+%>
+
+###
+### namespaces
+###
+
+<%inherit file="page.mako" />
+
+
+###
+### blocks
+###
+
+<%block name="extra_header_markup">
+
+
+
+<script src="static/static_hci/rpg_status.js"></script>
+	
+
+
+</%block>
+
+###
+### body
+###
+    <a id="close"data-theme="b" style="position:relative;left:0px;top:0px" class="ui-btn-left ui-btn ui-btn-inline ui-btn-icon-left ui-icon-back ui-corner-all" href="#">Close</a>
+    <div class="ui-grid-b"> 
+        <ul class="ui-block-a" data-role="listview" data-theme="b">	
+	    <h3 style="text-align:center;margin:0px">Load Shed</h3>
+	    <li id="PRDSTGLS" class="rpg-alarm-sum">Product Storage</li>
+            <li id="RDAINLS" class="rpg-alarm-sum">RDA Radial</li>
+            <li id="RPGINLS" class="rpg-alarm-sum">RPG Radial</li>
+            <li id="WBDLS" class="rpg-alarm-sum">Distribution</li>
+	</ul>
+        <div class="ui-block-b" data-role="listview" data-theme="b">
+            <h3 style="text-align:center;margin:0px">Maintenance Required</h3>
+            <li id="DISTR" class="rpg-alarm-sum">Distribution</li>
+            <li id="DBFL" class="rpg-alarm-sum">Data Base Failure</li>
+            <li id="RPGTSKFL" class="rpg-alarm-sum">Task Failure</li>
+            <li class="rpg-alarm-sum">Backup Comms</li>
+        </div>
+        <div class="ui-block-c" data-role="listview" data-theme="b">
+            <h3 style="text-align:center;margin:0px">Maintenance Mandatory</h3>
+            <li id="RPGTSKFL" class="rpg-alarm-sum">Control Task Failure</li>
+            <li id="NODE_CON" class="rpg-alarm-sum">Node Connectivity</li>
+            <li id="WBFAILRE" class="rpg-alarm-sum">RDA Wideband Failure</li>
+            <li id="MEDIAFL" class="rpg-alarm-sum">Media Failure</li>
+        </div>
+    </div>
+    <h3 style="text-align:center"> System Log Messages</h3> 
+    <form>
+        <input id="filterTable-input" data-type="search">
+    </form>
+    <table data-role="table" data-filter="true" data-input="#filterTable-input" class="ui-responsive" id="logTable">
+        <tbody id="logBody">
+	<tr></tr>
+        </tbody>
+    </table>	
+
+
+
+	
+
+

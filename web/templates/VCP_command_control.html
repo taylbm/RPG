@@ -1,0 +1,224 @@
+###
+### vcp.mako - this is the main page for the VCP GUI
+###
+
+<%!
+    inherit_layout = False
+    page_id = 'main-page'
+    page_title = ''
+    page_classes = ''
+%>
+
+###
+### inheritence chain
+###
+
+<%inherit file="vcp_page.mako" />
+
+###
+### namespaces
+###
+
+###
+### blocks
+###
+
+
+
+
+<%block name="extra_header_markup">
+    <script src="static/static_vcp/VCP_command_control.js"></script>
+    <link rel="stylesheet" href="static/static_vcp/themes/rpghci.min.css" />
+    <script src="/static/flot/jquery.flot.min.js"></script>
+    <script src="/static/flot/jquery.flot.fillbetween.js"></script>
+    <script src="/static/flot/jquery.flot.axislabels.js"></script>
+</%block>
+
+###
+### body
+###
+
+<%
+
+vcp_list = [x for x in context.keys() if x.isdigit()]
+
+%>
+
+
+
+<%
+check_url = "checkmark"
+x_url = "delete"
+e = "N/A"
+%>
+
+<div data-role="header">
+    <a id="close" href="#" class="ui-btn-left ui-btn ui-btn-inline ui-corner-all ui-btn-icon-left ui-icon-back">Close</a>
+    <h2>VCP Mode and Control</h2>
+</div>
+<a id="vcp-def-link" href="#vcp-def"></a>
+<a id="vel-pop-link" href="#vel-pop" data-rel="popup" data-position-to="window" data-transition="pop"></a>
+<div id="content">
+
+% for vcp in vcp_list:
+    <div data-role="popup" id="vcp-desc-${vcp}">
+        <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-left">Close</a>
+        <div data-role="header">
+            <h1 class="vcp-desc-title"></h1>
+        </div>
+        <div role="main" class="ui-content">
+            <div id="vcp-desc-text" class="ui-body ui-body-a" style="height:600px; overflow:auto;">
+                <ul type="square" data-role="listview" data-inset="false" style="padding-top:0.5em;">
+                    <li data-role="list-divider">Parameters</li>
+		% for param in context.get('vcp_'+vcp,e).get("DESC").get("Parameters"):
+		    <li>${param}</li>	
+		% endfor
+                    <li data-role="list-divider">Strengths/Applications</li>
+                % for strength_app in context.get('vcp_'+vcp,e).get("DESC").get("Strengths/Applications"):
+                    <li>${strength_app}</li>
+                % endfor
+                    <li data-role="list-divider">Limitations</li>
+                % for limit in context.get('vcp_'+vcp,e).get("DESC").get("Limitations"):
+                    <li>${limit}</li>
+                % endfor
+                </ul>
+            </div>
+        </div>
+    </div>
+% endfor
+    <div data-role="popup" id="vcp-confirm" data-dismissable="true" style="padding:25px;">
+        <div data-role="header">
+            <h1 class="vcp-prompt">Confirmation</h1>
+        </div>
+        <div role="main" class="ui-content minor-alarm">
+            <div style="display:inline-block">
+		<h2 style="display:inline-block">Send VCP</h2>
+		<h2 style="display:inline-block" class ="final-vcp-confirm"></h2> 
+		<h2 style="display:inline-block">to RDA?</h2>
+	    </div>
+            <br>
+	    <div class="ui-grid-a">
+ 	        <div class="ui-block-a">
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Cancel</a>
+                </div>
+	        <div class="ui-block-b">
+	            <a href="#" class="vcp-dload-confirm ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back" data-transition="flow">Send</a>
+                </div>
+	    </div>
+        </div>
+    </div>
+
+% for vcp in vcp_list:
+    % if context.get(vcp).get("multi").get("bool"):
+        <%
+            master = context.get(vcp).get("multi").get("multi_helper")[0]
+            if master == vcp:
+                vcp_list.remove(context.get(vcp).get("multi").get("multi_helper")[1])
+                other_vcp = context.get(vcp).get("multi").get("multi_helper")[1]
+            else:
+                vcp_list.remove(master)
+                other_vcp = master
+        %>
+
+
+	<div class="ui-body ui-body-a ui-corner-all" style="height:140px;">
+            <div class="ui-grid-b">
+                <div class="ui-block-a">
+                    <div class="ui-grid-a">
+                        <ul data-role="listview" data-inset="true" class="ui-block-a ui-listview ui-listview-inset ui-corner-all ui-shadow">
+                            <li class="item${vcp} ui-first-child"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${vcp}"href="#vcp-confirm" data-rel="popup">VCP ${vcp}</a></li>
+                            <li class="item${other_vcp} ui-last-child"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check" id="${other_vcp}"href="#vcp-confirm" data-rel="popup">VCP ${other_vcp}</a></li>
+                        </ul>
+                        <a class="vcp-page-click ui-block-b" href="#vcp-${master}-page"><div id="vcp${master}-draw-overview" style="height:100px; width:160px;"></div></a>            
+                    </div>
+                </div>
+                <div class="vcp-multi ui-block-b">
+                    <table data-role="table" data-mode="reflow" class="ui-responsive ui-table ui-table-reflow">
+                        <thead>
+                            <tr>
+				% for strat in context.get(vcp).get("strategies").keys():
+                            	    % if context.get(vcp).get("strategies").get(strat):
+                                        <th><img src="/static/jquery.mobile-1.4.5/images/icons-png/check-green.png" class="ui-li-icon">${strat}</th>
+                                    % else:
+                                        <th><img src="/static/jquery.mobile-1.4.5/images/icons-png/delete-red.png" class="ui-li-icon">${strat}</th>
+                                    % endif
+				% endfor
+			    </tr>
+                        </thead>
+                    </table>
+                    <table data-role="table" data-mode="reflow" class="ui-responsive ui-table ui-table-reflow">
+                        <thead>
+                            <tr>
+				% for strat in context.get(other_vcp).get("strategies").keys():
+                                    % if context.get(other_vcp).get("strategies").get(strat):
+                                        <th><img src="/static/jquery.mobile-1.4.5/images/icons-png/check-green.png" class="ui-li-icon">${strat}</th>
+                                    % else:
+                                        <th><img src="/static/jquery.mobile-1.4.5/images/icons-png/delete-red.png" class="ui-li-icon">${strat}</th>
+                                    % endif
+                                % endfor
+
+			    </tr>
+                        </thead>
+                    </table>
+                    <p class="info-box">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # SAILS Cuts: ${context.get(vcp).get('sails_cuts')}</p>        
+                    <p class="interval">Update Interval: ${vcp} - ${context.get(vcp).get('update_interval')} / ${other_vcp} - ${context.get(other_vcp).get('update_interval')}</p>
+                </div>
+                <a href="#vcp-desc-${vcp}" id="${vcp}/${other_vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="font-size:14px;text-indent:0.5em; padding-left:0.5em;">${context.get('vcp_'+vcp,e).get('INFO')}</p></a>
+            </div>
+        </div>
+    % else:		
+        <div class="ui-body ui-body-a ui-corner-all" style="height:40%;">
+            <div class="ui-grid-b">
+        	<div class="ui-block-a">
+        	    <div class="ui-grid-a">
+        		<ul data-role="listview" data-inset="true" class="ui-block-a ui-listview ui-listview-inset ui-corner-all ui-shadow">
+                            <li class="ui-first-child ui-last-child"data-icon="check"><a class="vcp-confirm ui-btn ui-btn-icon-right ui-icon-check"id="${vcp}" href="#vcp-confirm" data-rel="popup">VCP ${vcp}</a></li>
+                  	</ul>
+        		<a class="vcp-page-click ui-block-b" href="#vcp-${vcp}-page"><div id="vcp${vcp}-draw-overview" style="height:100px; width:160px;"></div></a>	
+        	    </div>
+        	</div>
+                <div class="ui-block-b">
+        	    <table data-role="table" data-mode="reflow" class="ui-responsive ui-table ui-table-reflow">
+        	        <thead>
+        	            <tr>
+				% for strat in context.get(vcp).get("strategies").keys():
+                                    % if context.get(vcp).get("strategies").get(strat):
+                                        <th><img src="/static/jquery.mobile-1.4.5/images/icons-png/check-green.png" class="ui-li-icon">${strat}</th>
+                                    % else:
+                                        <th><img src="/static/jquery.mobile-1.4.5/images/icons-png/delete-red.png" class="ui-li-icon">${strat}</th>
+                                    % endif
+                                % endfor
+	
+        	            </tr>
+        	        </thead>
+        	    </table>
+        	    <p class="info-box">Elev. Angles: ${int(context.get(vcp).get('unique_elevs'))} # Split Cuts: ${context.get(vcp).get('num_split_cuts')} # SAILS Cuts: ${context.get(vcp).get('sails_cuts')}</p><p class="interval">Update Interval: ${context.get(vcp).get('update_interval')}</p>
+		</div>
+                <a href="#vcp-desc-${vcp}" id="${vcp}" data-rel="popup" class="vcp-desc ui-block-c"><p style="font-size:14px;text-indent:0.5em; padding-left:0.5em;">${context.get('vcp_'+vcp,e).get('INFO')}</p></a>
+            </div>
+    	</div>
+    % endif
+% endfor
+
+
+	
+    <div style="display:inline-block;float:right">
+        <div data-theme="b" data-role="controlgroup" data-type="horizontal">
+	    <a href="#vcp-def" class="ui-btn ui-corner-all">View RPG VCP Definitions</a>
+	    <a id="current-vcp" href="#" class="ui-btn ui-corner-all">View Current VCP</a>
+	    <a href="#restart-pop" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all">Restart Current VCP</a>
+            <div data-role="popup" id="restart-pop" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="max-width:400px;">
+                <div data-role="header" data-theme="a">
+                    <h1>Restart VCP?</h1>
+                </div>
+        	<div role="main" class="ui-content">
+                    <h4 style="text-align:center">You are about to stop the current data collection and start over at the lowest elevation cut.<br> Do you want to continue?</h4>
+                    <a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back">Cancel</a>
+                    <a href="#" id="restart-vcp-confirm" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b" data-rel="back" data-transition="flow" style="float:right">Restart</a>
+        	</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
