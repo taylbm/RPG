@@ -12,26 +12,6 @@ var summaryToolValues = {},
     dailyToolValues = {}
 ;
 
-function pageLoad(name)
-{
-    if (name == 'rain')
-	window.location.href = '#rain-page',
-	window.location.reload()
-    ;
-    else if (name == 'snow')
-	window.location.href = '#snow-page',
-	window.location.reload()
-    ;
-    else if (name == 'bragg')
-	window.location.href = '#bragg-page',
-	window.location.reload()
-    ;
-    else if (name == 'home')
-	window.location.href = '#home-page',
-	window.location.reload()
-    ;
-}
-
 function median(arr) 
 {
 
@@ -84,7 +64,7 @@ function setSizes(event, ui, plotAdd)
         chartContainer = $('#' + possibleChartName),
 	name = 'median' + method.charAt(0).toUpperCase() + method.slice(1);
     ;
-  
+ 	
     toolValues = {};
         
     if (chartContainer.length < 1)
@@ -98,15 +78,15 @@ function setSizes(event, ui, plotAdd)
 	overTolerance	= []
     ;		
     if(redundant == "True"){
-	var redundantChart = {"Chan1" : {'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]}, 
-			      "Chan2": {'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[]}
+	var redundantChart = {"Chan1" : {'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[],'overTolerance':[]}, 
+			      "Chan2": {'belowDataToPlot':[],'aboveDataToPlot':[],'dailyPoints':[],'overTolerance':[]}
 	}
 	; 
         $.each(SummaryData, function (idx, obj) {	    
 	    var channel = 'Chan' + obj.redundantMode
             redundantChart[channel]['belowDataToPlot'].push([obj.time * 1e3, obj[name] < 0 ? obj[name] : null]);
             redundantChart[channel]['aboveDataToPlot'].push([obj.time * 1e3, obj[name] >= 0 ? obj[name] : null]);
-            overTolerance.push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? 0.50 : null]);
+            redundantChart[channel]['overTolerance'].push([obj.time * 1e3, -0.50 > obj[name] || obj[name] > 0.50 ? 0.50 : null]);
             summaryToolValues[obj.time * 1e3] = [obj[name], channel];
         });
 	$.each(DailyData, function(idx, obj) {
@@ -177,6 +157,17 @@ function setSizes(event, ui, plotAdd)
                     }
                 }
             );
+            plotOpts.push(
+                {
+                    data: redundantChart[plotAdd[p]]['overTolerance'],
+                    color: 'black',
+                    points: {
+                        show: true,
+                        symbol: "square",
+                    }
+                }
+            );
+
 
     	}
     }
@@ -217,18 +208,19 @@ function setSizes(event, ui, plotAdd)
                 }
             }
         );
+        plotOpts.push(
+            {
+                data: overTolerance,
+                color: 'black',
+                points: {
+                    show: true,
+                    symbol: "square",
+                }
+            }
+        );
+
 
     }
-    plotOpts.push(
-	{
-	    data: overTolerance,
-	    color: 'black',
-	    points: {
-		show: true,
-		symbol: "square",
-	    }
-	}
-    );
 	
     $.plot(
         chartContainer,plotOpts, 
