@@ -16,7 +16,7 @@ import web
 from templating import Configure
 
 Configure(
-    [os.path.join(PARENT, 'templates_hci')], 
+    [os.path.join(PARENT, 'templates')], 
     module_cache_dir = MODULE_CACHE_DIR
 )
 
