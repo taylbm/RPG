@@ -19,7 +19,7 @@
         <script>        
             var MainGage = null, RainGage = null, SnowGage = null, BraggGage = null;
        	    var channel = "Chan1"
-	    var value = "latestVolume" 
+	    var value = "oneMonth" 
 	    var selectedChannels = []
             $(document).ready(function () {
                 $('#summary-data').load('summary.js', function () {
@@ -35,7 +35,6 @@
                             $('#site').html(ICAO)
 			    $('#timestamp').html('Last Updated: ' + TimeStamp)
 		            makeGages();
-            	            determineOverview(value,channel)        
                             $.each(SummaryData, function (idx, obj) {
                                 SummaryData[idx].medianRain = obj.medianRain > -99.0 ? obj.medianRain : null; 
                                 SummaryData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
@@ -46,12 +45,13 @@
 			        DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
 			        DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
 		           });
+                            determineOverview(value,channel)        
   		        }
                         if(redundant == "False") 
                             $('#channel-form').html(' ');
 		    }
                 });
-		$('#latestVolume').prop('checked',true).click();
+		$('#oneMonth').prop('checked',true).click();
 		$('#overviewChan1').prop('checked',true).click();
                 $( ":mobile-pagecontainer" ).on( "pagecontainershow", function( event, ui ) {
 		    var pointClicked = false,

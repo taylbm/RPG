@@ -18,13 +18,18 @@ def shell_source(script,var):
     env = dict((line.split("=", 1) for line in output.splitlines() if var in line or "False" == var))
     os.environ.update(env)
 
-HOME = os.environ.get("RPGHOME")
-if not HOME:
+
+OPERATIONAL = os.path.isfile("/etc/profile.d/rpg.sh")
+HOME = os.environ.get("HOME")
+if OPERATIONAL:
     shell_source("/etc/profile.d/rpg.sh","False")
     HOME = os.environ.get("RPGHOME")
     shell_source(os.path.join(HOME,".bash_profile"),"RMTPORT")
+    RPGLIB = os.environ.get("RPGLIB")
+else:
+    RPGLIB = os.environ.get("LD_LIBRARY_PATH")
+
 CFG = os.environ.get("CFG_DIR")
-RPGLIB = os.environ.get("RPGLIB")
 sys.path.append(RPGLIB)
 sys.path.append(CFG + "/web/deps")
 
