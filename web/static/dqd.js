@@ -53,6 +53,201 @@ function showTooltip(x, y, contents) {
     }).appendTo("body").fadeIn(200);
 }
 
+function setSizesFull( plotAdd) { 
+    if (!SummaryData)
+        return;
+    var rainContain = $('#rain-fullcontainer');
+    var snowContain = $('#snow-fullcontainer');
+    var braggContain = $('#bragg-fullcontainer');
+    var chartWidth = $('#fullchart-main').width() * 0.8;
+    rainContain.height('250').width(chartWidth).css('margin', 'auto');
+    snowContain.height('250').width(chartWidth).css('margin', 'auto');
+    braggContain.height('250').width(chartWidth).css('margin', 'auto');
+   
+    var fullDataSeries =  {
+			    "belowDataToPlot" : {"medianRain":[],"medianSnow":[],"medianBragg":[]},
+        		    "aboveDataToPlot": {"medianRain":[],"medianSnow":[],"medianBragg":[]},
+        		    "dailyPoints": {"medianRain":[],"medianSnow":[],"medianBragg":[]},
+        		    "overTolerance": {"medianRain":[],"medianSnow":[],"medianBragg":[]}
+    };
+    if(redundant == "True"){
+        var redundantChart = {"Chan1" : JSON.parse(JSON.stringify(fullDataSeries)),
+                              "Chan2": JSON.parse(JSON.stringify(fullDataSeries))
+        }
+        ;
+        $.each(SummaryData, function (idx, obj) {
+            var channel = 'Chan' + obj.redundantMode
+	    $.each(obj, function (name,data) {
+		if (name != "time" && name != "redundantMode") { 
+                    redundantChart[channel]["belowDataToPlot"][name].push([obj.time * 1e3, data < 0 ? data : null]);
+                    redundantChart[channel]["aboveDataToPlot"][name].push([obj.time * 1e3, data >= 0 ? data : null]);
+                    redundantChart[channel]["overTolerance"][name].push([obj.time * 1e3, -0.50 > data || data > 0.50 ? 0.50 : null]);
+		}
+            });
+	});
+        $.each(DailyData, function(idx, obj) {
+            var channel = 'Chan' + obj.redundantMode
+	    $.each(obj, function(name,data) { 
+		if (name != "time" && name != "redundantMode")
+            	    redundantChart[channel]["dailyPoints"][name].push([obj.time * 1e3, data]);
+	    });
+        });
+    }
+    else {
+        $.each(SummaryData, function (idx, obj) {
+	    $.each(obj, function(name,data) { 
+	        if (name != "time" && name != "redundantMode") { 
+            	    fullDataSeries["belowDataToPlot"][name].push([obj.time * 1e3, data < 0 ? data : null]);
+               	    fullDataSeries["aboveDataToPlot"][name].push([obj.time * 1e3, data >= 0 ? data : null]);
+            	    fullDataSeries["overTolerance"][name].push([obj.time * 1e3, -0.50 > data || data > 0.50 ? 0.50 : null]);
+		}
+	    });
+        });
+        $.each(DailyData, function(idx, obj) {
+            fullDataSeries["dailyPoints"].push([obj.time * 1e3, data]);
+        });
+    }
+    var plotOpts =
+        [
+            {
+                id: 'topTolerance',
+                data: [[then, 0.2], [now, 0.2]],
+                lines:  {show: true, lineWidth: 0, fill: false}
+            },
+            {
+                data: [[then, -0.2], [now, -0.2]],
+                lines:  {
+                    show: true,
+                    lineWidth: 0,
+                    fill: 0.2
+                },
+                color: 'rgb(128, 128, 255)',
+                fillBetween: 'topTolerance'
+            }
+        ]
+    ;
+    var plotOptsMulti = { "medianRain":[].concat(plotOpts),"medianSnow":[].concat(plotOpts),"medianBragg":[].concat(plotOpts) } 
+    $.each(plotOptsMulti,function (idx,obj) { 
+    console.log(idx,obj)	
+    if (redundant == "True"){
+        for (var p = 0; p < plotAdd.length; p++){
+            obj.push(
+                {
+                    data: redundantChart[plotAdd[p]]['belowDataToPlot'][idx],
+                    lines:    {
+                        show: true,
+                        fill: true,
+                        fillColor:'rgb(0,0,128)'
+                    }
+                }
+            );
+            obj.push(
+                {
+                    data: redundantChart[plotAdd[p]]['aboveDataToPlot'][idx],
+                    lines:    {
+                        show: true,
+                        fill: true,
+                        fillColor:'rgb(128,0,0)'
+                    }
+                }
+            );
+            obj.push(
+                {
+                    data: redundantChart[plotAdd[p]]['dailyPoints'][idx],
+                    color:'black',
+                    points: {
+                        show: true,
+                        symbol: plotAdd[p] == "Chan1" ? "circle" : "triangle",
+                    }
+                }
+            );
+            obj.push(
+                {
+                    data: redundantChart[plotAdd[p]]['overTolerance'][idx],
+                    color: 'black',
+                    points: {
+                        show: true,
+                        symbol: "square",
+                    }
+                }
+            );
+        }
+    }
+    else{
+        obj.push(
+            {
+                data: fullDataSeries["belowDataToPlot"][idx],
+                lines:   {
+                    show: true,
+                    fill:   true,
+                    fillColor:  'rgb(0, 0, 128)'
+                },
+                points: {
+                    show: false
+                }
+            }
+        );
+        obj.push(
+            {
+                data: fullDataSeries["aboveDataToPlot"][idx],
+                lines:   {
+                    show: true,
+                    fill:   true,
+                    fillColor:  'rgb(128, 0, 0)'
+                },
+                points: {
+                    show: false
+                }
+            }
+        );
+        obj.push(
+            {
+                data:fullDataSeries["dailyPoints"][idx],
+                color:'black',
+                points: {
+                    show: true,
+                    symbol: "circle",
+                }
+            }
+        );
+        obj.push(
+            {
+                data: fullDataSeries["overTolerance"][idx],
+                color: 'black',
+                points: {
+                    show: true,
+                    symbol: "square",
+                }
+            }
+        );
+    }
+    });
+    var containers = ["rain","snow","bragg"]
+    $.each(containers, function(idx,name) {
+    var nameU = 'median' + name.charAt(0).toUpperCase() + name.slice(1);
+    $.plot(
+        $('#'+name+"-fullcontainer"),plotOptsMulti[nameU],
+        {
+            yaxis:  {
+                min:    -0.5,
+                max:    0.5,
+                ticks:  [-0.5, -0.2, 0.0, 0.2, 0.5],
+                tickFormatter:  function (v) { return v + ' dB'; }
+            },
+            xaxis: {
+                mode: 'time',
+                timeformat: '%m/%d',
+                min:    then,
+                max:    now
+            }
+        }
+    );
+    });
+
+
+}
+
+
 function setSizes(event, ui, plotAdd)
 {
     if (!SummaryData)
@@ -168,7 +363,6 @@ function setSizes(event, ui, plotAdd)
                 }
             );
 
-
     	}
     }
     else{
@@ -218,8 +412,6 @@ function setSizes(event, ui, plotAdd)
                 }
             }
         );
-
-
     }
 	
     $.plot(
