@@ -104,7 +104,10 @@ function setSizesFull( plotAdd) {
 	    });
         });
         $.each(DailyData, function(idx, obj) {
-            fullDataSeries["dailyPoints"].push([obj.time * 1e3, data]);
+            $.each(obj, function(name,data) {
+                if (name != "time" && name != "redundantMode")
+                    fullDataSeries["dailyPoints"][name].push([obj.time * 1e3, data]);
+            });
         });
     }
     var plotOpts =
@@ -128,7 +131,6 @@ function setSizesFull( plotAdd) {
     ;
     var plotOptsMulti = { "medianRain":[].concat(plotOpts),"medianSnow":[].concat(plotOpts),"medianBragg":[].concat(plotOpts) } 
     $.each(plotOptsMulti,function (idx,obj) { 
-    console.log(idx,obj)	
     if (redundant == "True"){
         for (var p = 0; p < plotAdd.length; p++){
             obj.push(
@@ -248,12 +250,11 @@ function setSizesFull( plotAdd) {
 }
 
 
-function setSizes(event, ui, plotAdd)
+function setSizes(pageName, plotAdd)
 {
     if (!SummaryData)
         return;
-    var whichPage = ui.toPage.get(0).id,
-        method = whichPage.replace('-page', ''),
+    var method = pageName.replace('-page', ''),
         possibleChartName = method + '-container',
         pageMainName = method + '-main',
         chartContainer = $('#' + possibleChartName),

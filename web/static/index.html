@@ -18,9 +18,11 @@
 
         <script>        
             var MainGage = null, RainGage = null, SnowGage = null, BraggGage = null;
-       	    var channel = "Chan1"
-	    var value = "oneMonth" 
-	    var selectedChannels = []
+       	    var channel = ["Chan1"],
+	        value = "oneMonth", 
+		prevPage = "home",
+	        selectedChannels = []
+	    ;
             $(document).ready(function () {
                 $('#summary-data').load('summary.js', function () {
 		    if ($('#summary-data').html() == "") {
@@ -45,7 +47,7 @@
 			        DailyData[idx].medianSnow = obj.medianSnow > -99.0 ? obj.medianSnow : null;
 			        DailyData[idx].medianBragg = obj.medianBragg > -99.0 ? obj.medianBragg : null;
 		           });
-                            determineOverview(value,channel)        
+                            determineOverview(value,channel[0])        
   		        }
                         if(redundant == "False") 
                             $('#channel-form').html(' ');
@@ -59,7 +61,7 @@
 			previousPoint = null
 		    ;
                     if (!SummaryData) 
-                        event.preventDefault();
+                        event.preventDefault();	
 		    var page = ui.toPage.get(0).id.replace('-page','')
 		    if ( redundant == "True" ) {
 			if ( page == "home" ) {
@@ -67,28 +69,28 @@
 			        $('#overview'+selectedChannels[0]).prop('checked',true).click();
 			}
 			else { 
-			    $('.'+page+"Toggle").attr('checked',false).checkboxradio('refresh');
-			    $('#' + page + channel).prop('checked',true).checkboxradio('refresh');
+			    if (prevPage != "home") { 
+			        selectedChannels = $('input[type="checkbox"]').filter('.' + prevPage).map(function(){
+			       	    if ( $(this).is(':checked') )
+				        return String($(this).val());
+			         });
+			         channel = $.makeArray(selectedChannels)
+			    }
+			    $('.'+page).attr('checked',false).checkboxradio('refresh');
+                            for ( c in channel)
+                                $('#' + page + channel[c]).prop('checked',true).checkboxradio('refresh');
 		  	    if (page == "fullchart") 
-			        setSizesFull([channel])	
+			        setSizesFull(channel)	
 			    else 
-		                setSizes(event, ui, [channel])
-                            $('.' + page + 'Toggle').on("click", function() {
-                                var name = $(this).attr("class")
-                                selectedChannels = $('input[type="checkbox"]').filter('.' + name).map(function(){
-                                    if ( $(this).is(':checked') )
-                                        return $(this).val();
-                                });
-				if (page == "fullchart")
-				    setSizesFull(selectedChannels) 
-				else 
-                   	            setSizes(event, ui, selectedChannels); 		
-			    });
+		                setSizes(page+"-page", channel)
 		        }
 		    }
 		    else {
-		  	setSizes(event, ui, [channel]);
-			$("#"+page+"-redundant").html(' ');
+			if (page == "fullchart")
+                            setSizesFull() 
+                        else 
+                            setSizes(page+"-page");  
+			$("#"+page+"-redundant").html('');
 		    }
 		    $("#"+page+"-container").bind("plothover",function(event, pos, item) {
 		        if (item) {
@@ -120,6 +122,7 @@
 			}
 			
 		    });
+		    prevPage = page;
 
                 });
 		$('#main-gauge').mouseenter(function(event,pos,item) {
@@ -129,22 +132,34 @@
 		});
 		$('#main-gauge').mouseleave(function() { 
 		    $('#tooltip').remove()
-		});
-		
+		});	
                	$('input[name="time-select"]').on('click',function() { 
-		    channel = $('#channel-form :checked').val()
+		    var channel = $('#channel-form :checked').val();
 		    value = $(this).attr('value');
 		    determineOverview(value,channel);
 		});
 		$('input[name="overview-channel-select"]').on('click',function() {
-		    value = $('#time-form :checked').val()
-                    channel  = $(this).attr('value');
+		    var channelTemp = $(this).attr('value');
+		    value = $('#time-form :checked').val();
+                    channel  = [channelTemp]
                     determineOverview(value,channel);
                 });
 		$('input[type="button"]').on('click',function() {
 		    var name = $(this).attr('name');
                     window.location.href = '#' + name + '-page';
 		});
+		$('input[name="channel-toggle"]').on("click", function(e) {
+		    var name = $(this).attr("id").slice(0,-5)
+		    selectedChannels = $('input[type="checkbox"]').filter('.' + name).map(function(){
+			if ( $(this).is(':checked') )
+			    return String($(this).val());
+		    })
+		    if (name == "fullchart")
+			setSizesFull(selectedChannels)
+		    else
+			setSizes(name+"-page", selectedChannels)
+		});
+
             });
         </script>
     </head>
@@ -261,13 +276,16 @@
 		<form id="rain-redundant">	
             	    <fieldset data-role="controlgroup" data-mini="true">
                         <legend>RDA Channel:</legend>
-                	<input name="rain-channel-toggle" id="rainChan1" value="Chan1" class="rainToggle" type="checkbox">
+                	<input name="channel-toggle" id="rainChan1" value="Chan1" class="rain" type="checkbox">
                 	<label for="rainChan1">Channel 1</label>
-                	<input name="rain-channel-toggle" id="rainChan2" value="Chan2" class="rainToggle" type="checkbox">
+                	<input name="channel-toggle" id="rainChan2" value="Chan2" class="rain" type="checkbox">
                 	<label for="rainChan2">Channel 2</label>
                     </fieldset>
 		</form>
 		<div id="rain-container"></div>
+                <div align="center">
+                    <a class="ui-btn ui-btn-inline ui-shadow" href="#fullchart-page">Return to 3-Panel Overview</a>
+                </div>
             </div>
             <div data-role="footer">
                 <h3>NEXRAD Radar Operations Center</h3>
@@ -305,13 +323,16 @@
                 <form id="snow-redundant">
                     <fieldset data-role="controlgroup" data-mini="true">
                         <legend>RDA Channel:</legend>
-                        <input name="snow-channel-toggle" value="Chan1" id="snowChan1" class="snowToggle" type="checkbox">
+                        <input name="channel-toggle" value="Chan1" id="snowChan1" class="snow" type="checkbox">
                         <label for="snowChan1">Channel 1</label>
-                        <input name="snow-channel-toggle" value="Chan2" id="snowChan2" class="snowToggle" type="checkbox">
+                        <input name="channel-toggle" value="Chan2" id="snowChan2" class="snow" type="checkbox">
                         <label for="snowChan2">Channel 2</label>
                     </fieldset>
 		</form>
 		<div id="snow-container"></div>
+                <div align="center">
+                    <a class="ui-btn ui-btn-inline ui-shadow" href="#fullchart-page">Return to 3-Panel Overview</a>
+                </div>
             </div>
             <div data-role="footer">
                 <h3>NEXRAD Radar Operations Center</h3>
@@ -349,13 +370,16 @@
 		<form id="bragg-redundant">
                     <fieldset data-role="controlgroup" data-mini="true">
                         <legend>RDA Channel:</legend>
-                        <input name="bragg-channel-toggle" value="Chan1" id="braggChan1" class="braggToggle" type="checkbox">
+                        <input name="channel-toggle" value="Chan1" id="braggChan1" class="bragg" type="checkbox">
                         <label for="braggChan1">Channel 1</label>
-                        <input name="bragg-channel-toggle" value="Chan2" id="braggChan2" class="braggToggle" type="checkbox">
+                        <input name="channel-toggle" value="Chan2" id="braggChan2" class="bragg" type="checkbox">
                         <label for="braggChan2">Channel 2</label>
                     </fieldset>
 		</form>
 	 	<div id="bragg-container"></div>
+                <div align="center">
+                    <a class="ui-btn ui-btn-inline ui-shadow" href="#fullchart-page">Return to 3-Panel Overview</a>
+                </div>
             </div>
             <div data-role="footer">
                 <h3>NEXRAD Radar Operations Center</h3>
@@ -394,9 +418,9 @@
 		<form style="position:absolute" id="fullchart-redundant">
                     <fieldset data-role="controlgroup" data-mini="true">
                         <legend>RDA Channel:</legend>
-                        <input name="fullchart-channel-toggle" value="Chan1" id="fullchartChan1" class="fullchartToggle" type="checkbox">
+                        <input name="channel-toggle" value="Chan1" id="fullchartChan1" class="fullchart" type="checkbox">
                         <label for="fullchartChan1">Channel 1</label>
-                        <input name="fullchart-channel-toggle" value="Chan2" id="fullchartChan2" class="fullchartToggle" type="checkbox">
+                        <input name="channel-toggle" value="Chan2" id="fullchartChan2" class="fullchart" type="checkbox">
                         <label for="fullchartChan2">Channel 2</label>
                     </fieldset>
                 </form>
