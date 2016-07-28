@@ -155,7 +155,7 @@ $(document).ready(function(){
 		            break;
 		        case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
 		            var command = attr.newVal.confirmation == "on" ? '_ENABLE' : '_DISABLE'
-		            $.post('/send_cmd',{COM:attr.controlname + command, FLAG:"None"});
+		            $.post('/send_rda_cmd',{COM:attr.controlname + command, FLAG:"None"});
 			    break;
 			case 'Model_Update': case 'VAD_Update':
 			    var flag = attr.newVal.confirmation == "on"
@@ -176,7 +176,7 @@ $(document).ready(function(){
 				$('#AVSET_Exception_status').removeClass('hide')
 			}
 		    }  
-		    if(attr.displayname == 'CMD' || attr.displayname == 'Super-Res'){
+		    if(attr.displayname == 'CMD'){
 			$("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
 			if (attr.newVal.confirmation == "on"){
 			    $("#"+attr.controlname+"_status").addClass("hide")
@@ -325,7 +325,7 @@ $(document).ready(function(){
                 $("#optional-insert").html('')
                 $('#popupDialog').popup('open')
                 $("#pop-title").html(DATA.popTitle)
-		if (['SAILS','AVSET','CMD','Super-Res','AVSET-Exception','SAILS-Exception'].indexOf(displayname) >=0){
+		if (['SAILS','AVSET','CMD','AVSET-Exception','SAILS-Exception'].indexOf(displayname) >=0){
 		    $('#popupDialog').popup('open')
 	            if (displayname == 'SAILS' || displayname == 'SAILS-Exception'){
                         $("#pop-title").html(DATA.popTitleSAILS)
@@ -395,12 +395,12 @@ $(document).ready(function(){
 	$('input[name="RDA_control"]').click(function(){
             var command = $(this).val();
             $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
-            $.post('/send_cmd',{COM:command,FLAG:"None"});
+            $.post('/send_rda_cmd',{COM:command,FLAG:"None"});
 	});
 	$('#popupDialogRDA #pop-confirm').click(function(){
 	    var command = $(this).attr("value")
 	    $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
-	    $.post('/send_cmd',{COM:command,FLAG:"None"});
+	    $.post('/send_rda_cmd',{COM:command,FLAG:"None"});
         });
 	$('#popupDialogRDA #pop-cancel').click(function(){
 	    if (RS['RS_AUX_POWER_GEN_STATE'])
@@ -503,7 +503,7 @@ $(document).ready(function(){
       	    }
         });
 	$('#refresh_rda').on('click',function(){
-	    $.post('send_cmd',{COM:"DREQ_STATUS",FLAG:"None"});
+	    $.post('send_rda_cmd',{COM:"DREQ_STATUS",FLAG:"None"});
 	    $('#Feedback').html(timeStamp() + " >> " + DATA.RDAStatus);
 	});
         var link = $('#squaresWaveG_long').html()
@@ -541,15 +541,12 @@ $(document).ready(function(){
 		}
 	 	if( radome.sails_seq > 0 ) {
 		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText(DATA.sails_seq[radome.sails_seq],cW/wD - cW*0.2,cH/hD - cH*0.025);
-		}	
-		try {
-		    var elevation = radome.el / 10
-		    if( radome.super_res > 0 ) {
-		        maincircle.font = DATA.superResFont;maincircle.fillText('SR',cW/wD - cW*0.1,cH/hD + cH*0.28)
-		    }
 		}
-		catch(err){
-		    var elevation = 0.0
+		try {
+                    var elevation = radome.el / 10
+		}
+		catch(err) {
+                    var elevation = 0.0
 		}
 		maincircle.font = DATA.elFont;
 		var elMult = elevation < 10 ? 0.70 : 1;
@@ -557,7 +554,6 @@ $(document).ready(function(){
 		    maincircle.fillText(elevation.toFixed(1),cW/wD - cW*0.25*elMult,cH/hD - cH*0.1);
 		else
 		    maincircle.fillText(elevation,cW/wD - cW*0.25*elMult,cH/hD - cH*0.1);
-
                 maincircle.font = DATA.sailsAvsetFont;
                 maincircle.fillText("SAILS:",cW/wD - cW*0.33,cH/hD + cH*0.04)
                 maincircle.fillText("AVSET:",cW/wD - cW*0.33,cH/hD + cH*0.15)
@@ -703,7 +699,6 @@ $(document).ready(function(){
 
 	non_rapid.addEventListener('ADAPT_dict',function(e) {
 	    ADAPT = JSON.parse(e.data)
-	    console.log(ADAPT)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    switch(Number(ADAPT['ZR_mult'])){
 		case DATA.zrCats.CONVECTIVE:
@@ -861,7 +856,7 @@ $(document).ready(function(){
 			$('#RDA_STATE').html('UNKNOWN').attr('class','bar-border2 inop-indicator')
 			$('#OPERABILITY_LIST').html('UNKNOWN').attr('class','bar-border2 inop-indicator') 
                         $('.RPG_STAT').removeClass('hide');
-			var unk_list = ['AVSET_Exception','RS_AVSET','RS_CMD','RS_SUPER_RES']
+			var unk_list = ['AVSET_Exception','RS_AVSET','RS_CMD']
 			for (unk in unk_list){
 			    $('#'+unk_list[unk]).val('off').slider('refresh')
 			    $('#'+unk_list[unk]+'_contain .ui-slider .ui-slider-label-b').text('????')
@@ -880,7 +875,8 @@ $(document).ready(function(){
 	});
 
 	non_rapid.addEventListener('RS_dict',function(e) {
-	    RS = JSON.parse(e.data)
+	    RS = JSON.parse(e.data)	
+	    console.log(RS)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
 	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
@@ -1184,15 +1180,16 @@ $(document).ready(function(){
 	$('#rpg_misc').click(function(){
 		$.get("/button?id=hci_misc")
 	});
-	$('#dqd').click(function(){
-	//	$.get("/button?id=dqd")
-	});
 	$('#88D-ops').click(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");
         }); 	
 	$('#shift-change').click(function(){
-                window.open("http://0.0.0.0:4235","_blank","width= 1024, height = 1024, scrollbars=yes");
+                window.open("/scc","_blank","width= 1024, height = 1024, scrollbars=yes");
         });
+        $('#vcp-button').click(function(){
+                window.open("/vcp","_blank","width= 1024, height = 840, scrollbars=yes");
+        });
+
 
 });
 

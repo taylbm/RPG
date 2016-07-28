@@ -1,4 +1,4 @@
-###
+##
 ### page.mako - this is a layout for pages
 ###
 
@@ -32,7 +32,7 @@ layout = self.attr.layout_name
         <li><div id="clock_contain"><div style="text-align:center" id="clockbox-date"></div><div style="text-align:center" class="center" id="clockbox-time"></div></div></li>
         <li><a id="88D-ops" style="color:white" class="nav-item control-shadow" href="#">WSR-88D Operations</a></li>
         % if self.attr.page_id == "main-page":
-        <li><a id="shift-change" style="color:white" class="nav-item control-shadow" target="_blank" href="/scc">Shift Change Checklist</a></li>
+        <li><a id="shift-change" style="color:white" class="nav-item control-shadow">Shift Change Checklist</a></li>
         <li><a id="prf_control" style="color:white" class="nav-item control-shadow" href="#">PRF Control</a></li>
         <li><a id="enviro_data" style="color:white" class="nav-item control-shadow" href="#">Environmental Data</a></li>
 	% elif self.attr.page_id == "ops-page":

@@ -42,19 +42,48 @@ class Current_VCP(object):
         vel_res_dict = {_rpg.orpgrda.CRDA_VEL_RESO_HIGH:'label-high',_rpg.orpgrda.CRDA_VEL_RESO_LOW:'label-low'}
         return json.dumps({'vcp_num':vcp_num,'vel_res':vel_res_dict[vel_res]})
 
+##
+# Sends RDA Commands using CRDA 
+##
+class Send_RDACOM(object):
+    def POST(self):
+        data = web.input()
+        req = data.COM
+        set_clear_flag = data.FLAG
+        CRDA = {
+                'RS_SUPER_RES_ENABLE':[_rpg.orpgrda.CRDA_SR_ENAB,'orpginfo_set_super_resolution_enabled'],
+                'RS_SUPER_RES_DISABLE':[_rpg.orpgrda.CRDA_SR_DISAB,'orpginfo_clear_super_resolution_enabled'],
+                'RS_CMD_ENABLE':[_rpg.orpgrda.CRDA_CMD_ENAB,'orpginfo_set_cmd_enabled'],
+                'RS_CMD_DISABLE':[_rpg.orpgrda.CRDA_CMD_DISAB,'orpginfo_clear_cmd_enabled'],
+                'RS_AVSET_DISABLE':[_rpg.orpgrda.CRDA_AVSET_DISAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_CLR],
+                'RS_AVSET_ENABLE':[_rpg.orpgrda.CRDA_AVSET_ENAB,_rpg.orpginfo.STATEFL.ORPGINFO_STATEFL_SET],
+                }
+        if set_clear_flag == None:
+            if req.split('_')[1] == 'AVSET':
+                set_clear = _rpg.liborpg.orpginfo_statefl_flag(_rpg.liborpg.Orpginfo_statefl_flagid_t.ORPGINFO_STATEFL_FLG_AVSET_ENABLED,CRDA[req][1])
+            else:
+                set_clear = getattr(_rpg.liborpg,CRDA[req][1])()
+            commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD,CRDA[req][0],0,0,0,0,_rpg.CharVector())
+        else:
+            com = getattr(_rpg.orpgrda,req)
+            print com
+            commanded = _rpg.liborpg.orpgrda_send_cmd(_rpg.orpgrda.COM4_RDACOM,_rpg.orpgrda.HCI_INITIATED_RDA_CTRL_CMD,com,0,0,0,0,_rpg.CharVector())
+        return json.dumps(commanded)
+
+
 
 ##
 # Sends RDA Commands 
 ##
-class Send_RDACOM(object):
+class Send_VCP(object):
     def POST(self):
-	data = cgi.parse_qs(web.data())
-	cmd = data['COM'][0]
-	input = data['INPUT'][0]
+	data = web.input()
+	cmd = data.COM
+	vcp = data.INPUT
 	if cmd == 'COM4_DLOADVCP':
-	    p1 = int(input)
+	    p1 = int(vcp)
 	else:
-	    p1 = getattr(_rpg.orpgrda,input)
+	    p1 = getattr(_rpg.orpgrda,vcp)
 	who_sent_it = {
 			'COM4_RDACOM':1,
 			'COM4_DLOADVCP':_rpg.orpgrda.HCI_VCP_INITIATED_RDA_CTRL_CMD,

@@ -150,14 +150,32 @@
 			    <button id="Mode_Conflict_contain" class="data-button normal-ops" type="button" style="font-size:14px;color:black">N/A</button>
 			</div>
 		    </div>
-		    <div class="ui-grid-a center button-line" id="Load_Shed_status">
-			<div class="ui-block-a">
-			    <button id="Load_Shed" class="display-button" type="button">Load Shed</button>
-			</div>
-		        <div class="ui-block-b">
-			    <button id="Load_Shed_contain" class="data-button normal-ops"type="button">N/A</button>
-		        </div>
-		    </div>
+                    <div class="ui-grid-a center button-line" id="mode_B_auto_switch_status">
+                        <div class="ui-block-a">
+                            <button type="button" class="display-button">Clear Air Switch</button>
+                        </div>
+                        <div class="ui-block-b">
+                            <div style="float:left" class="containing-element-lg">
+                                <select alt="Clear Air Switch" class="toggle" title="flag"name="flip-min" id="mode_B_auto_switch" data-role="slider"data-theme="a"data-mini="true">
+                                    <option value="off">MANUAL</option>
+                                    <option select value="on">AUTO</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ui-grid-a center button-line" id="mode_A_auto_switch_status">
+                        <div class="ui-block-a">
+                            <button type="button" class="display-button">Precip Switch</button>
+                        </div>
+                        <div class="ui-block-b">
+                            <div style="float:left" class="containing-element-lg">
+                                <select alt="Precip Switch" class="toggle" title="flag" name="flip-min" id="mode_A_auto_switch" data-role="slider"data-theme="a"data-mini="true">
+                                    <option value="off">MANUAL</option>
+                                    <option select value="on">AUTO</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 		    <div id="default-contain">
 			<h2 style="margin:0px;text-align:center;">Select Defaults</h2>
 			<div class="ui-grid-a center button-line" id="wx_mode_default">
@@ -209,19 +227,6 @@
 		    </div>		
 		</div>
                 <div class="ui-block-c" style="background-color:#4bacc6">
-		    <div class="ui-grid-a center button-line" id="RS_SUPER_RES_status">
-			<div class="ui-block-a">
-			    <button type="button"class="display-button">Super Res</button>
-			</div>
-			<div class="ui-block-b">
-			    <div id = "RS_SUPER_RES_contain"style="float:left" class="containing-element-lg">
-				<select alt="Super-Res" class="toggle" name="flip-min" id="RS_SUPER_RES" data-role="slider"data-theme="a"data-mini="true">
-				    <option value="off">DISABLED</option>
-				    <option value="on">ENABLED</option>
-				</select>
-			    </div>
-			</div>
-		    </div>
 		    <div class="ui-grid-a center button-line" id="RS_CMD_status">
 			<div class="ui-block-a">
 			    <button type="button" class="display-button">CMD</button>
@@ -261,35 +266,14 @@
 			    </div>
 			</div>
 		    </div>
-                    <div class="ui-grid-a center button-line" id="mode_B_auto_switch_status">
+                    <div class="ui-grid-a center button-line" id="Load_Shed_status">
                         <div class="ui-block-a">
-                            <button type="button" class="display-button">Clear Air Switch</button>
+                            <button id="Load_Shed" class="display-button" type="button">Load Shed</button>
                         </div>
                         <div class="ui-block-b">
-                            <div style="float:left" class="containing-element-lg">
-                                <select alt="Clear Air Switch" class="toggle" title="flag"name="flip-min" id="mode_B_auto_switch" data-role="slider"data-theme="a"data-mini="true">
-                                    <option value="off">MANUAL</option>
-                                    <option select value="on">AUTO</option>
-                                </select>
-                            </div>
+                            <button id="Load_Shed_contain" class="data-button normal-ops"type="button">N/A</button>
                         </div>
                     </div>
-                    <div class="ui-grid-a center button-line" id="mode_A_auto_switch_status">
-                        <div class="ui-block-a">
-                            <button type="button" class="display-button">Precip Switch</button>
-                        </div>
-                        <div class="ui-block-b">
-                            <div style="float:left" class="containing-element-lg">
-                                <select alt="Precip Switch" class="toggle" title="flag" name="flip-min" id="mode_A_auto_switch" data-role="slider"data-theme="a"data-mini="true">
-                                    <option value="off">MANUAL</option>
-                                    <option select value="on">AUTO</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-
-
 		    </div>
 		</div>
 	    </div>			
