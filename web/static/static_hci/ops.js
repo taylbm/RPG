@@ -472,20 +472,18 @@ DEFAULTS = {}
 	$('#prf_control').click(function(){
 		$.get("/button?id=hci_prf");
 	});	
-
 	$('#enviro_data').click(function(){
 		$.get("/button?id=hci_wind");
 	});
 	$('#Precip_contain').click(function(){
 		$.get("/button?id=hci_precip_status")
 	});
-	$('#vcp-button').click(function(){
-		window.open("http://localhost:3142","_blank","width= 1024, height = 720, scrollbars=yes");
-	});
+        $('#vcp-button').click(function(){
+                window.open("/vcp","_blank","width= 1024, height = 840, scrollbars=yes");
+        });
 	$('#RDA_Messages').val("on").slider("refresh")
 	$('#close').click(function(){
 		window.close();
-	});
-		
+	});	
     });
 	

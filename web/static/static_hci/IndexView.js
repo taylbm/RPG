@@ -248,9 +248,6 @@ $(document).ready(function(){
 	    drawTower();
 	    alignElements();
 	};
-
-        window.addEventListener('resize',redrawCanvas,false);
-
 	function drawTower(init) {
                 maincircle.lineWidth=3;maincircle.strokeStyle="black";
 	        maincircle.strokeRect(Tx,Ty,Tw,Th); // Draw outline
@@ -700,25 +697,9 @@ $(document).ready(function(){
 	non_rapid.addEventListener('ADAPT_dict',function(e) {
 	    ADAPT = JSON.parse(e.data)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
-	    switch(Number(ADAPT['ZR_mult'])){
-		case DATA.zrCats.CONVECTIVE:
-		    $('#Z-R').html('CONVECTIVE')
-		    break;
-		case DATA.zrCats.TROPICAL:
-		    $('#Z-R').html('TROPICAL')
-		    break;
-		case DATA.zrCats['MARSHALL-PALMER']:
-		    $('#Z-R').html('MARSHALL-PALMER')
-		    break;
-		case DATA.zrCats['EAST-COOL-STRATIFORM']:
-		    $('#Z-R').html('EAST-COOL STRATIFORM')
-		    break;
-		case DATA.zrCats['WEST-COOL-STRATIFORM']:
-		    $('#Z-R').html('WEST-COOL STRATIFORM')
-		    break;
-	    }
-            exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
-	    
+	    $('#Z-R').html(ADAPT['ZR'])
+	    console.log(ADAPT)
+            exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch'] 
             for (e in exception_list){
                 var exception = exception_list[e]
                     if(Object.keys(actionflag).indexOf(exception) <0){
@@ -1140,15 +1121,7 @@ $(document).ready(function(){
 			stopCheck['WIDEBAND_FLAG'] = true
 			break;
 	    }
-                
-
-
-
-		    
-
-
 	});
-
 
 	$('#refreshPage').click(function(){
 		location.reload()
@@ -1189,8 +1162,9 @@ $(document).ready(function(){
         $('#vcp-button').click(function(){
                 window.open("/vcp","_blank","width= 1024, height = 840, scrollbars=yes");
         });
-
-
+        $('#dqd').click(function(){
+                window.open("/dqd","_blank","width= 1024, height = 840, scrollbars=yes");
+        });
 });
 
 

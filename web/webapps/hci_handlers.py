@@ -303,8 +303,7 @@ def VAD_init():
 
 def PMD_init():
     if (EN_flags['ORPGEVT_PERF_MAIN_RECEIVED']):	
-        pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd
-    	
+        pmd = _rpg.libhci.hci_get_orda_pmd_ptr().pmd	
     	EN_flags['ORPGEVT_PERF_MAIN_RECEIVED'] = False
 	return {
    	    'cnvrtd_gnrtr_fuel_lvl':pmd.cnvrtd_gnrtr_fuel_lvl,
@@ -455,8 +454,7 @@ def RPG_op_init():
 def ADAPT_init():
     if (EN_flags['ORPGEVT_ADAPT_UPDATE']):
         ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
-        zr_mult = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_mult', 1)
-        zr_exp = _rpg.librpg.deau_get_values('alg.hydromet_rate.zr_exp', 1)
+        zr_relation = _rpg.librpg.deau_get_string_values('alg.hydromet_rate.ZR_relationship')
         ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
         max_sails = _rpg.librpg.deau_get_string_values('pbd.n_sails_cuts')
 	default_wx_mode = _rpg.librpg.deau_get_string_values(_rpg.librpg.ORPGSITE_DEA_WX_MODE)
@@ -465,8 +463,7 @@ def ADAPT_init():
 	EN_flags['ORPGEVT_ADAPT_UPDATE'] = False
         return {
 	    'ICAO':ICAO[1],
-	    'ZR_mult':zr_mult[1][0],
-	    'ZR_exp':zr_exp[1][0],
+	    'ZR':zr_relation[1],
 	    'ptype':ptype[1],
 	    'max_sails':max_sails,
 	    'default_wx_mode':default_wx_mode[1].replace(' ','-'),

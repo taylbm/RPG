@@ -510,7 +510,7 @@ table.no-spacing {
 	background-color:white !important;
 }
 .gray{
-	background-color:gray !important;
+	background-color:lightgray !important;
 }
 .silver {
 	background-color:silver !important;
@@ -785,6 +785,9 @@ table.no-spacing {
 }
 #sails-form {
     display:none;
+}
+#rpg_control_panel { 
+    left: unset !important;
 }
 
 
