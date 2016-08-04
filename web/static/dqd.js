@@ -455,7 +455,7 @@ function determineOverview(time,chan)
         rSnow = {'Chan1':[],'Chan2':[]};
         rRain = {'Chan1':[],'Chan2':[]};
 	
-	if(time != 'latestVolume'){
+	if(time != 'last24Hrs'){
             $.each(DailyData, function(idx,obj){
                 if(timeInterval[time] <= obj.time){
 		    var channel = 'Chan' + obj.redundantMode
@@ -482,7 +482,7 @@ function determineOverview(time,chan)
 		    
     }
     else {
-        if(time != 'latestVolume'){
+        if(time != 'last24Hrs'){
             $.each(DailyData, function(idx,obj){
                 if(timeInterval[time] <= obj.time){
                     mBragg.push(obj.medianBragg);
