@@ -10,7 +10,7 @@
 		    "2":"2nd SAILS",
 		    "3":"3rd SAILS"
 	},
-    "noSystemChangeTimeout":300,
+        "noSystemChangeTimeout":300,
 	"rdaCommandStickyToggleTimeout":900000,
 	"perfCheckYellow":1800000,
  	"zrCats":{
@@ -99,6 +99,7 @@
 
 	"popTitle":"Confirm Action",
 	"popTitleSAILS":"SAILS Control",
+        "popTitleMRLE":"MRLE Control",
 	"defaults":
                {	
 				"Pre":"Do you want to permanently change the",
@@ -110,6 +111,12 @@
     "SAILSfeedback":[
                     " >> SAILS Disabled",
                     " >> SAILS set to ",
+                    " cut(s) "
+                    ],
+        "MRLEDialog":"Selecting \"0\" cuts will disable MRLE. Selecting 1 will rescan All non-zero numbers are additional scans of the lowest elevation of the VCP (SAILSx1). Selecting 2 will rescan the lowest two elevations, 3 will rescan the lowest three elevations and 4 will rescan the lowest four elevations of the VCP.",
+    "MRLEfeedback":[
+                    " >> MRLE Disabled",
+                    " >> MRLE set to ",
                     " cut(s) "
                     ],
     "perfCheck":
@@ -183,18 +190,8 @@
 	"sailsSeqFont":"bold 30px Helvetica",
 	"elFont":"bold 80px Helvetica",
 	"sailsAvsetFont":"bold 18px Helvetica",
-	"rdaItems":[
-				"RS_SUPER_RES",
-				"RS_CMD",
-				"RS_AVSET"
-				],
 	"towerLeftX":60,
 	"towerRightX":240,
 	"towerBottomY":290,
 	"towerTopY":344
-
-
-	
-										
-	
 } 

@@ -287,86 +287,12 @@ html .ui-alt-icon .ui-radio-off:after {
 
 /*loader bar initial*/
 .link-status{
+display:block;
 position:relative;
 width:165px;
 height:20px;
+border:1px solid;
 }
-
-.squaresWaveG_long{
-position:absolute;
-top:0;
-background-color:#51FF22;
-width:20px;
-height:20px;
--moz-animation-name:bounce_squaresWaveG_long;
--moz-animation-duration:1.3s;
--moz-animation-iteration-count:infinite;
--moz-animation-direction:normal;
-animation-name:bounce_squaresWaveG_long;
-animation-duration:1.3s;
-animation-iteration-count:infinite;
-animation-direction:normal;
-}
-
-.squaresWaveG_long_1{
-left:0;
--moz-animation-delay:0.52s;
-animation-delay:0.52s;
-}
-
-.squaresWaveG_long_2{
-left:21px;
--moz-animation-delay:0.65s;
-animation-delay:0.65s;
-}
-
-.squaresWaveG_long_3{
-left:42px;
--moz-animation-delay:0.78s;
-animation-delay:0.78s;
-}
-
-.squaresWaveG_long_4{
-left:63px;
--moz-animation-delay:0.91s;
-animation-delay:0.91s;
-}
-
-.squaresWaveG_long_5{
-left:84px;
--moz-animation-delay:1.04s;
-animation-delay:1.04s;
-}
-
-.squaresWaveG_long_6{
-left:105px;
--moz-animation-delay:1.17s;
-animation-delay:1.17s;
-}
-
-.squaresWaveG_long_7{
-left:126px;
--moz-animation-delay:1.3s;
-animation-delay:1.3s;
-}
-
-.squaresWaveG_long_8{
-left:147px;
--moz-animation-delay:1.43s;
-animation-delay:1.43s;
-}
-
-@-moz-keyframes bounce_squaresWaveG_long{
-0%{
-background-color:#000000;
-}
-
-100%{
-background-color:#51FF22;
-}
-
-}
-
 
 .box-border{
 	border-style:solid;
@@ -443,12 +369,10 @@ table.no-spacing {
 .control-shadow {
 	text-shadow:2px 2px 4px #000000 !important;
 }
-.link-status {
-	background-color:#51FF22 !important;
-	text-align:left;
-}
 .link-status-sq{
-	border: 1px solid black !important;
+	border: 1px solid black;
+        height:20px;
+        width:20px;
 	display:block;
 	text-align:center;
 }
@@ -566,6 +490,10 @@ table.no-spacing {
 .sails-title{
 	font-size:18px;
 	text-align:center;
+}
+.mrle-title{ 
+        font-size:18px;
+        text-align:center;
 }
 .vcp-style{
 	font-size:16px;

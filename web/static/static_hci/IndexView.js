@@ -113,6 +113,20 @@ init();
 	    }
 	},DATA.clockInterval);
     }
+    function buildSAILS() {
+	var innerHTML = '<label for="sailsCuts" class="select sails-title">Number of SAILS cuts:</label><select name="sailsCuts" id="sailsCuts">'
+            for (i=0;i<=ADAPT['max_sails'];i++) 
+                innerHTML += '<option value='+i.toString()+'>'+i.toString()+'</option>'
+            innerHTML += '</select>'
+        return innerHTML
+    }
+    function buildMRLE() {
+        var innerHTML = '<label for="mrleCuts" class="select mrle-title">Number of MRLE cuts:</label><select name="mrleCuts" id="mrleCuts">'
+            for (i=0;i<=ADAPT['max_mrle'];i++)
+                innerHTML += '<option value='+i.toString()+'>'+i.toString()+'</option>'
+            innerHTML += '</select>'
+        return innerHTML
+    }
     window.onload=function(){
         GetClock();
         setInterval(GetClock,DATA.clockInterval);
@@ -134,77 +148,17 @@ init();
     var ADAPT = {}
     var RPG = {}
     var PMD = {}
+    var CFG = {}
     var radome = {}
-    var actionflag = {}
-    var cookieRaid = {'inserted':1}
     var rpgStatusMsgs = {'new':0} 
     var stopCheck = {'ICAO':true,'perfCheck':true,'WIDEBAND_SET':true,'az':0,'running':true}
 
 $(document).ready(function(){
-    	function toggleHandler(attr,switchval){	
-	    switch (switchval) {
-		case 1:	
-		    if (attr.controlname == 'AVSET_Exception')
-			attr.controlname = 'RS_AVSET'
-		    switch(attr.controlname){
-		        case 'RPG_SAILS': case 'SAILS_Exception':
-			    var feedback =  attr.num_cuts == 0 ? DATA.SAILSfeedback[0] : DATA.SAILSfeedback[1] + attr.num_cuts + DATA.SAILSfeedback[2];
-			    $('#Feedback').html(timeStamp() + feedback)
-		            $.post('/sails',{NUM_CUTS:attr.num_cuts});
-		            delete actionflag.SAILS
-		            break;
-		        case 'RS_AVSET': case 'AVSET_Exception': case 'RS_CMD': case 'RS_SUPER_RES':
-		            var command = attr.newVal.confirmation == "on" ? '_ENABLE' : '_DISABLE'
-		            $.post('/send_rda_cmd',{COM:attr.controlname + command, FLAG:"None"});
-			    break;
-			case 'Model_Update': case 'VAD_Update':
-			    var flag = attr.newVal.confirmation == "on"
-			    $.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:flag});
-			    break;
-		    }   
-		    if (attr.displayname=="AVSET" || attr.displayname=="AVSET-Exception"){
-			if (attr.newVal.confirmation=="on"){
-				$('#RS_AVSET').val('on').slider('refresh')
-				$('#AVSET_Exception').val('on').slider('refresh')
-				$('#AVSET_Exception_status').addClass('hide')
-			}
-			else{
-				$('#AVSET_Exception_status .ui-slider .ui-slider-label-b').text('PENDING')
-				$('#RS_AVSET_contain .ui-slider .ui-slider-label-b').text('PENDING')
-				$('#RS_AVSET').val('off').slider('refresh')
-				$('#AVSET_Exception').val('off').slider('refresh')
-				$('#AVSET_Exception_status').removeClass('hide')
-			}
-		    }  
-		    if(attr.displayname == 'CMD'){
-			$("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
-			if (attr.newVal.confirmation == "on"){
-			    $("#"+attr.controlname+"_status").addClass("hide")
-			}
-		    }
-		    if(attr.displayname.split('-')[0] == "AVSET")
-			document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
-	 	    else
-			document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		    break;
-		case 2:
-		    $('#'+attr.controlname).val(attr.newVal.cancel).slider('refresh');
-		    break;
-		case 3:
-		    if(attr.title == 'flag')
-			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
-		    $("#"+attr.controlname).val(attr.newVal.confirmation).slider('refresh')
-		    $('#'+attr.controlname+'_status').addClass('hide')
-		    document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		    break;
-		case 4:
-		    if(attr.title == 'flag')
-			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
-		    $("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
-		    break;	
-	    }
-	}
-	var canvas = document.getElementById("radome");
+        $.getJSON('/update?t=CFG',function(data) { 
+            CFG = data
+        })
+	
+        var canvas = document.getElementById("radome");
 	var canvas1 = document.getElementById("inner-circle");
         var gridwidth = $('#grid-a').width();	
 	var cD = 2.22;
@@ -221,19 +175,21 @@ $(document).ready(function(){
         var wD = 2;
         var Ro = 0.9;
         var Ri = 0.8;
-        var Tx = cW / 6;
-	var Ty = cH / 1.4;
-	var Tw = cW / 1.5;
-	var Th = cH / 3.67;
-	var Tm = Ty + Th / 2;
+        var Tx = Math.round(cW / 6);
+	var Ty = Math.round(cH / 1.4);
+	var Tw = Math.round(cW / 1.5);
+	var Th = Math.round(cH / 3.67);
+	var Tm = Math.round(Ty + Th / 2);
+        var cWD = Math.round(cW/wD);
+        var cHD = Math.round(cH/hD);
+        var cWRo = Math.round(cWD * Ro);
 
 	function redrawCanvas() {
 	    var gridwidth = $('#grid-a').width();
             canvas.height = window.innerHeight/cD;
 	    canvas.width = gridwidth;
 	    maincircle.clearRect(0,0,600,600)
-	    innercircle.clearRect(0,0,600,600)
-	    	    
+	    innercircle.clearRect(0,0,600,600)	    
             cH = canvas.height;
             cW = canvas.width;
             hD = 2.66;
@@ -277,104 +233,123 @@ $(document).ready(function(){
 	    $('#link').css({"left":link_offset.left,"top":link_offset.top});
 	    $('#control_stat').css({"left":control_offset.left,"top":control_offset.top*0.85,"width":gridwidth/2});
 	    $('#inner-circle').css(radome);
-	    $('.link-status').css({"width":gridwidth/2,"height":gridwidth/16.5});
-	    $('.squaresWaveG_long').css({"width":gridwidth/16.5,"height":gridwidth/16.5});
-	    for (i = 2; i < 9; i++) {
-	        $('.squaresWaveG_long_'+i.toString()).css( "left" , (i - 1) * (1 + gridwidth/16.5 ) );
-	    }
-            moms = ['R','V','W','D']
-	    for (m in moms){
-	        var mom = moms[m];
-	        $('#link_' + mom).css({"width":gridwidth/16.5,"height":gridwidth/16.5});
-	    }
 	}
 	alignElements();
+        $('#PRF_Mode').on('slidestop',function() { 
+            $('#prf_control').click()
+            value = $(this).val() == "on" ? "off" : "on";
+            $(this).val(value).slider('refresh');
+        }); 
+        $('select[name="SAILS"]').on('slidestop',function() {
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','SAILS');
+            $("#pop-title").html(DATA.popTitleSAILS);
+            $("#optional-insert").html(buildSAILS());
+            $("#id-confirm").html(DATA.SAILSDialog);
+            $('#popupDialog').trigger('create');
+            $('#pop-cancel').attr("value",$(this).val() == "on" ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('#MRLE_Exception').on('slidestop',function() {
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','MRLE');
+            $("#pop-title").html(DATA.popTitleMRLE);
+            $("#optional-insert").html(buildMRLE());
+            $("#id-confirm").html(DATA.MRLEDialog);
+            $('#popupDialog').trigger('create');
+            $('#pop-cancel').attr("value",$(this).val() == "on" ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('select[name="AVSET"]').on('slidestop',function() {
+            var val = $(this).val() == "on"
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','AVSET');
+            $("#pop-title").html(DATA.popTitle)
+            $("#optional-insert").html('');
+            if (val){
+                $("#id-confirm").html(DATA.hardCommandConfirm[0]+"AVSET"+DATA.hardCommandConfirm[1])
+            }
+            else{
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+"AVSET"+DATA.softCommandConfirm[1]+"DISABLED"+DATA.softCommandConfirm[2])
+            }
+            $('#popupDialog').trigger('create');
+            $('#pop-confirm').attr("value",val ? "ENABLE" : "DISABLE");
+            $('#pop-cancel').attr("value",val ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('#RS_CMD').on('slidestop',function() {
+            var val = $(this).val() == "on"
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','CMD');
+            $("#pop-title").html(DATA.popTitle)
+            $("#optional-insert").html('');
+            if (val){
+                $("#id-confirm").html(DATA.hardCommandConfirm[0]+"CMD"+DATA.hardCommandConfirm[1])
+            }
+            else{
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+"CMD"+DATA.softCommandConfirm[1]+"DISABLED"+DATA.softCommandConfirm[2])
+            }
+            $('#popupDialog').trigger('create');
+            $('#pop-confirm').attr("value",val ? "ENABLE" : "DISABLE");
+            $('#pop-cancel').attr("value",val ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('.flag').on('slidestop',function() {
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','FLAG');
+            $("#pop-title").html(DATA.popTitleMRLE);
+            id = $(this).attr('id');
+            display = $(this).attr('alt');
+            value = $(this).val();
+            val = id == 'Model_Update' || id == 'VAD_Update' ? ["OFF","ON"] : ["MANUAL","AUTO"]
+            if ( value == "off")
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+display+DATA.softCommandConfirm[1]+val[0]+DATA.softCommandConfirm[2])
+            else
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+display+DATA.softCommandConfirm[1]+val[1]+DATA.softCommandConfirm[2])
+            $('#pop-confirm').attr("value",id);
+            $('#pop-confirm').attr("alt",value == "on" ? 1 : 0);
+            $('#pop-cancel').attr("value",value == "on" ? "off" : "on");
+            $('#pop-cancel').attr("alt",id);
+        }); 
 
-	$(".toggle").on('slidestop',function(){
-	    var controlname = $(this).attr("id")
-	    var title = $(this).attr("title")
-	    var displayname = $(this).attr("alt")
-	    var current = $(this).val();
-	    var date0 = new Date();
-	    date0.setTime(date0.getTime()+DATA.rdaCommandStickyToggleTimeout)		
-	    if(displayname.split('-')[0] == "SAILS"){
-		$.getJSON("/vst",function(data){
-		    actionflag['SAILS'] = data['ORPGVST']
-		});
-	    }
-	    else if(displayname.split('-')[0] == "AVSET"){
-		$.getJSON("/vst",function(data){
-		    actionflag['AVSET'] = data['ORPGVST']
-		});
-	    }
-	    else{
-		$.getJSON("/vst",function(data){
-		    actionflag[controlname] = data['ORPGVST']
-		});
-
-	    }
-	    if (current=="on"){newVal = {cancel:"off",confirmation:"on"}}else{newVal = {cancel:"on",confirmation:"off"}}
-	    attr = {title:title,controlname:controlname,displayname:displayname,date0:date0,newVal:newVal,current:current}
-	    if (controlname == "PRF_Mode"){
-		$("#prf_control").click();
-	    }
-	    else {
-                $("#optional-insert").html('')
-                $('#popupDialog').popup('open')
-                $("#pop-title").html(DATA.popTitle)
-		if (['SAILS','AVSET','CMD','AVSET-Exception','SAILS-Exception'].indexOf(displayname) >=0){
-		    $('#popupDialog').popup('open')
-	            if (displayname == 'SAILS' || displayname == 'SAILS-Exception'){
-                        $("#pop-title").html(DATA.popTitleSAILS)
-                        $("#optional-insert").html($('#sails-form').html())	
-		        $("#popupDialog #id-confirm").html(DATA.SAILSDialog)
-		    }
-		    else{
-		        var child1 = $(this).find("option:first-child").html()
-		        if (current=="on"){
-			     $("#popupDialog #id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
-		        }
-		        else{
-			    $("#popupDialog #id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
-		        }
-		    }
-                    $('#popupDialog').trigger('create')
-		    $("#popupDialog #pop-cancel").bind('click',{attr},function(event){
-			toggleHandler(event.data.attr,2);
-			$('#popupDialog #pop-cancel').unbind()
-			$('#popupDialog #pop-confirm').unbind()
-		    });
-		    $('#popupDialog #pop-confirm').bind('click',{attr},function(event){
-                        if (event.data.attr.displayname == 'SAILS' || displayname == 'SAILS-Exception') {
-                            event.data.attr['num_cuts'] = $('#optional-insert #select-choice-0').val();
-                        }
-			toggleHandler(event.data.attr,1);
-			$('#popupDialog #pop-confirm').unbind()
-			$('#popupDialog #pop-cancel').unbind()
-		    });
-		}
-		else{
-		    var child1 = $(this).find("option:first-child").html()
-		    var child2 = $(this).find("option:last-child").html()
-		    if (current=="on"){
-			$("#popupDialog #id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
-		    }
-		    else{
-			$("#popupDialog #id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
-		    }
-		    $("#popupDialog #pop-cancel").bind('click',{attr},function(event){
-			toggleHandler(event.data.attr,4);
-			$('#popupDialog #pop-confirm').unbind()
-			$('#popupDialog #pop-cancel').unbind()
-		    });			
-		    $("#popupDialog #pop-confirm").bind('click',{attr},function(event){
-			toggleHandler(event.data.attr,3);
-			$('#popupDialog #pop-confirm').unbind()
-			$('#popupDialog #pop-cancel').unbind()
-		    });
-		}
-	    }
-	});
+        $("#pop-confirm").on('click',function(){
+            var command = $(this).attr('value');
+            var mode = $(this).attr('alt');
+            var type = $('#popupDialog').attr('alt');
+            switch(type) {
+                case 'SAILS':
+                    num_cuts = $('#optional-insert #sailsCuts').val();
+                    $.post('/sails',{NUM_CUTS:num_cuts});
+                    feedback =  num_cuts == "0" ? DATA.SAILSfeedback[0] : DATA.SAILSfeedback[1] + num_cuts + DATA.SAILSfeedback[2];
+                    $('#Feedback').html(timeStamp() + feedback);
+                    break;
+                case 'MRLE':
+                    num_cuts = $('#optional-insert #mrleCuts').val();
+                    $.post('/mrle',{NUM_CUTS:num_cuts});
+                    if (num_cuts == "1")
+                        $('#MRLE_Exception').val('off').slider('refresh'),
+                        feedback = DATA.SAILSfeedback[1] + num_cuts + DATA.SAILSfeedback[2];
+                    else
+                        feedback =  num_cuts == "0" ? DATA.MRLEfeedback[0] : DATA.MRLEfeedback[1] + num_cuts + DATA.MRLEfeedback[2]; 
+                    $('#Feedback').html(timeStamp() + feedback);
+                    break;
+                case 'AVSET':
+                    $.post('/send_rda_cmd',{COM:"RS_AVSET_"+command,FLAG:1});
+                    break;
+                case 'CMD':
+                    $.post('/send_rda_cmd',{COM:"RS_CMD_"+command,FLAG:1});
+                    break;
+                case 'FLAG':
+                    $.post('/set_flag',{TYPE:'hci_set_'+command.toLowerCase()+'_flag',FLAG:mode});
+                    break;
+            }
+        });
+        $("#pop-cancel").on('click',function(){
+            var val = $(this).attr('value');
+            var type = $('#popupDialog').attr('alt');
+            var id = $(this).attr('alt');
+            $('#'+id).val(val).slider('refresh');
+        });
         $("input[name='RDA_state']").click(function(e){
 	    if (e.isTrigger != 3) {
 	        $('#popupDialogRDA').popup('open');
@@ -392,12 +367,12 @@ $(document).ready(function(){
 	$('input[name="RDA_control"]').click(function(){
             var command = $(this).val();
             $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
-            $.post('/send_rda_cmd',{COM:command,FLAG:"None"});
+            $.post('/send_rda_cmd',{COM:command,FLAG:0});
 	});
 	$('#popupDialogRDA #pop-confirm').click(function(){
 	    var command = $(this).attr("value")
 	    $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
-	    $.post('/send_rda_cmd',{COM:command,FLAG:"None"});
+	    $.post('/send_rda_cmd',{COM:command,FLAG:0});
         });
 	$('#popupDialogRDA #pop-cancel').click(function(){
 	    if (RS['RS_AUX_POWER_GEN_STATE'])
@@ -418,6 +393,7 @@ $(document).ready(function(){
                             mrpg_state == 'MRPG_ST_SHUTDOWN'||
                             mrpg_state == 'MRPG_ST_OPERATING' ) {
                             $("#popupDialogRPG #id-confirm").html(DATA.controlRPG.SUB[0]+DATA.controlRPG.MRPG_STARTUP[mrpg_state]+DATA.controlRPG.SUB[1])
+
                             $("#popupDialogRPG").popup('open');
                         }
                         else {
@@ -503,14 +479,6 @@ $(document).ready(function(){
 	    $.post('send_rda_cmd',{COM:"DREQ_STATUS",FLAG:"None"});
 	    $('#Feedback').html(timeStamp() + " >> " + DATA.RDAStatus);
 	});
-        var link = $('#squaresWaveG_long').html()
-	var item = DATA.rdaItems;
-	//$('#marq-insert').html($('#marq-form').html())	
-	//$.getJSON("/update",function(data){
-        //    cookieRaid['initial'] = data['RPG_dict']['ORPGVST']
- 	//    maincircle.fillStyle = "white";maincircle.font = DATA.sailsAvsetFont;maincircle.fillText(data['ADAPT_dict']['ICAO'],cW/wD - cW*0.075,Tm + Th*0.05);
-        //});
-
 	var source = new EventSource('/radome');
 	source.addEventListener('message',function(e) {
 	    var radome_temp = JSON.parse(e.data)
@@ -518,8 +486,8 @@ $(document).ready(function(){
 		radome = radome_temp
 	        maincircle.globalCompositeOperation='destination-over'; 
 		maincircle.fillStyle="black";
-		maincircle.beginPath();maincircle.moveTo(cW/wD,cH/hD);maincircle.arc(cW/wD,cH/hD,cW/wD*Ro,-Math.PI / 2 + toRadians(radome.start_az/10),-Math.PI / 2 + toRadians(radome.az/10));
-		maincircle.lineTo(cW/wD,cH/hD);  
+		maincircle.beginPath();maincircle.moveTo(cWD,cHD);maincircle.arc(cWD,cHD,cWRo,radome.start_az,radome.az);
+		maincircle.lineTo(cWD,cHD);  
 		maincircle.closePath();
 		maincircle.fill();
 	
@@ -528,87 +496,78 @@ $(document).ready(function(){
 		maincircle.clearRect(0,0,canvas.width,Ty-2)
                 maincircle.font = DATA.elFont;
                 //Draw and fill the outer white circle with black outline   
-                maincircle.fillStyle="white";innercircle.lineWidth=2;maincircle.beginPath();maincircle.arc(cW/wD,cH/hD,cW/wD*Ri,0,2*Math.PI);
+                maincircle.fillStyle="white";innercircle.lineWidth=2;maincircle.beginPath();maincircle.arc(cWD,cHD,cWD*Ri,0,2*Math.PI);
                 maincircle.closePath();maincircle.fill();  
 	
 	        // add additional info text to radome
 		maincircle.fillStyle="black";   
 	 	if( radome.last_elev ) {
-		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText('LAST',cW/wD - cW*0.125,cH/hD - cH*0.025);
+		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText('LAST',cWD - cW*0.125,cHD - cH*0.025);
 		}
-	 	if( radome.sails_seq > 0 ) {
-		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText(DATA.sails_seq[radome.sails_seq],cW/wD - cW*0.2,cH/hD - cH*0.025);
+	 	if( radome.sails_seq ) {
+                    if ( CFG['allow_sails'] > 1 ) {
+		        maincircle.font = DATA.sailsSeqFont;maincircle.fillText(DATA.sails_seq[radome.sails_seq],cWD - cW*0.2,cHD - cH*0.025);
+                    }
+                    else { 
+                        maincircle.font = DATA.sailsSeqFont;maincircle.fillText('SAILS',cWD - cW*0.125,cHD - cH*0.025);
+                    }
 		}
-		try {
-                    var elevation = radome.el / 10
-		}
-		catch(err) {
-                    var elevation = 0.0
-		}
+                if( radome.mrle_seq ) {
+                    maincircle.font = DATA.sailsSeqFont;maincircle.fillText('MRLE',cWD - cW*0.125,cHD - cH*0.025);
+                }
 		maincircle.font = DATA.elFont;
+                var elevation = radome.el 
 		var elMult = elevation < 10 ? 0.70 : 1;
 		if(elevation % 1 == 0)
-		    maincircle.fillText(elevation.toFixed(1),cW/wD - cW*0.25*elMult,cH/hD - cH*0.1);
+		    maincircle.fillText(elevation.toFixed(1),cWD - Math.round(cW*0.25*elMult),cHD - Math.round(cH*0.1));
 		else
-		    maincircle.fillText(elevation,cW/wD - cW*0.25*elMult,cH/hD - cH*0.1);
+		    maincircle.fillText(elevation,cWD - Math.round(cW*0.25*elMult),cHD - Math.round(cH*0.1));
                 maincircle.font = DATA.sailsAvsetFont;
-                maincircle.fillText("SAILS:",cW/wD - cW*0.33,cH/hD + cH*0.04)
-                maincircle.fillText("AVSET:",cW/wD - cW*0.33,cH/hD + cH*0.15)
+                maincircle.fillText("SAILS:",cWD - cW*0.33,cHD + cH*0.04)
+                maincircle.fillText("AVSET:",cWD - cW*0.33,cHD + cH*0.15)
  
 	        if ( radome.moments_mask != stopCheck['moments'] ) {
 	            if(stopCheck['WIDEBAND'] == "CONNECTED"){
 	    	        var letter = radome.moments
 	    	        for (l in DATA.moments){
 	    		    var mom = DATA.moments[l]
-	    		    if($('.link-status'+mom).html() == '' && letter.indexOf(mom) >= 0 ){
-			        $('.link-status'+mom).html(link).removeClass('null-ops').addClass('normal-ops');
+	    		    if( $('#' + mom).attr('src') != '/static/static_hci/link_active.gif' && letter.indexOf(mom) >= 0 ){
+			        $('#' + mom).attr('src','/static/static_hci/link_active.gif').addClass('running');
 			        $('#link_'+mom).html(mom).removeClass('null-ops').addClass('normal-ops');
-			        var yank = $('#link').html()	
-			        $('#link').html(yank)
 			    }
 			    if(letter.indexOf(mom) < 0 && !stopCheck['running']){
-			        $('.link-status'+mom).html('').removeClass('normal-ops').addClass('null-ops');
+			        $('#' + mom).attr('src','/static/static_hci/link_down.gif').removeClass('running');
 			        $('#link_'+mom).html(mom).removeClass('normal-ops').addClass('null-ops');
 			    }
 		        }
 	            }
 	        }
-	        if ( stopCheck['ICAO'] ) {
-		    maincircle.fillStyle = "white";maincircle.font = DATA.sailsAvsetFont;maincircle.fillText(ADAPT['ICAO'],cW/wD - cW*0.075,Tm + Th*0.05);
+	        if ( stopCheck['ICAO'] && ADAPT['ICAO'] != null ) {
+		    maincircle.fillStyle = "white";maincircle.font = DATA.sailsAvsetFont;maincircle.fillText(ADAPT['ICAO'],cWD - cW*0.075,Tm + Th*0.05);
 		    stopCheck['ICAO'] = false;
 	        }
                 stopCheck['moments'] = radome.moments_mask;
-                stopCheck['start_az'] = radome.start_az;
 	     
-	    //if (getCookie('FEEDBACK') != "NULL"){
-	    //	if(cookieRaid['inserted']){
-	    //	    $('#Feedback').html(getCookie('FEEDBACK'))
-	    //	    cookieRaid['inserted'] = 0
-	    //	}
-	    //}
-	    //else{
-	    //	cookieRaid['inserted'] = 1
-	    //}
 	    }
 	    
 	    else {
-                if(stopCheck['az'] != radome.az){
+                if(stopCheck['az'] != radome_temp.az){
                 //Draw and fill the progress circle
                     maincircle.globalCompositeOperation='destination-over';
                     maincircle.fillStyle="black";
-                    maincircle.beginPath();maincircle.moveTo(cW/wD,cH/hD);maincircle.arc(cW/wD,cH/hD,cW/wD*Ro,-Math.PI / 2 + toRadians(radome.start_az/10),-Math.PI / 2 + toRadians(radome_temp.az/10));
-                    maincircle.lineTo(cW/wD,cH/hD);
+                    maincircle.beginPath();maincircle.moveTo(cWD,cHD);maincircle.arc(cWD,cHD,cWRo,radome.start_az,radome_temp.az);
+                    maincircle.lineTo(cWD,cHD);
                     maincircle.closePath();
                     maincircle.fill(); 
                     if(stopCheck['running']){
-                        $('.squaresWaveG_long').css("animationPlayState","running");
+                        $('.running').attr('src','/static/static_hci/link_active.gif')
                         stopCheck['running'] = false;
                     }
                
 	        }
                 else{
                     if(!stopCheck['running']){
-                        $('.squaresWaveG_long').css("animationPlayState","paused");
+                        $('.running').attr('src','/static/static_hci/link_active.png')
                         stopCheck['running'] = true;
                     }
                 }
@@ -698,36 +657,22 @@ $(document).ready(function(){
 	    ADAPT = JSON.parse(e.data)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    $('#Z-R').html(ADAPT['ZR'])
-	    console.log(ADAPT)
             exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch'] 
             for (e in exception_list){
                 var exception = exception_list[e]
-                    if(Object.keys(actionflag).indexOf(exception) <0){
-                        var cookieCheck = getCookie(exception,1)
-                            if(ADAPT[exception]){
-                                $('#'+exception).val('on').slider('refresh');
-                                $('#'+exception+'_status').addClass('hide')
-                            }
-                            else{
-                                $('#'+exception).val('off').slider('refresh');
-                                $('#'+exception+'_status').removeClass('hide')
-                            }
-                    }
+                if(ADAPT[exception]){
+                    $('#'+exception).val('on').slider('refresh');
+                    $('#'+exception+'_status').addClass('hide')
+                }
+                else{
+                    $('#'+exception).val('off').slider('refresh');
+                    $('#'+exception+'_status').removeClass('hide')
+                }
             }
 
 	});
 	non_rapid.addEventListener('RPG_dict',function(e) {
-	    var RPG = JSON.parse(e.data) 
-	    var flags = Object.keys(actionflag)
-	    for (flag in flags){
-		if(actionflag[flags[flag]] != RPG['ORPGVST']){
-		    delete actionflag[flags[flag]]
-		}
-	    }
-	    if(cookieRaid['initial'] != RPG['ORPGVST']){
-		deleteAllCookies();
-		cookieRaid['initial'] = RPG['ORPGVST']
-	    }
+	    RPG = JSON.parse(e.data)
 	    $('#Alarms').html(RPG['alarm_text'])
 	    var cts = Math.round((new Date()).getTime() / 1000);	
 	    if(cts - RPG['status_ts'] == DATA.noSystemChangeTimeout){
@@ -765,25 +710,33 @@ $(document).ready(function(){
 		$('#Alarms').attr('class','bar-border normal-ops') 
 		       
 	    $('#VCP_start_time').html(" "+RPG['ORPGVST'])
-	    if (Object.keys(actionflag).indexOf('SAILS') < 0){
-	        if(RPG['RPG_SAILS']){
-	       	    $('#RPG_SAILS').val('on').slider('refresh');
-		    $('#SAILS_Exception').val('on').slider('refresh');
-		    $('#SAILS_Exception_status').addClass('hide');
-		    if(RPG['sails_allowed']){
-		        $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts'])	
-		    }
-		    else{
-		        $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
-		    }
-		}
-		else{
-		    $('#RPG_SAILS').val('off').slider('refresh');
-		    $('#SAILS_Exception').val('off').slider('refresh');
-		    $('#SAILS_Exception_status').removeClass('hide');
-		}
-	    }			
-
+	    if( RPG['RPG_SAILS'] ){
+	     	$('#RPG_SAILS').val('on').slider('refresh');
+	        $('#SAILS_Exception').val('on').slider('refresh');
+	        $('#SAILS_Exception_status').addClass('hide');
+                if( RPG['sails_status'] == 'ACTIVE' )
+                    $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts']);
+                else
+                    $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text('INACTIVE');
+	    }
+	    else{
+	        $('#RPG_SAILS').val('off').slider('refresh');
+		$('#SAILS_Exception').val('off').slider('refresh');
+	        $('#SAILS_Exception_status').removeClass('hide');
+                $('#RPG_SAILS_contain .ui-slider .ui-slider-label-a').text(RPG['sails_status'])
+            }
+            if( RPG['RPG_MRLE'] ){
+                $('#MRLE_Exception').val('on').slider('refresh');
+                $('#MRLE_Exception_status').addClass('hide');
+                if( RPG['mrle_status'] == 'ACTIVE' )
+                    $('#MRLE_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['mrle_cuts'])
+                else
+                    $('#MRLE_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+            }
+            else{
+                $('#MRLE_Exception').val('off').slider('refresh');
+                $('#MRLE_Exception_status').removeClass('hide');
+            }
 	    $('#RPG_oper').html(RPG['RPG_op'][RPG['RPG_op'].length-1])
 	    for (i in RPG['RPG_op']) {
 	        switch (RPG['RPG_op'][i]){
@@ -853,11 +806,48 @@ $(document).ready(function(){
 		    $('nblink-status').html(link).removeClass('null-ops').addClass('normal-ops')
 		    break;
 	    }
-	});
+            if (RPG["RPG_AVSET"]){
+                if (RS["RS_AVSET_STATUS"] == "DISABLED")
+                    $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING'),
+                    $('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('PENDING');
+                else
+                    $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('ENABLED'),
+                    $('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED');
+                $("#RS_AVSET").val('on').slider('refresh');
+                $('#AVSET_Exception').val('on').slider('refresh');
+                $('#AVSET_Exception_status').addClass('hide');
+            }
+            else{
+                if (RS["RS_AVSET_STATUS"] == "ENABLED")
+                    $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING'),
+                    $('#RS_AVSET_contain .ui-slider .ui-slider-label-b').text('PENDING');
+                else
+                    $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED'),
+                    $('#RS_AVSET_contain .ui-slider .ui-slider-label-b').text('DISABLED');
+                $("#RS_AVSET").val('off').slider('refresh'),
+                $('#AVSET_Exception').val('off').slider('refresh'),
+                $('#AVSET_Exception_status').removeClass('hide');
+            }
+            if (RPG["RPG_CMD"]){
+                if (RS["RS_CMD_STATUS"] == "ENABLED")
+                    $('#RS_CMD_contain .ui-slider .ui-slider-label-a').text('ENABLED');
+                else
+                    $('#RS_CMD_contain .ui-slider .ui-slider-label-a').text('PENDING');
+                $("#RS_CMD").val('on').slider('refresh');
+                $('#RS_CMD_status').addClass('hide');
+            }
+            else{
+                if (RS["RS_CMD_STATUS"] == "DISABLED")
+                    $('#RS_CMD_contain .ui-slider .ui-slider-label-b').text('DISABLED');
+                else
+                    $('#RS_CMD_contain .ui-slider .ui-slider-label-b').text('PENDING');
+                $("#RS_CMD").val('off').slider('refresh'),
+                $('#RS_CMD_status').removeClass('hide');
+            }
 
+	});
 	non_rapid.addEventListener('RS_dict',function(e) {
 	    RS = JSON.parse(e.data)	
-	    console.log(RS)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    var state = Object.keys(RS['RDA_static']);
 	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
@@ -910,61 +900,6 @@ $(document).ready(function(){
 		    }
 		    else{
 			$('#Alarms').html(RS['latest_alarm']['timestamp']+' >> RDA ALARM CLEARED: '+RS['latest_alarm']['text']).attr('class','bar-border normal-ops')
-		    }
-		}
-	    }
-	    if (Object.keys(actionflag).indexOf('AVSET') < 0){
-		var cookieCheck = getCookie('AVSET',0)
-		if(cookieCheck == "NULL"){cookieCheck = RS['RS_AVSET']}
-		$('#AVSET_Exception').val(cookieCheck).slider('refresh')
-		if(cookieCheck  =='on'){
-		    $('#AVSET_Exception_status').addClass('hide')
-		}
-		else{
-		    $('#AVSET_Exception_status').removeClass('hide')
-		}
-	    }
-	    for (i in item){
-		var value = item[i]
-		var val = RS[value]
-		if (val == 'on'){var retrieved = true}else{var retrieved = false}
-		if (value == "RS_AVSET"){
-		    if (Object.keys(actionflag).indexOf('AVSET') < 0){
-			var cookieCheck = getCookie('AVSET',0)
-			if(cookieCheck != "NULL"){
-			    val = cookieCheck
-			    if(val == "off"){
-				$('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
-			    }
-			}
-			else{
-			    $('#RS_AVSET_contain .ui-slider .ui-slider-label-a').text('ENABLED')
-			}
-			$("#RS_AVSET").val(val).slider('refresh')
-		    }
-		}
-		else{
-		    var cookieCheck = getCookie(value,1)
-		    if(cookieCheck != "NULL" && Object.keys(actionflag).indexOf(value) < 0){
-			if(cookieCheck){
-			    $("#"+value+"_status").addClass('hide');
-			    $("#"+value+"_contain .ui-slider-label-a").text('ENABLED')
-			}
-			else{
-			    $("#"+value+"_status").removeClass('hide');
-			    $("#"+value).val('off').slider("refresh")
-			    $('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
-			}
-		    }
-		    else{
-			if(retrieved){
-			    $("#"+value+"_status").addClass('hide');
-			    $("#"+value).val('on').slider("refresh")
-			}
-			else{
-			    $("#"+value+"_status").removeClass('hide');
-			    $("#"+value).val('off').slider("refresh")
-			}
 		    }
 		}
 	    }

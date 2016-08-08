@@ -51,93 +51,95 @@ DEFAULTS = {}
             }
         },1000);
     }
-
+    function buildSAILS() {
+        var innerHTML = '<label for="sailsCuts" class="select sails-title">Number of SAILS cuts:</label><select name="sailsCuts" id="sailsCuts">'
+            for (i=0;i<=ADAPT['max_sails'];i++)
+                innerHTML += '<option value='+i.toString()+'>'+i.toString()+'</option>'
+            innerHTML += '</select>'
+        return innerHTML
+    }
+    function buildMRLE() {
+        var innerHTML = '<label for="mrleCuts" class="select mrle-title">Number of MRLE cuts:</label><select name="mrleCuts" id="mrleCuts">'
+            for (i=0;i<=ADAPT['max_mrle'];i++)
+                innerHTML += '<option value='+i.toString()+'>'+i.toString()+'</option>'
+            innerHTML += '</select>'
+        return innerHTML
+    }
     window.onload=function(){
     GetClock();
     setInterval(GetClock,DATA.clockInterval);
     }
 
-
-    function getCookie(cname,truthSwitch) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) {
-		if (truthSwitch){
-                	if (c.substring(name.length,c.length) == "on") return true 
-                	else return false
-		}
-		else{
-			return c.substring(name.length,c.length)
-		}
-	}
-    }
-    return "NULL";
-    }
-    
-
-    function deleteAllCookies() {
-        var cookies = document.cookie.split(";");
-
-        for (var i = 0; i < cookies.length; i++) {
-    	    var cookie = cookies[i];
-     	    var eqPos = cookie.indexOf("=");
-    	    var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    	    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        }
-    }
-
-
-
-    var actionflag = {}
     var PMD = {}
+    var RPG = {}
+    var RS = {}
+    var ADAPT = {}
     $(document).ready(function(){
-	function toggleHandler(attr,switchval){	
-	    switch(switchval){
-	    case 1:
-		if(attr.controlname == 'AVSET_Exception'){attr.controlname = 'RS_AVSET'}
-		switch(attr.controlname){
-		case 'SAILS_Exception':
-	  	    $.post('/sails',{NUM_CUTS:attr.num_cuts});
-		    delete actionflag.SAILS
-		    break;
-		case 'RS_AVSET': case 'RS_CMD': case 'RS_SUPER_RES':
-		    if (attr.displayname == 'AVSET'){flag = 0}else{flag=1};
-		    if (attr.newVal.confirmation == "on"){
-			$.post('/send_cmd',{COM:attr.controlname+'_ENABLE',FLAG:flag});
-		    }
-		    else{
-			$("#"+attr.controlname+"_contain .ui-slider-label-b").text('PENDING')
-			$.post('/send_cmd',{COM:attr.controlname+'_DISABLE',FLAG:flag});
-		    }
-		    break;
-		case 'Model_Update': case 'VAD_Update': case 'mode_A_auto_switch': case 'mode_B_auto_switch':
-		    if(attr.newVal.confirmation == "on"){
-			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:1});
-		    }
-		    else{
-			$.post('/set_flag',{TYPE:'hci_set_'+attr.controlname.toLowerCase()+'_flag',FLAG:0});
-		    }
-		    break;
-		}	
-		$("#"+attr.controlname).val(attr.current).slider('refresh')
-		if(attr.displayname.split('-')[0] == "AVSET"){
-		    document.cookie = "AVSET"+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		}
-		else{
-		    document.cookie = attr.controlname+"="+attr.current+"; expires="+attr.date0.toUTCString();
-		}
-		break;
-	    case 2:
-		$("#"+attr.controlname).val(attr.newVal.cancel).slider('refresh')
-		break;
-	    }			
-	};
 	$(".control-item").css('background-color','#1F497D','color','#FFFFFF');
 	$(".nav-item").css('background-color','#002060');
+        $('#PRF_Mode').on('slidestop',function() {
+            $('#prf_control').click()
+            value = $(this).val() == "on" ? "off" : "on";
+            $(this).val(value).slider('refresh');
+        });
+        $('#AVSET_Exception').on('slidestop',function() {
+            var val = $(this).val() == "on"
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','AVSET');
+            $("#pop-title").html(DATA.popTitle)
+            $("#optional-insert").html('');
+            if (val){
+                $("#id-confirm").html(DATA.hardCommandConfirm[0]+"AVSET"+DATA.hardCommandConfirm[1])
+            }
+            else{
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+"AVSET"+DATA.softCommandConfirm[1]+"DISABLED"+DATA.softCommandConfirm[2])
+            }
+            $('#popupDialog').trigger('create');
+            $('#pop-confirm').attr("value",val ? "ENABLE" : "DISABLE");
+            $('#pop-cancel').attr("value",val ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('#RS_CMD').on('slidestop',function() {
+            var val = $(this).val() == "on"
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','CMD');
+            $("#pop-title").html(DATA.popTitle)
+            $("#optional-insert").html('');
+            if (val){
+                $("#id-confirm").html(DATA.hardCommandConfirm[0]+"CMD"+DATA.hardCommandConfirm[1])
+            }
+            else{
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+"CMD"+DATA.softCommandConfirm[1]+"DISABLED"+DATA.softCommandConfirm[2])
+            }
+            $('#popupDialog').trigger('create');
+            $('#pop-confirm').attr("value",val ? "ENABLE" : "DISABLE");
+            $('#pop-cancel').attr("value",val ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('#SAILS_Exception').on('slidestop',function() {
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','SAILS');
+            $("#pop-title").html(DATA.popTitleSAILS);
+            $("#optional-insert").html(buildSAILS());
+            $("#id-confirm").html(DATA.SAILSDialog);
+            $('#popupDialog').trigger('create');
+            $('#pop-cancel').attr("value",$(this).val() == "on" ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+        $('#MRLE_Exception').on('slidestop',function() {
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','MRLE');
+            $("#pop-title").html(DATA.popTitleMRLE);
+            $("#optional-insert").html(buildMRLE());
+            $("#id-confirm").html(DATA.MRLEDialog);
+            $('#popupDialog').trigger('create');
+            $('#pop-cancel').attr("value",$(this).val() == "on" ? "off" : "on");
+            $('#pop-cancel').attr("alt",$(this).attr("id"));
+        });
+
+ 
 	$(".default-select").on('click',function(){
+            $("#popupDialog").attr('alt','defaults');
 	    var element = $(this);
 	    var value = element.attr('value');
 	    var id = element.parent().attr('id');
@@ -154,26 +156,68 @@ DEFAULTS = {}
                     $('#id-confirm').html(DATA.defaults.Pre+DATA.defaults.defModeB+' '+value+' ?');
 		    break;
 	    };
-	    $('#pop-cancel').attr("alt",id);
-	    $('#pop-confirm').attr("value",value);	
+	    $('#pop-cancel').attr("value",id);
+	    $('#pop-confirm').attr("value",value);
+            $("#pop-title").html(DATA.popTitle);	
 	    $("#popupDialog").popup('open');
-	    $("#pop-title").html(DATA.popTitle);
-	
 	});
+        $('.flag').on('slidestop',function() {
+            $("#popupDialog").popup('open');
+            $("#popupDialog").attr('alt','FLAG');
+            $("#pop-title").html(DATA.popTitleMRLE); 
+            id = $(this).attr('id');
+            display = $(this).attr('alt');
+            value = $(this).val();
+            val = id == 'Model_Update' || id == 'VAD_Update' ? ["OFF","ON"] : ["MANUAL","AUTO"] 
+            if ( value == "off")
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+display+DATA.softCommandConfirm[1]+val[0]+DATA.softCommandConfirm[2])      
+            else
+                $("#id-confirm").html(DATA.softCommandConfirm[0]+display+DATA.softCommandConfirm[1]+val[1]+DATA.softCommandConfirm[2])
+            $('#pop-confirm').attr("value",id);
+            $('#pop-confirm').attr("alt",value == "on" ? 1 : 0);
+            $('#pop-cancel').attr("value",value == "on" ? "off" : "on");
+            $('#pop-cancel').attr("alt",id);
+        });
 	$("#pop-confirm").on('click',function(){
-	    var command = $(this).attr("value");
-            var mode = $(this).attr("alt");
-	    if(command != "") {
-	        if($.isNumeric(command))
-	            $.post('/deau_set',{SET:command,FLAG:1,MODE:mode});
-	        else 
-                    $.post('/deau_set',{SET:command,FLAG:0});
-	    }	
+	    var command = $(this).attr('value');
+            var mode = $(this).attr('alt');
+            var type = $('#popupDialog').attr('alt');
+            switch(type) { 
+                case 'defaults':
+	            if($.isNumeric(command))
+	                $.post('/deau_set',{SET:command,FLAG:1,MODE:mode});
+	            else 
+                        $.post('/deau_set',{SET:command,FLAG:0});
+                    break;
+                case 'SAILS':
+                    num_cuts = $('#optional-insert #sailsCuts').val();
+                    $.post('/sails',{NUM_CUTS:num_cuts}); 
+                    break;
+                case 'MRLE':
+                    num_cuts = $('#optional-insert #mrleCuts').val();
+                    $.post('/mrle',{NUM_CUTS:num_cuts});
+                    break;
+                case 'AVSET':
+                    $.post('/send_rda_cmd',{COM:"RS_AVSET_"+command,FLAG:1});
+                    break; 
+                case 'CMD':
+                    $.post('/send_rda_cmd',{COM:"RS_CMD_"+command,FLAG:1});
+                    break;
+                case 'FLAG':
+                    $.post('/set_flag',{TYPE:'hci_set_'+command.toLowerCase()+'_flag',FLAG:mode}); 
+                    break;
+            }
 	});
 	$("#pop-cancel").on('click',function(){
-	    var id = $(this).attr("alt");
-            if(id != "") 
-		$("#"+id).val(DEFAULTS[id]).selectmenu("refresh")
+	    var val = $(this).attr('value');
+            var type = $('#popupDialog').attr('alt');
+            var id = $(this).attr('alt'); 
+            if (type == 'defaults') {
+		$("#"+val).val(DEFAULTS[val]).selectmenu("refresh");
+            }
+            else {
+                $('#'+id).val(val).slider('refresh');
+            }        
 	});
         $("#pass-protect").click(function(){
             $('#popupDialogPass').popup('open')
@@ -210,117 +254,62 @@ DEFAULTS = {}
                         }
                  });
         });
-
- 
-	$(".toggle").on('slidestop',function(){
-	    $("#pop-confirm").attr("value","");	
-	    var element = $(this)
-	    var controlname = element.attr("id")
-	    var displayname = element.attr("alt")
-	    var current = element.val();
-	    console.log(current)
-	    var date0 = new Date();
-	    date0.setTime(date0.getTime()+900000)
-	    if(displayname.split('-')[0] == "SAILS"){
-		$.getJSON("/update",function(data){
-		    actionflag["SAILS"] = data['RPG_dict']['ORPGVST']
-		});
-	    }
-	    else if(displayname.split('-')[0] == "AVSET"){
-		$.getJSON("/vst",function(data){
-		    actionflag["AVSET"] = data['ORPGVST']
-		});
-	    }
-	    else{
-		$.getJSON("/vst",function(data){
-		    actionflag[controlname] = data['ORPGVST']
-		});
-	    }
-	    if (controlname != "RDA_Messages"){
-		$.getJSON("/vst",function(data){
-                    actionflag[controlname] = data['ORPGVST']
-		});
-		if (current=="on"){newVal = {cancel:"off",confirmation:"on"}}else{newVal = {cancel:"on",confirmation:"off"}}
-		attr = {controlname:controlname,displayname:displayname,date0:date0,newVal:newVal,current:current}
-		if (controlname == "PRF_Mode"){
-		    $("#prf_control").click();
-		    $('#PRF_Mode').val(newVal.cancel).slider('refresh')
-		}
-	        else{
-  		    $("#popupDialog").popup('open');
-	            $("#pop-title").html(DATA.popTitle)
-		    $("#sails-insert").html('')
-		    child1 = element.find("option:first-child").html()
-		    child2 = element.find("option:last-child").html()
-		    console.log(child1)
-		    console.log(child2)
-		    if (['SAILS','AVSET','CMD','Super-Res'].indexOf(displayname) >=0){
-			if (displayname == 'SAILS'){
-			    $("#pop-title").html(DATA.popTitleSails)
-                            $("#sails-insert").html($('#sails-form').html())
-                            $("#id-confirm").html(DATA.SAILSDialog)
-                            $('#popupDialog').trigger('create')
-                        }
-			else {
-		            if (current=="on"){
-                                $("#id-confirm").html(DATA.hardCommandConfirm[0]+displayname+DATA.hardCommandConfirm[1])
-                            }
-                            else{
-			        $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
-			    }
-		        }
-		    }
-		    else{
-		 	if (current=="off"){
-			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname +DATA.softCommandConfirm[1]+child1+DATA.softCommandConfirm[2])
-			}
-			else{
-			    $("#id-confirm").html(DATA.softCommandConfirm[0]+displayname+DATA.softCommandConfirm[1]+child2+DATA.softCommandConfirm[2])
-			}
-		    }
-                    $('#popupDialog').trigger('create')
-		    $("#pop-cancel").bind('click',{attr},function(event){
-		        toggleHandler(event.data.attr,2)
-                        $('#pop-confirm').unbind();
-                        $('#pop-cancel').unbind();						
-		    });
-		    $("#pop-confirm").bind('click',{attr},function(event){
-			if (event.data.attr.displayname == 'SAILS') {
-			    event.data.attr['num_cuts'] = $('#sails-insert #select-choice-0').val();
-			}    
-			toggleHandler(event.data.attr,1)
-			$('#pop-confirm').unbind();
-			$('#pop-cancel').unbind();
-		    });
-		}
-	    }
-
-	});
+        
 	    var non_rapid = new EventSource('/update_s');
 	    non_rapid.addEventListener('RPG_dict',function(e) {
-		var RPG = JSON.parse(e.data)
-		var flags = Object.keys(actionflag)
-		for (flag in flags){
-		    if(actionflag[flags[flag]] != RPG['ORPGVST']){
-		 	delete actionflag[flags[flag]]
-		    }
-		}
-		if (Object.keys(actionflag).indexOf('SAILS') < 0){
-		    if(RPG['RPG_SAILS']){
-			$('#SAILS_Exception').val('on').slider('refresh');
-			if(RPG['sails_allowed']){
-			    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts'])
-			}
-			else{
-			    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
-			}
-		    }   
-		    else{
-			$('#SAILS_Exception').val('off').slider('refresh');
-		    }
-		}
+		RPG = JSON.parse(e.data)
+                if (RPG["RPG_CMD"]){
+                    if (RS["RS_CMD_STATUS"] == "ENABLED")
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-a').text('ENABLED');
+                    else
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-a').text('PENDING');
+                    $("#RS_CMD").val('on').slider('refresh');
+                }
+                else{
+                    if (RS["RS_CMD_STATUS"] == "DISABLED")
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-b').text('DISABLED');
+                    else
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-b').text('PENDING');
+                    $("#RS_CMD").val('off').slider('refresh');
+                }
+
+                if (RPG["RPG_AVSET"]){
+                    if (RS["RS_AVSET_STATUS"] == "ENABLED")
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('ENABLED');
+                    else
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING');
+                    $('#AVSET_Exception').val('on').slider('refresh');
+                }
+                else{
+                    if (RS["RS_AVSET_STATUS"] == "ENABLED")
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING');
+                    else
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED');
+                    $('#AVSET_Exception').val('off').slider('refresh');
+                }
+                if( RPG['RPG_SAILS'] ){
+                    $('#SAILS_Exception').val('on').slider('refresh');
+                    if( RPG['sails_status'] == 'ACTIVE' )
+                        $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['sails_cuts']);
+                    else
+                        $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE');
+                }
+                else{
+                    $('#SAILS_Exception').val('off').slider('refresh');
+                    $('#SAILS_Exception_contain .ui-slider .ui-slider-label-a').text(RPG['sails_status'])
+                }
+                if( RPG['RPG_MRLE'] ){
+                    $('#MRLE_Exception').val('on').slider('refresh');
+                    if( RPG['mrle_status'] == 'ACTIVE' )
+                        $('#MRLE_Exception_contain .ui-slider .ui-slider-label-a').text('ACTIVE/'+RPG['mrle_cuts'])
+                    else
+                        $('#MRLE_Exception_contain .ui-slider .ui-slider-label-a').text('INACTIVE')
+                }
+                else{
+                    $('#MRLE_Exception').val('off').slider('refresh');
+                }
                 if(RPG['RPG_state'] == "SHUTDOWN"){
-                    var unk_list = ['AVSET_Exception','RS_CMD','RS_SUPER_RES']
+                    var unk_list = ['AVSET_Exception','RS_CMD']
                     for (unk in unk_list){
                         $('#'+unk_list[unk]).val('off').slider('refresh')
                         $('#'+unk_list[unk]+'_contain .ui-slider .ui-slider-label-b').text('????')
@@ -365,11 +354,11 @@ DEFAULTS = {}
 		else{$("#Mode_Conflict_contain").html('NO').addClass('normal-ops')}
 		if(PMD['current_precip_status']){$('#Precip_contain').html('ACCUM')}
 		else{$('#Precip_contain').html('NO ACCUM')}
-                var loadshed_cats = Object.keys(PMD['loadshed'])
+                var loadshed_cats = Object.keys(PMD_current['loadshed'])
                 $('#Load_Shed_contain').html('NORMAL')
                 for (lshd in loadshed_cats){
-                    if(PMD['loadshed'][loadshed_cats[lshd]] != 'NONE'){
-                        $('#Load_Shed_contain').html(PMD['loadshed'][lshd])
+                    if(PMD_current['loadshed'][loadshed_cats[lshd]] != 'NONE'){
+                        $('#Load_Shed_contain').html(PMD_current['loadshed'][lshd])
                         if(PMD['loadshed'][lshd] == 'ALARM'){
                             $('#Load_Shed_contain').attr('style','font-size:14px;background-color:blue')
                         }
@@ -395,19 +384,14 @@ DEFAULTS = {}
 	    });
 
 	    non_rapid.addEventListener('ADAPT_dict',function(e) {
-		var ADAPT = JSON.parse(e.data)
+		ADAPT = JSON.parse(e.data)
                 exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch']
                 for (e in exception_list){
                     var exception = exception_list[e]
-                    if(Object.keys(actionflag).indexOf(exception) <0){
-                        var cookieCheck = getCookie(exception,1)
-                        if(ADAPT[exception]){
+                        if(ADAPT[exception])
                             $('#'+exception).val('on').slider('refresh');
-                        }
-                        else{
+                        else
                             $('#'+exception).val('off').slider('refresh');
-                        }
-                    }
                 }
 		default_list = ['default_wx_mode','default_mode_A','default_mode_B']
 		for (d in default_list) {
@@ -419,43 +403,36 @@ DEFAULTS = {}
 	    });
 
  	    non_rapid.addEventListener('RS_dict',function(e) {
-	        var RS = JSON.parse(e.data)
-		var item = ['RS_SUPER_RES','RS_CMD']; 
-		for (i in item){
-		    var value = item[i]
-		    if(Object.keys(actionflag).indexOf(value) < 0){
-			var cookieCheck = getCookie(value,1)
-			var val = RS[value]
-			if(cookieCheck != "NULL"){
-			    if(cookieCheck){
-				$("#"+value).val('on').slider("refresh")
-			    }
-			    else{
-				$("#"+value).val('off').slider("refresh")
-				$('#'+value+'_contain .ui-slider .ui-slider-label-b').text('PENDING')
-			    }
-			}
-			else{
-			    $("#"+value).val(val).slider("refresh")	
-			} 
-		    }
-		}
-                if (Object.keys(actionflag).indexOf('AVSET') < 0){
-                    var cookieCheck = getCookie('AVSET',1)
-                    if(cookieCheck == "NULL"){
-                        $('#AVSET_Exception').val(RS['RS_AVSET']).slider('refresh')
-                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED')
-                    }
-                    else{
-                        if(cookieCheck){
-                            $('#AVSET_Exception').val('on').slider('refresh')
-                        }
-                        else{
-                            $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING')
-                            $('#AVSET_Exception').val('off').slider('refresh')
-                        }
-                    }
+                RS = JSON.parse(e.data)
+                if (RS["RS_CMD_STATUS"] == "ENABLED"){
+                    if (RPG["RPG_CMD"])
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-a').text('ENABLED');
+                    else
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-a').text('PENDING');
+                    $("#RS_CMD").val('on').slider('refresh');
                 }
+                else{
+                    if (RPG["RPG_CMD"])
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-b').text('DISABLED');
+                    else
+                        $('#RS_CMD_contain .ui-slider .ui-slider-label-b').text('PENDING');
+                    $("#RS_CMD").val('off').slider('refresh');
+                }
+                if (RS["RS_AVSET_STATUS"] == "ENABLED"){
+                    if (RPG["RPG_AVSET"])
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('ENABLED');
+                    else
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-a').text('PENDING');
+                    $('#AVSET_Exception').val('on').slider('refresh');
+                }
+                else{
+                    if (RPG["RPG_AVSET"])
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('PENDING');
+                    else
+                        $('#AVSET_Exception_contain .ui-slider .ui-slider-label-b').text('DISABLED');
+                    $('#AVSET_Exception').val('off').slider('refresh');
+                }
+
 
 		$("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
 	    });

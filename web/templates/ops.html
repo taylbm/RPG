@@ -47,7 +47,7 @@
 		<h1 id="pop-title" class="ui-title" role="heading">Confirm Action</h1>
 	    </div>
 	    <div class="ui-corner-bottom ui-content ui-body-d" data-theme="d" data-role="content" role="main">
-		<div id="sails-insert"></div>	
+		<div id="optional-insert"></div>	
 		<h3 align="center"id="id-confirm" class="ui-title"></h3>
 		<a id="pop-cancel" alt="" class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Cancel</a>
 		<a id="pop-confirm" value="" class="ui-btn ui-btn-up-b ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
@@ -85,39 +85,39 @@
 			    <button id="RS_VCP_NUMBER" type="button"style="width:100%">N/A</button>
 			</div>
 		    </div>
-	 	    <div class="ui-grid-a center button-line" id="PRF_Mode_block">
-                        <div class="ui-block-a">
-                            <button type="button" class="display-button">PRF Mode</button>
-			</div>
-                        <div class="ui-block-b">
-                            <div id="PRF_Mode_contain" style="display:block" class="containing-element-lg">
-                                <select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a" data-mini="true">
-                                    <option value="off">MANUAL</option>
-                                    <option value="on">MULTI</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
 		    <div class="ui-grid-a center button-line" id="SAILS_Exception_contain">
                         <div class="ui-block-a">
                             <button type="button" class="display-button">SAILS</button>
                         </div>
                         <div class="ui-block-b">
-                            <div style="display:inline-block" class="containing-element-lg">
-				<select alt="SAILS" class="toggle" name="flip-min" id="SAILS_Exception" data-role="slider"data-theme="a"data-mini="true">
+                            <div style="display:inline-block" class="containing-element-lg"> 
+				<select alt="SAILS" id="SAILS_Exception" data-role="slider" data-theme="a" data-mini="true">
 				    <option select value="off">DISABLED</option>
 				    <option value="on">ENABLED</option>
 				</select>
 			    </div>
 			</div>
 		    </div>
+                    <div class="ui-grid-a center button-line" id="MRLE_Exception_contain">
+                        <div class="ui-block-a">
+                            <button type="button" class="display-button">MRLE</button>
+                        </div>
+                        <div class="ui-block-b">
+                            <div style="display:inline-block" class="containing-element-lg">
+                                <select alt="MRLE" id="MRLE_Exception" data-role="slider" data-theme="a" data-mini="true">
+                                    <option select value="off">DISABLED</option>
+                                    <option value="on">ENABLED</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 		    <div class="ui-grid-a center button-line" id="AVSET_Exception_contain">
 			<div class="ui-block-a">
 			    <button type="button" class="display-button">AVSET</button>
 			</div>
 			<div class="ui-block-b">
 			    <div style="display:inline-block" class="containing-element-lg">
-			 	<select class="toggle" alt="AVSET"  name="flip-min" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
+			 	<select alt="AVSET" id="AVSET_Exception" data-role="slider"data-theme="a"data-mini="true">
 				    <option select value="off">DISABLED</option>
 				    <option value="on">ENABLED</option>
 				</select>
@@ -156,7 +156,7 @@
                         </div>
                         <div class="ui-block-b">
                             <div style="float:left" class="containing-element-lg">
-                                <select alt="Clear Air Switch" class="toggle" title="flag"name="flip-min" id="mode_B_auto_switch" data-role="slider"data-theme="a"data-mini="true">
+                                <select alt="Clear Air Switch" class="flag" title="flag" id="mode_B_auto_switch" data-role="slider" data-theme="a" data-mini="true">
                                     <option value="off">MANUAL</option>
                                     <option select value="on">AUTO</option>
                                 </select>
@@ -169,7 +169,7 @@
                         </div>
                         <div class="ui-block-b">
                             <div style="float:left" class="containing-element-lg">
-                                <select alt="Precip Switch" class="toggle" title="flag" name="flip-min" id="mode_A_auto_switch" data-role="slider"data-theme="a"data-mini="true">
+                                <select alt="Precip Switch" class="flag" title="flag" name="flip-min" id="mode_A_auto_switch" data-role="slider"data-theme="a"data-mini="true">
                                     <option value="off">MANUAL</option>
                                     <option select value="on">AUTO</option>
                                 </select>
@@ -227,13 +227,26 @@
 		    </div>		
 		</div>
                 <div class="ui-block-c" style="background-color:#4bacc6">
+                    <div class="ui-grid-a center button-line" id="PRF_Mode_block">
+                        <div class="ui-block-a">
+                            <button type="button" class="display-button">PRF Mode</button>
+                        </div>
+                        <div class="ui-block-b">
+                            <div id="PRF_Mode_contain" style="display:block" class="containing-element-lg">
+                                <select class="toggle" alt="PRF Mode"  name="flip-min" id="PRF_Mode" data-role="slider"data-theme="a" data-mini="true">
+                                    <option value="off">MANUAL</option>
+                                    <option value="on">MULTI</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 		    <div class="ui-grid-a center button-line" id="RS_CMD_status">
 			<div class="ui-block-a">
 			    <button type="button" class="display-button">CMD</button>
 			</div>
 			<div class="ui-block-b">
 			    <div id="RS_CMD_contain" style="float:left" class="containing-element-lg">
-				<select alt="CMD" class="toggle" name="flip-min" id="RS_CMD" data-role="slider"data-theme="a"data-mini="true">
+				<select alt="CMD" id="RS_CMD" data-role="slider" data-theme="a" data-mini="true">
 				    <option value="off">DISABLED</option>
 				    <option select value="on">ENABLED</option>
 				</select>
@@ -246,7 +259,7 @@
 			</div>
 			<div class="ui-block-b">
 			    <div style="float:left" class="containing-element-lg">
-				<select alt="Model Update" class="toggle" title="flag"name="flip-min" id="Model_Update" data-role="slider"data-theme="a"data-mini="true">
+				<select alt="Model Update" class="flag" title="flag" id="Model_Update" data-role="slider" data-theme="a" data-mini="true">
 				    <option value="off">OFF</option>
 				    <option value="on">ON</option>
 				</select>
@@ -259,7 +272,7 @@
 			</div>
 			<div class="ui-block-b">
 			    <div style="float:left" class="containing-element-lg">
-				<select alt="VAD update" class="toggle" title="flag"name="flip-min" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
+				<select alt="VAD update" class="flag" title="flag" id="VAD_Update" data-role="slider"data-theme="a"data-mini="true">
 				    <option value="off">OFF</option>
 				    <option value="on">ON</option>
 				</select>

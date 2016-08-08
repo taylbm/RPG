@@ -35,6 +35,7 @@ URLS = (
     '/operations','hci_handlers.Operations',
     '/control_rpg','hci_handlers.Control_RPG',
     '/sails','hci_handlers.ORPGSAILS_set',
+    '/mrle','hci_handlers.ORPGMRLE_set',
     '/set_flag','hci_handlers.Set_Flag',
     '/mrpg','hci_handlers.MRPG',
     '/mrpg_state','hci_handlers.MRPG_state',
