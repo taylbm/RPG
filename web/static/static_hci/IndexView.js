@@ -1088,6 +1088,18 @@ $(document).ready(function(){
 	$('#rpg_misc').click(function(){
 		$.get("/button?id=hci_misc")
 	});
+        $('#generation-list').click(function(){
+            $.get("/button?id=hci_prod")
+        });
+        $('#selectable-parameters').click(function(){
+            $.get("/button?id=hci_spp")
+        });
+        $('#algorithms').click(function(){
+            $.get("/button?id=hci_apps_adapt")
+        });
+        $('#products-database').click(function(){
+            $.get("/button?id=hci_pstat")
+        });
 	$('#88D-ops').click(function(){
                 window.open("/operations","_blank","width = 1024, height = 380");
         }); 	

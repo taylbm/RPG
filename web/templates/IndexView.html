@@ -51,6 +51,17 @@
 	<a id="pop-confirm" class="ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Confirm</a>
     </div>
 </div>
+<div data-transition="pop" data-role="popup" id="popupProducts">
+    <div class="ui-corner-top ui-header ui-bar-a" data-role="header" role="banner">
+        <h1 class="ui-title" role="heading">RPG Products</h1>
+    </div>
+    <p style="text-align:center" >Adaptation Data</p>
+    <a id="generation-list" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Generation List</a>
+    <a id="selectable-parameters" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Selectable Parameters</a>
+    <a id="algorithms" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Algorithms</a>
+    <p style="text-align:center">Display</p>
+    <a id="products-database" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Products in Database</a>
+</div>
 
 <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4BACC6" >
     <div class="ui-grid-b">
@@ -205,7 +216,7 @@
 		    <p style="text-align:center;color:black">RPG</p>
 		    <ul data-role="listview" data-inset="true">
 		 	<li><a id="rpg_control" style="color:white;text-align:center" class="control-item control-shadow" href="#rpg_control_panel">Control</a></li>
-			<li><a id="rpg_products" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Products</a></li>
+			<li><a id="rpg_products" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#popupProducts" data-rel="popup">Products</a></li>
 			<li><a id="rpg_misc"style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Misc</a></li>
 			<li><a id="rpg_status"style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Status</a></li>
                         <li><a id="dqd" style="color:white;text-align:center"class="control-item control-shadow ui-btn" >Data Quality</a></li>
