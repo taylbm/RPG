@@ -164,7 +164,7 @@ DEFAULTS = {}
         $('.flag').on('slidestop',function() {
             $("#popupDialog").popup('open');
             $("#popupDialog").attr('alt','FLAG');
-            $("#pop-title").html(DATA.popTitleMRLE); 
+            $("#pop-title").html(DATA.popTitle); 
             id = $(this).attr('id');
             display = $(this).attr('alt');
             value = $(this).val();

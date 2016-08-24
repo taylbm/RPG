@@ -156,8 +156,8 @@ init();
 $(document).ready(function(){
         $.getJSON('/update?t=CFG',function(data) { 
             CFG = data
-        })
-	
+            console.log(CFG)
+        })	
         var canvas = document.getElementById("radome");
 	var canvas1 = document.getElementById("inner-circle");
         var gridwidth = $('#grid-a').width();	
@@ -505,7 +505,7 @@ $(document).ready(function(){
 		    maincircle.font = DATA.sailsSeqFont;maincircle.fillText('LAST',cWD - cW*0.125,cHD - cH*0.025);
 		}
 	 	if( radome.sails_seq ) {
-                    if ( CFG['allow_sails'] > 1 ) {
+                    if ( CFG['allow_sails'][RS['RS_VCP_NUMBER']] > 1 ) {
 		        maincircle.font = DATA.sailsSeqFont;maincircle.fillText(DATA.sails_seq[radome.sails_seq],cWD - cW*0.2,cHD - cH*0.025);
                     }
                     else { 
@@ -655,6 +655,7 @@ $(document).ready(function(){
 
 	non_rapid.addEventListener('ADAPT_dict',function(e) {
 	    ADAPT = JSON.parse(e.data)
+            console.log(ADAPT)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    $('#Z-R').html(ADAPT['ZR'])
             exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch'] 

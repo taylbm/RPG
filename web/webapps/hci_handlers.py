@@ -232,12 +232,12 @@ def update_funcs(update_queue):
 	    else:
 		flag = EN_dict[fd]
 	else:
-	    flag = "DEAU"
+	    flag = "DEAU" 
 	update_queue.put(flag)
 
     """ Register DEAU Update Notification Callback """
 
-    _rpg.liben.deau_un_register(_rpg.libhci.DEA_AUTO_SWITCH_NODE,generic_callback)	
+    _rpg.liben.deau_un_register('',generic_callback)	
     
     """ Register Application Notification (AN) Callbacks """
    
@@ -285,7 +285,6 @@ Fxn defs to initialize data on initial server connect and on callbacks
 def VAD_init():	
     if (EN_flags['ORPGEVT_ENVWND_UPDATE']):
         vad_flag = _rpg.libhci.hci_get_vad_update_flag()
-	print vad_flag
 	EN_flags['ORPGEVT_ENVWND_UPDATE'] = False
         return {'VAD_Update':vad_flag}
     else:
@@ -402,7 +401,6 @@ def RPG_alarm_init():
 def syslog_alarm_init():
     if(EN_flags['SYSLOG_ALARM']): 
         alarm = _rpg.liborpg.orpgda_read_syslog(_rpg.orpgdat.ORPGDAT_SYSLOG_LATEST,_rpg.libhci.HCI_LE_MSG_MAX_LENGTH,2)
-        print alarm
 	if alarm[0] > 0:
 	    parse_alarm = alarm[1].split(':')
             tstamp_alarm = alarm[2]
@@ -443,7 +441,7 @@ def RPG_op_init():
 	return False
 
 def ADAPT_init():
-    if (EN_flags['ORPGEVT_ADAPT_UPDATE']):
+    if (EN_flags['DEAU']):
         ICAO = _rpg.librpg.deau_get_string_values('site_info.rpg_name')
         zr_relation = _rpg.librpg.deau_get_string_values('alg.hydromet_rate.ZR_relationship')
         ptype = _rpg.librpg.deau_get_string_values('alg.dp_precip.Precip_type') 
@@ -451,8 +449,10 @@ def ADAPT_init():
         max_mrle = _rpg.librpg.deau_get_string_values('pbd.n_mrle_cuts')
 	default_wx_mode = _rpg.librpg.deau_get_string_values(_rpg.librpg.ORPGSITE_DEA_WX_MODE)
         default_mode_A_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_A_VCP,1)
-        default_mode_B_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_B_VCP,1)	
-	EN_flags['ORPGEVT_ADAPT_UPDATE'] = False
+        default_mode_B_vcp = _rpg.librpg.deau_get_values(_rpg.librpg.ORPGSITE_DEA_DEF_MODE_B_VCP,1)
+        precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
+        clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()	
+	EN_flags['DEAU'] = False
         return {
 	    'ICAO':ICAO[1],
 	    'ZR':zr_relation[1],
@@ -461,20 +461,11 @@ def ADAPT_init():
             'max_mrle':max_mrle[1],
 	    'default_wx_mode':default_wx_mode[1].replace(' ','-'),
 	    'default_mode_A':default_mode_A_vcp[1][0],
-	    'default_mode_B':default_mode_B_vcp[1][0]
-        }
-    else:
-	return False
+	    'default_mode_B':default_mode_B_vcp[1][0],
+            'mode_A_auto_switch':precip_switch,
+            'mode_B_auto_switch':clear_air_switch
 
-def AUTO_MODE_init():
-    if (EN_flags['DEAU']):
-        precip_switch = _rpg.libhci.hci_get_mode_a_auto_switch_flag()
-        clear_air_switch = _rpg.libhci.hci_get_mode_b_auto_switch_flag()
-	EN_flags['DEAU'] = False
-	return {
-                'mode_A_auto_switch':precip_switch,
-                'mode_B_auto_switch':clear_air_switch
-	}
+        }
     else:
 	return False
 
@@ -733,7 +724,6 @@ Global_dict = {
                 'model_update':model_flag_init(),
                 'syslog_status':syslog_status_init(),
 		'syslog_alarm':syslog_alarm_init(),
-		'AUTO_MODE':AUTO_MODE_init(),
 		'PMD':PMD_init(),
 		'NB':NB_status_init(),
 		'RPG':{
@@ -829,7 +819,6 @@ PMD_l = {
 
 ADAPT_l = {
             'ADAPT':ADAPT_init,
-	    'AUTO_MODE':AUTO_MODE_init,
             'vad_flag':VAD_init,
             'model_update':model_flag_init
           }
@@ -915,9 +904,8 @@ def CFG():
         sails = [int(stripList(x.split('allow_sails')[1])) if 'allow_sails' in x else [0] for x in text_lines if 'allow_sails' in x]
         allow_sails.update({vcp.replace('vcp_',''):sails[0] if sails else 0})
         mode.update({vcp.replace('vcp_',''):[x.replace('wx_mode','').lstrip().replace('\n','') for x in text_lines if 'wx_mode' in x][0]})
-    VCP = str(_rpg.liborpg.orpgrda_get_status(_rpg.rdastatus.RS_VCP_NUMBER))
     CFG_dict = {
-	    'allow_sails':allow_sails[VCP],
+	    'allow_sails':allow_sails,
 	    'home':HOME,
 	    'cfg':cfg,
 	    'mode':mode
@@ -943,9 +931,9 @@ class Update(object):
         t = data.get('t',False) 
 	if t and t in function_dict.keys():
             if data.get('key',False):
-	        return function_dict[data.t]()[data.key]
+	        return json.dumps(function_dict[data.t]()[data.key])
             else: 
-                return function_dict[data.t]()
+                return json.dumps(function_dict[data.t]())
         else:
             return gzip_response(json.dumps({'PMD_dict':PMD(),'RS_dict':RS(),'RPG_dict':RPG(),'ADAPT_dict':ADAPT(),'CFG_dict':CFG()}))
 
