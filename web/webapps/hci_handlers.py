@@ -296,8 +296,6 @@ def PMD_init():
     	EN_flags['ORPGEVT_PERF_MAIN_RECEIVED'] = False
 	return {
    	    'cnvrtd_gnrtr_fuel_lvl':pmd.cnvrtd_gnrtr_fuel_lvl,
-   	    'v_delta_dbz0':'%0.2f' % pmd.v_delta_dbz0,
-   	    'h_delta_dbz0':'%0.2f' % pmd.h_delta_dbz0,
 	    'perf_check_time':pmd.perf_check_time
         }
     else:
@@ -338,7 +336,9 @@ def RS_init():
 	RS_dict.update({
 			'RS_RDA_CONTROL_AUTH':RS_states['controlauth'][RS_dict['RS_RDA_CONTROL_AUTH']],
         		'CONTROL_AUTHORITY': control_auth,
-			'BLANKING_VALID':[blanking_state,power_state_blanking,control_state_blanking]	
+			'BLANKING_VALID':[blanking_state,power_state_blanking,control_state_blanking],
+                        'RS_REFL_CALIB_CORRECTION':(abs(RS_dict['RS_REFL_CALIB_CORRECTION']) >= 200, "%0.2f" % (float(RS_dict['RS_REFL_CALIB_CORRECTION']) / 100)),
+                        'RS_VC_REFL_CALIB_CORRECTION':(abs(RS_dict['RS_VC_REFL_CALIB_CORRECTION']) >= 200, "%0.2f" % (float(RS_dict['RS_VC_REFL_CALIB_CORRECTION']) / 100))
 		      })
 	RS_dict_init.update(RS_dict)
 	EN_flags['ORPGEVT_RDA_STATUS_CHANGE'] = False

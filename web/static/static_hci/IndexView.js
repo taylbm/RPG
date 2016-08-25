@@ -156,7 +156,6 @@ init();
 $(document).ready(function(){
         $.getJSON('/update?t=CFG',function(data) { 
             CFG = data
-            console.log(CFG)
         })	
         var canvas = document.getElementById("radome");
 	var canvas1 = document.getElementById("inner-circle");
@@ -578,22 +577,7 @@ $(document).ready(function(){
 	non_rapid.addEventListener('PMD_dict',function(e) {
 	    var PMD_current = JSON.parse(e.data)
 	    if ( PMD_current['perf_check_time'] != PMD['perf_check_time'] ) 
-		perfCheck(PMD_current['perf_check_time']);
-	  
-	    if ( PMD_current['h_delta_dbz0'] != PMD['h_delta_dbz0']) {
-		if(PMD_current['h_delta_dbz0'] >= 1.5)
-		    $('#h_delta_dbz0').addClass('minor-alarm');
-	        else
-		    $('#h_delta_dbz0').addClass('normal-ops');
-                $('#h_delta_dbz0').html(PMD_current['h_delta_dbz0']+'dB');
-	    }
-	    if ( PMD_current['v_delta_dbz0'] != PMD['v_delta_dbz0'] ) {
-	        if(PMD_current['v_delta_dbz0'] >= 1.5)
-		    $('#v_delta_dbz0').addClass('minor-alarm');
-		else
-	    	    $('#v_delta_dbz0').addClass('normal-ops');
-                $('#v_delta_dbz0').html(PMD_current['v_delta_dbz0']+'dB');
-	    }
+		perfCheck(PMD_current['perf_check_time']); 
 	    if ( PMD_current['cnvrtd_gnrtr_fuel_lvl'] != PMD['cnvrtd_gnrtr_fuel_lvl'] ) {
 	        $("#gen_level").attr('value',PMD_current['cnvrtd_gnrtr_fuel_lvl']);
 	        $("#gen_level_num").html(PMD_current['cnvrtd_gnrtr_fuel_lvl']+'%');
@@ -648,14 +632,9 @@ $(document).ready(function(){
                 }
 	    }
             PMD = JSON.parse(e.data);
-
-
 	});
-
-
 	non_rapid.addEventListener('ADAPT_dict',function(e) {
 	    ADAPT = JSON.parse(e.data)
-            console.log(ADAPT)
 	    $('#Z-ZDR').html(ADAPT['ptype'])
 	    $('#Z-R').html(ADAPT['ZR'])
             exception_list = ['Model_Update','VAD_Update','mode_A_auto_switch','mode_B_auto_switch'] 
@@ -773,12 +752,11 @@ $(document).ready(function(){
 
             $('#RPG_state').html(RPG['RPG_state'])
 	    switch(RPG['RPG_state']){			
-		case 'OPER': case 'STANDBY':
-			if (RPG['RPG_state'] == 'OPER')
-			    $('#RPG_state').html('OPERATE') 
+		case 'OPER':
+			$('#RPG_state').html('OPERATE'); 
 			$('#RPG_state').attr('class','bar-border2 normal-ops');
 			break;
-		case 'RESTART': 
+		case 'RESTART': case 'STANDBY': 
 			$('#RPG_state').attr('class','bar-border2 inop-indicator');
                         $('.RPG_STAT').removeClass('hide');
 			break;
@@ -848,8 +826,22 @@ $(document).ready(function(){
 
 	});
 	non_rapid.addEventListener('RS_dict',function(e) {
-	    RS = JSON.parse(e.data)	
+	    RS = JSON.parse(e.data)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
+            if(RS['RS_REFL_CALIB_CORRECTION'][0])
+                $('#h_delta_dbz0').addClass('minor-alarm'),
+                $('#h_delta_dbz0').removeClass('normal-ops');
+            else
+                $('#h_delta_dbz0').addClass('normal-ops'),
+                $('#h_delta_dbz0').removeClass('minor-alarm');
+            $('#h_delta_dbz0').html(RS['RS_REFL_CALIB_CORRECTION'][1] +'dB');
+            if(RS['RS_VC_REFL_CALIB_CORRECTION'][0])
+                $('#v_delta_dbz0').addClass('minor-alarm'),
+                $('#v_delta_dbz0').removeClass('normal-ops');
+            else
+                $('#v_delta_dbz0').addClass('normal-ops'),
+                $('#v_delta_dbz0').removeClass('minor-alarms');
+            $('#v_delta_dbz0').html(RS['RS_VC_REFL_CALIB_CORRECTION'][1]+'dB');
 	    var state = Object.keys(RS['RDA_static']);
 	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
 	        $('#RDA_STAT').addClass('hide');

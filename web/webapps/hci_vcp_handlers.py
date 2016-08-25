@@ -132,7 +132,6 @@ class VCP_command_control(object):
             	print ("vcp def read error")
             # creates custom display data
 	    elev_list = [float(x.split('     ')[2].strip('\n')) for x in text_lines if 'elev_ang_deg' in x]
-            print elev_list
 	    unique_elevs = len(set(elev_list))
             num_split_cuts = len([x for x in text_lines if 'waveform_type' and 'CS' in x])-1
             num_batch_cuts = len([x for x in text_lines if 'waveform_type' and 'BATCH' in x])
