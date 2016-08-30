@@ -62,6 +62,15 @@
     <p style="text-align:center">Display</p>
     <a id="products-database" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Products in Database</a>
 </div>
+<div data-transition="pop" data-role="popup" id="popupClutter">
+    <div class="ui-corner-top ui-header ui-bar-a" data-role="header" role="banner">
+        <h1 class="ui-title" role="heading">Clutter Control</h1>
+    </div>
+    <a id="clutter-regions" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Clutter Regions</a>
+    <a id="blockage-data" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Blockage Data Display</a>
+    <a id="bypass-map" class="control-item control-shadow ui-btn ui-shadow ui-btn-corner-all-ui-btn-inline" data-rel="back" href="#">Bypass Map</a>
+</div>
+
 
 <div class="ui-body ui-body-a ui-corner-all center main-body" style="width:97%;background-color:#4BACC6" >
     <div class="ui-grid-b">
@@ -121,6 +130,7 @@
 			    <li><a id="rda_control" class="control-item control-shadow ui-btn ui-btn-icon-left ui-icon-carat-l" style="color:white;text-align:center" href="#rda_control_status">Control</a></li>
 			    <li><a id="rda_perf" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Performance<br> Data</a></li>
 			    <li><a id="rda_alarms" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#" data-rel="popup">Alarms</a></li>
+                            <li><a id="clutter" style="color:white;text-align:center"class="control-item control-shadow ui-btn" href="#popupClutter" data-rel="popup">Clutter Control</a></li>
 			</ul>
                         <div id="RS_AUX_POWER_GEN_STATE" >
 			    <div class="ui-grid-a">
@@ -129,7 +139,7 @@
                                     <p id="gen_level_num">N/A </p>
 				</div>	
 				<div class="ui-block-b">
-                            	    <img id="gen_img" style="width:70%"src='/static/static_hci/gen_shelter.png'></img>
+                            	    <img id="gen_img" src='/static/static_hci/gen_shelter.png'></img>
 				</div>
 			    </div>
                         </div>
@@ -152,10 +162,10 @@
             <div class="rpg-border"></div>
 	</div>
 	<div id="link">
-            <div class="link-status">
+            <div id="R_bar" class="link-status">
                 <img id="R" class="link" src='/static/static_hci/link_down.gif'></img>
 	    </div>
-            <div class="link-status">
+            <div id="V_bar" class="link-status">
                 <img id="V" class="link" src='/static/static_hci/link_down.gif'></img>
             </div>
             <div class="link-status">

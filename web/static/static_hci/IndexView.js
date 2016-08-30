@@ -840,7 +840,7 @@ $(document).ready(function(){
                 $('#v_delta_dbz0').removeClass('normal-ops');
             else
                 $('#v_delta_dbz0').addClass('normal-ops'),
-                $('#v_delta_dbz0').removeClass('minor-alarms');
+                $('#v_delta_dbz0').removeClass('minor-alarm');
             $('#v_delta_dbz0').html(RS['RS_VC_REFL_CALIB_CORRECTION'][1]+'dB');
 	    var state = Object.keys(RS['RDA_static']);
 	    if (RS['RDA_static']['OPERABILITY_LIST'] == 'ONLINE' && RS['RDA_static']['RDA_STATE'] == 'OPERATE')
@@ -1018,6 +1018,8 @@ $(document).ready(function(){
 
 
 	    stopCheck['WIDEBAND'] = RS['RDA_static']['WIDEBAND']
+            var word = RS['RDA_static']['WIDEBAND'].split('_')
+            var word_l = word.length-1
 	    switch (RS['RDA_static']['WIDEBAND']){
 		    case 'CONNECTED':
 			if (stopCheck['WIDEBAND_FLAG']){
@@ -1027,59 +1029,66 @@ $(document).ready(function(){
 			    $('.link-status-sq').removeClass('major-alarm').removeClass('minor-alarm').addClass('normal-ops')
 			    stopCheck['WIDEBAND_FLAG'] = false
 			}
+                        $('.link').removeClass('hide')
+                        $('#R_bar').html('<img id="R" class="link" src="/static/static_hci/link_down.gif"></img>')
+                        $('#V_bar').html('<img id="V" class="link" src="/static/static_hci/link_down.gif"></img>')
 			break;
 		    case 'WBFAILURE': case 'DOWN': case 'NOT_IMPLEMENTED':
-			var word = RS['RDA_static']['WIDEBAND'].split('_')
-			var word_l = word.length-1
 			for (w = 0;w < 4; w++){
 			    if(w > word_l){$('.status'+w).html('').removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')}
 			    else{$('.status'+w).html(word[w]).removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')}
 			}
 			$('.link-status-sq').html('X').removeClass('minor-alarm').removeClass('normal-ops').addClass('major-alarm')
+                        $('.link-status').removeClass('minor-alarm').addClass('major-alarm')
+                        $('.link').addClass('hide')
+                        $('#R_bar').html('__ ' + word[0])
+                        $('#V_bar').html('__ ' + word[1])
 			stopCheck['WIDEBAND_FLAG'] = true
 			break;
 		    case 'CONNECT_PENDING': case 'DISCONNECTED_CM': case 'DISCONNECTED_HC': case 'DISCONNECTED_RMS': case 'DISCONNECT_PENDING': case 'DISCONNECTED_SHUTDOWN':
-			var word = RS['RDA_static']['WIDEBAND'].split('_')
-			var word_l = word.length-1
 			for (w = 0;w < 4; w++){
 			    if(w > word_l){$('.status'+w).html('').removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')}
 			    else{$('.status'+w).html(word[w]).removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')}
 			}
-			$('.link-status-sq').html('X').removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')	
+			$('.link-status-sq').html('X').removeClass('normal-ops').removeClass('major-alarm').addClass('minor-alarm')
+                        $('.link-status').removeClass('major-alarm').addClass('minor-alarm')
+                        $('.link').addClass('hide')
+                        $('#R_bar').html('__ ' + word[0])
+                        $('#V_bar').html('__ ' + word[1])
 			stopCheck['WIDEBAND_FLAG'] = true
 			break;
 	    }
 	});
 
 	$('#refreshPage').click(function(){
-		location.reload()
+ 	    location.reload()
 	});
 	$('#Mode_Conflict_contain').click(function(){
-		$.get("/button?id=hci_mode_status")
+	    $.get("/button?id=hci_mode_status")
 	});
 	$('#link').click(function(){
-		$.get("/button?id=hci_rda_link")
+	    $.get("/button?id=hci_rda_link")
 	});
 	$('#perf_check_time').click(function(){
-		$.get("/button?id=hci_rdc_orda")
+	    $.get("/button?id=hci_rdc_orda")
 	});
 	$('#rda_alarms').click(function(){
-		$.get("/button?id=hci_rda_orda")
+	    $.get("/button?id=hci_rda_orda")
 	});	
 	$('#rpg_status').click(function(){
             window.open("/rpg_status","_blank","width = 900, height = 700");
 	});	
 	$('#user_comms').click(function(){
-		$.get("/button?id=hci_nb")
+	    $.get("/button?id=hci_nb")
 	});	
 	$('#prf_control').click(function(){
-		$.get("/button?id=hci_prf")
+	    $.get("/button?id=hci_prf")
 	});	
 	$('#enviro_data').click(function(){
-		$.get("/button?id=hci_wind")
+	    $.get("/button?id=hci_wind")
 	});
 	$('#rpg_misc').click(function(){
-		$.get("/button?id=hci_misc")
+	    $.get("/button?id=hci_misc")
 	});
         $('#generation-list').click(function(){
             $.get("/button?id=hci_prod")
@@ -1093,17 +1102,26 @@ $(document).ready(function(){
         $('#products-database').click(function(){
             $.get("/button?id=hci_pstat")
         });
+        $('#blockage-data').click(function(){
+            $.get("/button?id=hci_blockage")
+        });
+        $('#bypass-map').click(function(){
+            $.get("/button?id=hci_cbm_orda")
+        });
+        $('#clutter-regions').click(function(){
+            $.get("/button?id=hci_ccz_orda")
+        });
 	$('#88D-ops').click(function(){
-                window.open("/operations","_blank","width = 1024, height = 380");
+            window.open("/operations","_blank","width = 1024, height = 380");
         }); 	
 	$('#shift-change').click(function(){
-                window.open("/scc","_blank","width= 1024, height = 1024, scrollbars=yes");
+            window.open("/scc","_blank","width= 1024, height = 1024, scrollbars=yes");
         });
         $('#vcp-button').click(function(){
-                window.open("/vcp","_blank","width= 1024, height = 840, scrollbars=yes");
+            window.open("/vcp","_blank","width= 1024, height = 840, scrollbars=yes");
         });
         $('#dqd').click(function(){
-                window.open("/dqd","_blank","width= 1024, height = 840, scrollbars=yes");
+            window.open("/dqd","_blank","width= 1024, height = 840, scrollbars=yes");
         });
 });
 

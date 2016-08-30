@@ -113,7 +113,7 @@
                     " >> SAILS set to ",
                     " cut(s) "
                     ],
-        "MRLEDialog":"Selecting \"0\" cuts will disable MRLE. Selecting 1 will rescan All non-zero numbers are additional scans of the lowest elevation of the VCP (SAILSx1). Selecting 2 will rescan the lowest two elevations, 3 will rescan the lowest three elevations and 4 will rescan the lowest four elevations of the VCP.",
+        "MRLEDialog":"Selecting \"0\" cuts will disable MRLE. Selecting 1 will rescan the lowest elevation of the VCP (SAILSx1). Selecting 2 will rescan the lowest two elevations, 3 will rescan the lowest three elevations and 4 will rescan the lowest four elevations of the VCP.",
     "MRLEfeedback":[
                     " >> MRLE Disabled",
                     " >> MRLE set to ",

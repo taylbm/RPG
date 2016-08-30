@@ -521,6 +521,7 @@ table.no-spacing {
 	z-index:2;
 	background-color:#228B22;
 	float:center;
+        height:300px;
 }
 #moments_sq{
 	color:black;
@@ -754,7 +755,15 @@ table.no-spacing {
 #popupDialogPass .ui-radio {
     width: unset 
 }
-
-
+#gen_img {
+    height:50px;
+    width:60px;
+}
+#gen_level_num { 
+    margin-top:0px;
+}
+#rdaButtons { 
+    margin-bottom:0px;
+}
 
 
