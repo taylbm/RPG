@@ -365,6 +365,7 @@ $(document).ready(function(){
 	}); 
 	$('input[name="RDA_control"]').click(function(){
             var command = $(this).val();
+            console.log(command)
             $('#Feedback').html(timeStamp() + ' >> ' + DATA[command]);
             $.post('/send_rda_cmd',{COM:command,FLAG:0});
 	});
@@ -779,10 +780,10 @@ $(document).ready(function(){
             };
 	    switch(RPG['narrowband']){
 		case 'NB_HAS_NO_CONNECTIONS': case 'NB_HAS_FAILED_CONNECTIONS':
-		    $('.nblink-status').html('').removeClass('normal-ops').addClass('null-ops')
+		    $('#nb-link').attr('src','/static/static_hci/link_down.gif')
 		    break;
 		case 'NB_HAS_CONNECTIONS':
-		    $('nblink-status').html(link).removeClass('null-ops').addClass('normal-ops')
+                    $('#nb-link').attr('src','/static/static_hci/link_ready.gif')
 		    break;
 	    }
             if (RPG["RPG_AVSET"]){
@@ -827,6 +828,7 @@ $(document).ready(function(){
 	});
 	non_rapid.addEventListener('RS_dict',function(e) {
 	    RS = JSON.parse(e.data)
+            console.log(RS)
 	    $("#RS_VCP_NUMBER").html(RS['RS_VCP_NUMBER'])
             if(RS['RS_REFL_CALIB_CORRECTION'][0])
                 $('#h_delta_dbz0').addClass('minor-alarm'),
@@ -941,14 +943,18 @@ $(document).ready(function(){
 	    $('#RS_AVE_TRANS_POWER').html(RS['RS_AVE_TRANS_POWER']+' Watts');
 	    if(RS['RDA_static']['RS_RDA_ALARM_SUMMARY_LIST'][0] == 'NO_ALARM')
 	        $('#grid1').addClass('normal-ops-forest')    
-            $('input[name="RDA_control"]').checkboxradio('enable')                
+            $('input[name="RDA_control"]').checkboxradio('enable')     
+            if (RS['RS_AUX_POWER_GEN_STATE'][1]) 
+                $('#util_avail').removeClass('hide')
+            else 
+                $('util_avail').addClass('hide') 
 	    if (RS['BLANKING_VALID'][0]) {
 		if (RS['BLANKING_VALID'][1]) {
  		    $('#RDA_power').val("UNKNOWN");
                     $('#RDA_power_label').html('UNKNOWN')
 		}
 		else {
-	    	    if (RS['RS_AUX_POWER_GEN_STATE']) {
+	    	    if (RS['RS_AUX_POWER_GEN_STATE'][0]) {
                         $('#RDA_power').val("CRDA_AUXGEN")
                         $('#RDA_power_label').html('GENERATOR POWER')
                         $('#RS_AUX_POWER_GEN_STATE').removeClass('hide')
@@ -983,7 +989,8 @@ $(document).ready(function(){
 		$('input[name="RDA_control"]').checkboxradio('disable')
 	    }
 	    else {
-                if (RS['RS_AUX_POWER_GEN_STATE']) {
+                $('#RDA_power').slider('enable')
+                if (RS['RS_AUX_POWER_GEN_STATE'][0]) {
                     $('#RDA_power').val("CRDA_AUXGEN");
                     $('#RDA_power_label').html('GENERATOR POWER')
 		    $('#RS_AUX_POWER_GEN_STATE').removeClass('hide')

@@ -760,10 +760,20 @@ table.no-spacing {
     width:60px;
 }
 #gen_level_num { 
+    display:inline-block;
+    margin-top:0px;
+    margin-right:5px;
+}
+#util_avail { 
+    display:inline-block;
     margin-top:0px;
 }
 #rdaButtons { 
     margin-bottom:0px;
+}
+#RDA_control_label { 
+    text-align:center;
+    margin: 0px;
 }
 
 

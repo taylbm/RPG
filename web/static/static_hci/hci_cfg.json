@@ -131,7 +131,7 @@
     "CRDA_OFFOPER":"Change RDA to Offline Operate state",
     "CRDA_UTIL":"Request switch to Utility Power",
     "CRDA_AUXGEN":"Request switch to Auxiliary Power",
-    "CRDA_ENLOCAL":"Enable RDA control of RDA",
+    "CRDA_ENALOCAL":"Enable RDA control of RDA",
     "CRDA_REREMOTE":"Request RPG to control RDA selected",
     "RDAStatus":"Requesting RDA Status data",
     "RDApower":"You are about to change the RDA power source. Do you want to continue?",

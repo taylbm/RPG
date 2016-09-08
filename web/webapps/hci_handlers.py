@@ -325,7 +325,7 @@ def RS_init():
         if not oper_list:
             oper_list.append('UNKNOWN')
         aux_gen_list = [RS_states['auxgen'][key].strip('AP_').strip('RS_') for key in RS_states['auxgen'].keys() if (key & RS_dict['RS_AUX_POWER_GEN_STATE']) > 0]
-	RS_dict.update({'RS_AUX_POWER_GEN_STATE':"GENERATOR_ON" in aux_gen_list})
+	RS_dict.update({'RS_AUX_POWER_GEN_STATE':["GENERATOR_ON" in aux_gen_list,"UTILITY_PWR_AVAIL" in aux_gen_list]})
         alarm_list = [RS_states['alarmsummary'][key].strip('AS_-9999') for key in RS_states['alarmsummary'].keys() if (key & RS_dict['RS_RDA_ALARM_SUMMARY']) > 0 or key == RS_dict['RS_RDA_ALARM_SUMMARY']]
 	wbstat = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_WBLNSTAT)
 	blanking = _rpg.liborpg.orpgrda_get_wb_status(_rpg.orpgrda.ORPGRDA_DISPLAY_BLANKING)
